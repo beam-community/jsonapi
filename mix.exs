@@ -38,9 +38,9 @@ defmodule JSONAPI.Mixfile do
   end
 
   defp package do
-    [contributors: ["Jason Stiebs"],
+    [contributors: ["Jason Stiebs", "Mitchell Henke"],
       licenses: ["MIT"],
-      links: %{github: "https://github.com/jeregrine/jsonapi"}]
+      links: %{github: "https://github.com/jeregrine/jsonapi", docs: "http://hexdocs.pm/jsonapi/"}]
   end
 
 end
