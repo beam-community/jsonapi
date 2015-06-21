@@ -1,7 +1,7 @@
 defmodule JSONAPI do
   @moduledoc """
-  This module is designed to work with a Phoenix Application. You give it an View,
-  a Ecto model, and a Plug.Conn from a phoenix endpoint and it will spit out a map
+  This module is designed to work with a Phoenix Application. You give it a View,
+  an Ecto model, and a Plug.Conn from a phoenix endpoint and it will spit out a map
   to be rendered by Poison. 
 
   """
