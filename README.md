@@ -19,6 +19,7 @@ Currently in beta status.
 - [ ] Make dependency on Phoenix optional
 - [ ] Make dependency on Ecto optional
 - [ ] Create a plug to handle query param validation and cleanup
+- [ ] Create a plug to force jsonapi request headers
 - [ ] Cleanup query/controller functions 
 - [ ] Tests
 
@@ -28,10 +29,8 @@ documents.
 
 ```elixir
 defmodule UserView do
+  use App.Web, :view
   use JSONAPI.PhoenixView
-  def url_func() do
-    &App.Helpers.user_url/3
-  end
 
   def type, do: "user"
 
@@ -49,6 +48,10 @@ defmodule UserView do
         optional: true
       }
     }
+  end
+  
+  def url_func() do
+    &user_url/3
   end
 end
 ```
