@@ -8,7 +8,7 @@ Currently in beta status.
 - [x] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding
 - [x] Basic support for [compound documents](http://jsonapi.org/format/#document-compound-documents)
 - [ ] [Links](http://jsonapi.org/format/#document-links)
-- [ ] Relationship links (specifically handling relationships /user/1/image but only if its in a relationship :()
+- [ ] Relationship links (handling relationships /user/1/image but only if its in a relationship :()
 - [x] Parsing of `sort` query parameter into Ecto Query order_by
 - [ ] Parsing and limiting of `filter` keywords into
 - [ ] Handling of sparse fieldsets
@@ -18,6 +18,8 @@ Currently in beta status.
 - [ ] Support full JSONAPI [Spec](http://jsonapi.org/format/)
 - [ ] Make dependency on Phoenix optional
 - [ ] Make dependency on Ecto optional
+- [ ] Create a plug to handle query param validation and cleanup
+- [ ] Cleanup query/controller functions 
 - [ ] Tests
 
 ## How to use
