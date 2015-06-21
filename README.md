@@ -5,21 +5,20 @@ A project that will render your data models into [JSONAPI Documents](http://json
 Currently in beta status.
 
 ## JSONAPI Support
-- [x] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding
+- [x] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding [issue
 - [x] Basic support for [compound documents](http://jsonapi.org/format/#document-compound-documents)
-- [ ] [Links](http://jsonapi.org/format/#document-links)
-- [ ] Relationship links (handling relationships /user/1/image but only if its in a relationship :()
+- [ ] [Links](http://jsonapi.org/format/#document-links), [issue#1](https://github.com/jeregrine/jsonapi/issues/1)
+- [ ] Relationship links (handling relationships /user/1/image but only if its in a relationship :() [issue#2](https://github.com/jeregrine/jsonapi/issues/2)
 - [x] Parsing of `sort` query parameter into Ecto Query order_by
-- [ ] Parsing and limiting of `filter` keywords into
+- [ ] Parsing and limiting of `filter` keywords. [issue#3](https://github.com/jeregrine/jsonapi/issues/3)
 - [ ] Handling of sparse fieldsets
 - [ ] Handling of includes
 
 ## JSONAPI Elixir TODO
 - [ ] Support full JSONAPI [Spec](http://jsonapi.org/format/)
-- [ ] Make dependency on Phoenix optional
-- [ ] Make dependency on Ecto optional
-- [ ] Create a plug to handle query param validation and cleanup
-- [ ] Create a plug to force jsonapi request headers
+- [ ] Make dependency on Phoenix optional [issue#4](https://github.com/jeregrine/jsonapi/issues/4)
+- [ ] Make dependency on Ecto optional [issue#4](https://github.com/jeregrine/jsonapi/issues/4)
+- [ ] Create a plug to handle query param validation and cleanup [issue#3](https://github.com/jeregrine/jsonapi/issues/3)
 - [ ] Cleanup query/controller functions 
 - [ ] Tests
 
