@@ -72,7 +72,7 @@ defmodule JSONAPI do
         id: mod.id(data),
         type: mod.type(),
         attributes: mod.attributes(data),
-        relationships: rel
+        relationships: rel,
         links: %{}
       }, included}
   end
