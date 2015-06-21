@@ -3,11 +3,12 @@ defmodule JSONAPI.Mixfile do
 
   def project do
     [app: :jsonapi,
-     version: "0.0.1",
-     elixir: "~> 1.0",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps]
+      version: "0.0.1",
+      package: package(),
+      elixir: "~> 1.0",
+      build_embedded: Mix.env == :prod,
+      start_permanent: Mix.env == :prod,
+      deps: deps]
   end
 
   # Configuration for the OTP application
@@ -32,4 +33,11 @@ defmodule JSONAPI.Mixfile do
       {:ecto, "~> 0.11"}
     ]
   end
+
+  defp package do
+    [contributors: ["Jason Stiebs"]
+      licenses: ["MIT"],
+      links: %{github: "https://github.com/jeregrine/jsonapi"}]
+  end
+
 end
