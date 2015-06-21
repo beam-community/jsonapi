@@ -4,30 +4,30 @@ defmodule JSONAPI.View do
   A View is simply a module that define certain callbacks to configure proper rendering of your JSONAPI
   documents. 
 
-    defmodule UserView do
-      use JSONAPI.View
-      def url_func() do
-        &App.Helpers.user_url/3
-      end
+      defmodule UserView do
+        use JSONAPI.View
+        def url_func() do
+          &App.Helpers.user_url/3
+        end
 
-      def type, do: "user"
+        def type, do: "user"
 
-      def attributes(model) do
-        Map.take(model, [:username, :created_at,])
-      end
+        def attributes(model) do
+          Map.take(model, [:username, :created_at,])
+        end
 
-      def relationships() do
-        %{
-          image: %{
-            view: ImageView
-          },
-          posts: %{
-            view: PostView
-            optional: true
+        def relationships() do
+          %{
+            image: %{
+              view: ImageView
+            },
+            posts: %{
+              view: PostView
+              optional: true
+            }
           }
-        }
+        end
       end
-    end
 
   is an example of a basic view. You can now call `UserView.show(user, conn, params)` and it will 
   render a valid jsonapi doc. 
@@ -36,13 +36,13 @@ defmodule JSONAPI.View do
   Currently the relationships callback expects that a map is returned configuring the information
   you will need. If you have the following Ecto Model setup
 
-    defmodule User do
-      schema "users" do
-        field :username
-        has_many :posts
-        has_one :image
+      defmodule User do
+        schema "users" do
+          field :username
+          has_many :posts
+          has_one :image
+        end
       end
-    end
 
   and the relationships map from above it will always encode an image relationship or leave it as nil
   and it will only encode a posts relationship if it is loaded. Support for the query parameter 
