@@ -50,7 +50,7 @@ defmodule JSONAPI.View do
   """
   defmacro __using__(_opts) do
     quote do
-      import JSONAPI
+      import JSONAPI, only: [show: 4, index: 4]
       def url_func(), do: fn(_a, _b, _c) -> raise "url_func/0 needs to be defined" end
 
       def id(data), do: data.id |> to_string()
@@ -59,7 +59,7 @@ defmodule JSONAPI.View do
       def type(), do: raise "Need to implement type/0"
 
       def show(model, conn, params), do: show(__MODULE__, model, conn, params)
-      def index(models, conn, params), do: show(__MODULE__, models, conn, params)
+      def index(models, conn, params), do: index(__MODULE__, models, conn, params)
 
       defoverridable [url_func: 0, attributes: 1,  relationships: 0, id: 1, type: 0]
     end
