@@ -33,7 +33,7 @@ defmodule UserView do
   def type, do: "user"
 
   def attributes(model) do
-    Map.take(model, [:username, :created_at,])
+    Map.take(model, [:username, :created_at])
   end
 
   def relationships() do
