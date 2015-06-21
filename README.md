@@ -23,13 +23,12 @@ Currently in beta status.
 - [ ] Tests
 
 ## How to use
-A View is simply a module that define certain callbacks to configure proper rendering of your JSONAPI
-documents. 
+Simply add `use JSONAPI.PhoenixView` either to the top of your view, or to the web.ex view section and add the
+proper functions to your view like so.
 
 ```elixir
 defmodule UserView do
   use App.Web, :view
-  use JSONAPI.PhoenixView
 
   def type, do: "user"
 
@@ -60,10 +59,10 @@ is an example of a basic view. You can now call `render` normally in your phoeni
 ## Philosophy
 
 - Functions are better than Macro's in almost every case
-- DSL's are great untill you need something a little different. So use Maps.
-- Make it work, worry about fast and pretty later.
+- DSL's are great until you need something a little different. So use Maps.
+- Make it work, worry about the rest later.
 
-## Contributions
+## Other
 
 - Feel free to make PR's. I will do my best to respond within a day or two. 
 - If you want to take one of the TODO items just create an issue or PR and let me know so we avoid duplication.
