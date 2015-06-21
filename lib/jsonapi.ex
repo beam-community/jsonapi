@@ -51,7 +51,7 @@ defmodule JSONAPI do
 
   defp data_one(doc, data, mod) do
     {data, included} = encode(data, mod)
-    {Dict.put(doc, :data, [data]), included}
+    {Dict.put(doc, :data, data), included}
   end
 
   defp as_relationship(data, mod) when is_list(data) do
