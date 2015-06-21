@@ -29,6 +29,7 @@ proper functions to your view like so.
 ```elixir
 defmodule UserView do
   use App.Web, :view
+  use JSONAPI.PhoenixView
 
   def type, do: "user"
 
