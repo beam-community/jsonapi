@@ -1,6 +1,5 @@
 defmodule JSONAPI.View do
   @moduledoc """
-  ## Overview
   A View is simply a module that define certain callbacks to configure proper rendering of your JSONAPI
   documents. 
 
