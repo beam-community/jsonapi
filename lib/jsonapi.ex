@@ -157,20 +157,19 @@ defmodule JSONAPI do
       self: mod.url_func().(endpoint, :index, params),
     }
 
-    number = get_in(params, [:page, :number])
+    page_number = get_in(params, [:page, :number])
     page_size  = get_in(params, [:page, :size])
     resources = Map.get(doc, :data, [])
 
-    if number && page_size do
+    if page_number && page_size do
 
       if Enum.count(resources) == page_size do
-        next_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], number+1))
+        next_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], page_number+1))
         links = Dict.put(links, :next_page, next_page)
-      else
       end
 
-      if number > 0 do
-        previous_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], number-1))
+      if page_number > 0 do
+        previous_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], page_number-1))
         links = Dict.put(links, :previous_page, previous_page)
       end
 
