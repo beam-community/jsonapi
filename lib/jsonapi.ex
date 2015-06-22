@@ -155,26 +155,28 @@ defmodule JSONAPI do
   defp handle_paging(doc, mod, params, endpoint) do
     links = %{
       self: mod.url_func().(endpoint, :index, params),
-      next_page: nil,
-      previous_page: nil
     }
 
     number = get_in(params, [:page, :number])
     page_size  = get_in(params, [:page, :size])
     resources = Map.get(doc, :data, [])
 
-    if Enum.count(resources) == page_size do
-      next_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], number+1))
-      links = Dict.put(links, :next_page, next_page)
-    else
+    if number && page_size do
+
+      if Enum.count(resources) == page_size do
+        next_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], number+1))
+        links = Dict.put(links, :next_page, next_page)
+      else
+      end
+
+      if number > 0 do
+        previous_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], number-1))
+        links = Dict.put(links, :previous_page, previous_page)
+      end
+
+      links = Map.get(doc, :links, %{}) |> Map.merge(links)
     end
 
-    if number > 0 do
-      previous_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], number-1))
-      links = Dict.put(links, :previous_page, previous_page)
-    end
-
-    links = Map.get(doc, :links, %{}) |> Map.merge(links)
     Map.put(doc, :links, links)
   end
 
