@@ -3,7 +3,7 @@ defmodule JSONAPI.Mixfile do
 
   def project do
     [app: :jsonapi,
-      version: "0.0.1",
+      version: "0.0.2",
       package: package(),
       elixir: "~> 1.0",
       build_embedded: Mix.env == :prod,
