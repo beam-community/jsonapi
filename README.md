@@ -44,7 +44,6 @@ defmodule UserView do
       },
       posts: %{
         view: PostView
-        optional: true
       }
     }
   end
