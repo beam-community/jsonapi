@@ -105,7 +105,7 @@ defmodule JSONAPI do
       rel_data = if loaded?(assoc_data) do
         as_relationship(assoc_data, view)
       else
-        map_key = get_assoc_key(key)
+        map_key = String.to_atom("#{key}_id")
 
         if Map.has_key?(data, map_key) do
           id = Map.get(data, map_key)
@@ -207,14 +207,5 @@ defmodule JSONAPI do
     }
   end
 
-  defp get_assoc_key(key) do
-    map_key = Atom.to_string(key)
-
-    if String.ends_with?(map_key, "s") do
-      map_key = String.rstrip(map_key, ?s)
-    end
-
-    map_key= String.to_existing_atom("#{map_key}_id")
-  end
 end
 
