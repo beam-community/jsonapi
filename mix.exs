@@ -16,7 +16,12 @@ defmodule JSONAPI.Mixfile do
   #
   # Type `mix help compile.app` for more information
   def application do
-    []
+    [
+      applications: [:phoenix],
+      env: [template_engines: [],
+        format_encoders: [],
+        filter_parameters: ["password"],
+        serve_endpoints: false]]
   end
 
   # Dependencies can be Hex packages:
