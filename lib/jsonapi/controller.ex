@@ -1,31 +1,4 @@
 defmodule JSONAPI.Controller do
-  @moduledoc """
-  This module is a grab bag of functions that are useful when parsing query strings for JSONAPI.
-
-  Your goto should be clean_params\2 
-
-      > params = JSONAPI.Query.clean_params(params)
-      > %{ filter: %{}, sort: [], include: %{}}
-
-  You might also find `get!(User, id)` to be handy.
-
-  This whole module needs to be cleaned up and standardized.   
-  """
-
-  @doc """
-  Gets the module from the current `Repo` raises JSONAPI.ResourceNotFound
-  otherwise. Can accept a string or an integer for id. Current impl expects
-  a integer id.
-  """
-  @spec get!(module, String.t | Integer.t) :: Map.t | no_return 
-  def get!(_m, nil), do: raise Ecto.NoResultsError
-  def get!(_m, "null"), do: raise Ecto.NoResultsError
-  def get!(_m, ""), do: raise Ecto.NoResultsError
-  def get!(module, id) when is_binary(id), do: get!(module, String.to_integer(id))
-  def get!(module, id) when is_integer(id) and is_atom(module) do
-    Repo.get!(module, id)
-  end
-
   @doc """
   Will take a standards string key => val params map and parse out useful pieces for JSONAPI.
 
