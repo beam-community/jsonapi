@@ -58,8 +58,7 @@ is an example of a basic view. You can now call `render` normally in your phoeni
 
 ## Philosophy
 
-- Functions are better than Macro's in almost every case
-- DSL's are great until you need something a little different. So use Maps.
+- DSL's are great until you need something a little different. So use [Maps or functions](http://elixir-lang.org/getting-started/meta/domain-specific-languages.html)
 - Make it work, worry about the rest later.
 
 ## Other
