@@ -90,6 +90,6 @@ defmodule Mix.Tasks.Phoenix.Gen.Jsonapi do
   end
 
   defp source_dir do
-    Application.app_dir(:phoenix, "priv/templates/jsonapi")
+    Application.app_dir(:jsonapi, "priv/templates/jsonapi")
   end
 end
