@@ -1,4 +1,9 @@
 # Changelog
+
+## v0.1.0 (2015-06-?)
+
+* Made params optional
+
 ## v0.0.2 (2015-06-22)
 
 * Made paging optional

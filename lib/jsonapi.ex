@@ -54,8 +54,19 @@ defmodule JSONAPI do
     {Dict.put(doc, :data, data), included}
   end
 
+  defp as_relationship(nil, mod), do: nil
+  defp as_relationship([], _mod), do: []
   defp as_relationship(data, mod) when is_list(data) do
     Enum.map(data, &(as_relationship(&1, mod)))
+  end
+  defp as_relationship(d, mod) when is_integer(d) do
+    as_relationship(Integer.to_string(d), mod)
+  end
+  defp as_relationship(d, mod) when is_binary(d) do
+    %{
+      type: mod.type(),
+      id: d
+    }
   end
   defp as_relationship(d, mod) do
     %{
@@ -63,6 +74,7 @@ defmodule JSONAPI do
       id: mod.id(d)
     }
   end
+
 
   @spec encode(Map, module) :: {Map, list(Map)}
   defp encode(data, mod) do
@@ -88,30 +100,31 @@ defmodule JSONAPI do
       end
 
       assoc_data = Map.get(data, key)
-      #TODO Here we should check if optional and error if not. Possible to move into its own function
-      #TODO Breakout into functions
+      rel_data = nil
 
-      if loaded?(assoc_data) && !is_nil(assoc_data) || (is_list(assoc_data) && assoc_data != []) do
-        if is_list(assoc_data) do
-          rel_data = Enum.map(assoc_data, &(as_relationship(&1, view)))
-        else
-          rel_data = as_relationship(assoc_data, view)
-        end
-
-        put_in(acc, [:rel, key],%{
-          links: %{},  #TODO Figure out params here ¯\_(ツ)_/¯
-          data: rel_data
-        }) |> Map.update!(:include, fn(v) -> v ++ [Map.put(val, :data, assoc_data)] end)
+      rel_data = if loaded?(assoc_data) do
+        as_relationship(assoc_data, view)
       else
-        optional = Map.get(val, :optional, false)
-        if optional do
-          acc
+        map_key = String.to_atom("#{key}_id")
+
+        if Map.has_key?(data, map_key) do
+          id = Map.get(data, map_key)
+          as_relationship(id, view)
         else
-          put_in(acc, [:rel, key],%{
-            links: %{},  #TODO Figure out params here ¯\_(ツ)_/¯
-            data: nil
-          })
+          []
         end
+      end
+
+      acc = put_in(acc, [:rel, key],%{
+        links: %{},  #todo figure out params here ¯\_(ツ)_/¯
+        data: rel_data
+      })
+
+      if loaded?(assoc_data) && rel_data do
+        data = Map.put(val, :data, assoc_data)
+        Map.update!(acc, :include, fn(v) -> v ++ [data] end)
+      else
+        acc
       end
     end)
   end
@@ -121,9 +134,16 @@ defmodule JSONAPI do
   defp handle_includes(data), do: handle_includes(data, HashSet.new) 
   # Done processing
   defp handle_includes({document, []}, _processed_includes), do: document
+  defp handle_includes({document, [%{:data => []} | includes] }, processed_includes) do
+    handle_includes({document, includes}, processed_includes)
+  end
+  defp handle_includes({document, [%{:data => nil} | includes] }, processed_includes) do
+    handle_includes({document, includes}, processed_includes)
+  end
   defp handle_includes({document, [include_to_process | includes] }, processed_includes) do
     # Get the data element from the list. Process it's first item if a list
     data = Map.get(include_to_process, :data)
+
     unless is_list(data) do
       data = [data]
     end
@@ -186,5 +206,6 @@ defmodule JSONAPI do
       included: [] 
     }
   end
+
 end
 
