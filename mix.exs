@@ -30,8 +30,8 @@ defmodule JSONAPI.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [
-      {:phoenix, "~> 0.13"},
-      {:ecto, "~> 0.11"},
+      {:phoenix, "~> 0.14"},
+      {:ecto, "~> 0.12"},
       {:ex_doc, "~> 0.7", only: :dev},
       {:earmark, ">= 0.0.0", only: :dev}
     ]
