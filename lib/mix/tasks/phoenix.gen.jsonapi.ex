@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Phoenix.Gen.Jsonapi do
+defmodule Mix.Tasks.Phoenix.Gen.JSONAPI do
   use Mix.Task
 
   @shortdoc "Generates a controller and model for an JSON-based resource"
@@ -31,10 +31,10 @@ defmodule Mix.Tasks.Phoenix.Gen.Jsonapi do
     binding = Mix.Phoenix.inflect(singular)
     path    = binding[:path]
     route   = String.split(path, "/") |> Enum.drop(-1) |> Kernel.++([plural]) |> Enum.join("/")
-    binding = binding ++ [plural: plural, route: route, params: Mix.Phoenix.params(attrs)]
+    binding = binding ++ [plural: plural, route: route, params: Mix.Phoenix.params(attrs), attrs: attrs]
 
-    #Mix.Phoenix.check_module_name_availability!(binding[:module] <> "Controller")
-    #Mix.Phoenix.check_module_name_availability!(binding[:module] <> "View")
+    Mix.Phoenix.check_module_name_availability!(binding[:module] <> "Controller")
+    Mix.Phoenix.check_module_name_availability!(binding[:module] <> "View")
 
     if opts[:model] != false do
       Mix.Task.run "phoenix.gen.model", args
@@ -50,7 +50,7 @@ defmodule Mix.Tasks.Phoenix.Gen.Jsonapi do
       files = files ++ [{:eex, "changeset_view.ex", "web/views/changeset_view.ex"}]
     end
 
-    Mix.Phoenix.copy_from source_dir, "", binding, files
+    Mix.Phoenix.copy_from apps(), "priv/templates/jsonapi", "", binding, files
 
     Mix.shell.info """
 
@@ -89,7 +89,7 @@ defmodule Mix.Tasks.Phoenix.Gen.Jsonapi do
     """
   end
 
-  defp source_dir do
-    Application.app_dir(:jsonapi, "priv/templates/jsonapi")
+  defp apps do
+    [Mix.Project.config[:app], :jsonapi]
   end
 end
