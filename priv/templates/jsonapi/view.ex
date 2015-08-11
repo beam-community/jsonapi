@@ -6,7 +6,10 @@ defmodule <%= module %>View do
   def type, do: "<%= singular %>"
 
   def attributes(model) do
-    Map.take(model, [:id, :created_at])
+    Map.take(model, [ :id,
+      <%= for {k, _} <- attrs do %> <%= inspect k %>,
+      <% end %>
+      :created_at, :updated_at ])
   end
 
   def relationships() do
