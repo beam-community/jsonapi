@@ -30,7 +30,7 @@ defmodule JSONAPI do
   will return a map formatted in the JSONAPI Spec, which then can be encoded using
   your prefered JSON encoder.
   """
-  @spec show(module, Map, Plug.Conn.t, Map) :: Map
+  @spec index(module, Map, Plug.Conn.t, Map) :: Map
   def index(mod, data, conn, params) do
     endpoint = Phoenix.Controller.endpoint_module(conn)
 
