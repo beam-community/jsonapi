@@ -16,8 +16,9 @@ defmodule JSONAPI.PlugResponseContentType do
     register_before_send(conn, fn(conn) ->
       if !conn.assigns[:override_jsonapi] do
         put_resp_content_type(conn, "application/vnd.api+json")
+      else
+        conn
       end
     end)
   end
 end
-
