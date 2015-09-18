@@ -1,8 +1,8 @@
 defmodule JSONAPI do
   @moduledoc """
-  This module is designed to work with a Phoenix Application. You give it a View,
-  an Ecto model, and a Plug.Conn from a phoenix endpoint and it will spit out a map
-  to be rendered by Poison. 
+  This module is designed to work with a Phoenix application. You give it a view,
+  an Ecto model, and a Plug.Conn or an Endpoint from your Phoenix application and it will spit
+  out a map to be rendered by Poison.
 
   """
   import Ecto.Association, only: [loaded?: 1]
@@ -11,7 +11,7 @@ defmodule JSONAPI do
   Encodes a single map and its associations according to the view module's callbacks.
 
     JSONAPI.show(UserView, user_model, conn)
-  
+
   will return a map formatted in the JSONAPI Spec, which then can be encoded using
   your prefered JSON encoder.
   """
@@ -26,18 +26,17 @@ defmodule JSONAPI do
   Encodes a single map and its associations according to the view module's callbacks.
 
     JSONAPI.index(UserView, user_model)
-  
+
   will return a map formatted in the JSONAPI Spec, which then can be encoded using
   your prefered JSON encoder.
   """
-  @spec index(module, Map, Plug.Conn.t, Map) :: Map
-  def index(mod, data, conn, params) do
-    endpoint = Phoenix.Controller.endpoint_module(conn)
+  @spec index(module, Map, Module.t | Plug.Conn.t, Map) :: Map
+  def index(mod, data, conn_or_endpoint, params) do
 
     base_doc()
     |> data_many(data, params, mod)
     |> handle_includes()
-    |> handle_paging(mod, Map.drop(params, ["format", :sort, "filter"]), endpoint)
+    |> handle_paging(mod, Map.drop(params, ["format", :sort, "filter"]), conn_or_endpoint)
   end
 
   defp data_many(doc, data, _params, mod) do
@@ -45,7 +44,7 @@ defmodule JSONAPI do
       {encoded_doc, include} = encode(d, mod)
       {nil, {a_data ++ [encoded_doc], a_included ++ include}}
     end)
-     
+
     {Dict.put(doc, :data, total_data), total_included}
   end
 
@@ -91,7 +90,7 @@ defmodule JSONAPI do
 
   @spec handle_relationships(Map, module) :: Map | no_return
   @spec handle_relationships(Map, module, list) :: Map | no_return
-  defp handle_relationships(data, mod), do: handle_relationships(data, mod, []) 
+  defp handle_relationships(data, mod), do: handle_relationships(data, mod, [])
   defp handle_relationships(data, mod, included) do
     Enum.reduce(mod.relationships(), %{rel: %{}, include: included}, fn({key, val}, acc) ->
       view = Map.get(val, :view, nil)
@@ -129,9 +128,9 @@ defmodule JSONAPI do
     end)
   end
 
-  @spec handle_includes({Map, list(Map)}) :: Map 
+  @spec handle_includes({Map, list(Map)}) :: Map
   @spec handle_includes({Map, list(Map)}, HashSet.t) :: Map
-  defp handle_includes(data), do: handle_includes(data, HashSet.new) 
+  defp handle_includes(data), do: handle_includes(data, HashSet.new)
   # Done processing
   defp handle_includes({document, []}, _processed_includes), do: document
   defp handle_includes({document, [%{:data => []} | includes] }, processed_includes) do
@@ -203,9 +202,8 @@ defmodule JSONAPI do
     %{
       links: %{},
       data: [],
-      included: [] 
+      included: []
     }
   end
 
 end
-
