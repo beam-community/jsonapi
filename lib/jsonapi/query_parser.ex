@@ -14,7 +14,7 @@ defmodule JSONAPI.QueryParser do
     query_params = conn.query_params
 
     config = opts
-    |> parse_fields(Map.get(query_params, "fields", ""))
+    |> parse_fields(Map.get(query_params, "fields", %{}))
     |> parse_include(Map.get(query_params, "includes", ""))
     |> IO.inspect()
 
@@ -22,8 +22,33 @@ defmodule JSONAPI.QueryParser do
     #assign(conn, :jsonapi_config, config)
   end
 
-  def parse_fields(config, ""), do: config
+  def parse_fields(config, %{}), do: config
   def parse_fields(%Config{opts: opts}=config, fields) do
+    Enum.reduce(fields, config, fn ({type, value}, acc) ->
+      valid_fields = get_valid_fields_for_type(opts, type) |> Enum.into(HashSet.new)
+      requested_fields = String.split(value, ",") |> Enum.map(&String.to_existing_atom/1) |> Enum.into(HashSet.new)
+      if HashSet.difference(valid_fields, requested_fields) != [] do
+        raise "Invalid fields requested for type: #{config.view.type()}"
+      end
+      old_fields = Map.get(acc, :fields, %{})
+      new_fields = Map.put(old_fields, type, HashSet.to_list(requested_fields))
+      Map.put(acc, :fields, new_fields)
+    end)
+  end
+
+  def get_valid_fields_for_type(opts, type) do
+    view = opts[:view]
+    if type == view.type() do
+      view.fields()
+    else
+     get_view_for_type(view, type).fields()
+    end 
+  end
+
+  def get_view_for_type(my_view, type) do
+    [view | path]  = Module.split(my_view) |> Enum.reverse()
+    path = Enum.reverse(path)
+    Module.concat(path ++ ["#{String.capitalize(type)}View"])
   end
 
   def parse_include(config, ""), do: config
