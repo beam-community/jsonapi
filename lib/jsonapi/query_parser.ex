@@ -70,7 +70,7 @@ defmodule JSONAPI.QueryParser do
                                       
           acc ++ [inc]
         else
-          raise "400 bad Request BAD KEYWORD"
+          raise "400 Bad Include"
         end
       end
     end)

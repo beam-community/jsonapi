@@ -11,7 +11,12 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_include(config, "comments.author").include == [comments: :author]
   end
 
-  test "parse_include\2 errors with invalid includes"
+  test "parse_include\2 errors with invalid includes" do
+    config = struct(Config, opts: [include: [:author]])
+    assert_raise RuntimeError, "400 bad Request", fn ->
+      parse_include(config, "author,comments.author") 
+    end
+  end
   test "parse_fields\2 turns a fields map into a map of validated fields"
   
   test "member_of_tree?\2 traverses the tree" do
