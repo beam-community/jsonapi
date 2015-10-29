@@ -16,10 +16,25 @@ defmodule JSONAPI.QueryParser do
     config = opts
     |> parse_fields(Map.get(query_params, "fields", %{}))
     |> parse_include(Map.get(query_params, "includes", ""))
+    |> parse_filter(Map.get(query_params, "filter", %{}))
     |> IO.inspect()
 
     # config is %JSONAPI.Config{ select....} basically everything parsed into elixir types 
     #assign(conn, :jsonapi_config, config)
+  end
+
+  def parse_filter(config, map) when map_size(map) == 0, do: config
+  def parse_filter(%Config{opts: opts}=config, filter) do
+    Enum.reduce(filter, config, fn({key, val}, acc) ->
+      unless Keyword.has_key?(opts, key) do
+        raise "No filter function #{key}, defined"
+      end
+
+      fun = opts[key]
+      old_filter = Map.get(acc, :filter, %{})
+      new_filter = Map.put(old_filter, key, fn (ds) -> fun.(key, val, ds) end)
+      Map.put(acc, :filter, new_filter)
+    end)
   end
 
   def parse_fields(config, map) when map_size(map) == 0, do: config

@@ -10,6 +10,12 @@ defmodule JSONAPI.QueryParserTest do
     def type(), do: "mytype"
   end
 
+  test "parse_sort\2 turns sorts into valid ecto sorts"
+  test "parse_sort\2 raises on invalid sorts"
+
+  test "parse_filter\2 turns filters into valid anon functions"
+  test "parse_filter\2 raises on invalid filters"
+
   test "parse_include\2 turns an include string into a keyword list" do
     config = struct(Config, opts: [include: [:author, comments: :author]])
     assert parse_include(config, "author,comments.author").include == config.opts[:include]
@@ -29,6 +35,8 @@ defmodule JSONAPI.QueryParserTest do
     config = struct(Config, view: JSONAPI.QueryParserTest.MyView)
     assert parse_fields(config, %{"mytype" => "id,text"}).fields == %{"mytype" => [:id, :text]}
   end
+
+  test "parse_fields\2 raises on invalid parsing"
   
   test "member_of_tree?\2 traverses the tree" do
     include = [test: [the: :path]]
