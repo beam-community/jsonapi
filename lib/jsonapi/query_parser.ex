@@ -22,22 +22,23 @@ defmodule JSONAPI.QueryParser do
     #assign(conn, :jsonapi_config, config)
   end
 
-  def parse_fields(config, %{}), do: config
+  def parse_fields(config, map) when map_size(map) == 0, do: config
   def parse_fields(%Config{opts: opts}=config, fields) do
     Enum.reduce(fields, config, fn ({type, value}, acc) ->
-      valid_fields = get_valid_fields_for_type(opts, type) |> Enum.into(HashSet.new)
+      valid_fields = get_valid_fields_for_type(config, type) |> Enum.into(HashSet.new)
       requested_fields = String.split(value, ",") |> Enum.map(&String.to_existing_atom/1) |> Enum.into(HashSet.new)
-      if HashSet.difference(valid_fields, requested_fields) != [] do
+      unless HashSet.subset?(requested_fields, valid_fields) do
         raise "Invalid fields requested for type: #{config.view.type()}"
       end
+  
       old_fields = Map.get(acc, :fields, %{})
       new_fields = Map.put(old_fields, type, HashSet.to_list(requested_fields))
       Map.put(acc, :fields, new_fields)
     end)
   end
 
-  def get_valid_fields_for_type(opts, type) do
-    view = opts[:view]
+  def get_valid_fields_for_type(config, type) do
+    view = config.view
     if type == view.type() do
       view.fields()
     else

@@ -3,6 +3,13 @@ defmodule JSONAPI.QueryParserTest do
   import JSONAPI.QueryParser
   alias JSONAPI.Config
 
+  defmodule MyView do
+    use JSONAPI.View
+
+    def fields(), do: [:id, :text, :body]
+    def type(), do: "mytype"
+  end
+
   test "parse_include\2 turns an include string into a keyword list" do
     config = struct(Config, opts: [include: [:author, comments: :author]])
     assert parse_include(config, "author,comments.author").include == config.opts[:include]
@@ -17,7 +24,11 @@ defmodule JSONAPI.QueryParserTest do
       parse_include(config, "author,comments.author") 
     end
   end
-  test "parse_fields\2 turns a fields map into a map of validated fields"
+
+  test "parse_fields\2 turns a fields map into a map of validated fields" do
+    config = struct(Config, view: JSONAPI.QueryParserTest.MyView)
+    assert parse_fields(config, %{"mytype" => "id,text"}).fields == %{"mytype" => [:id, :text]}
+  end
   
   test "member_of_tree?\2 traverses the tree" do
     include = [test: [the: :path]]
