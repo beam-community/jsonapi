@@ -13,7 +13,13 @@ defmodule JSONAPI.QueryParserTest do
   test "parse_sort\2 turns sorts into valid ecto sorts"
   test "parse_sort\2 raises on invalid sorts"
 
-  test "parse_filter\2 turns filters into valid anon functions"
+  test "parse_filter\2 turns filters into valid anon functions" do
+    config = struct(Config, opts: [filter: %{name: fn (key, val, ds) -> {key, val, ds} end}])
+    %{name: fun} = parse_filter(config, %{name: "jason"}).filter
+    assert is_function(fun)
+    assert fun.(:x) == {:name, "jason", :x}
+  end
+
   test "parse_filter\2 raises on invalid filters"
 
   test "parse_include\2 turns an include string into a keyword list" do
