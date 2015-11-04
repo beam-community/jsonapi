@@ -20,7 +20,12 @@ defmodule JSONAPI.QueryParserTest do
     assert fun.(:x) == {:name, "jason", :x}
   end
 
-  test "parse_filter\2 raises on invalid filters"
+  test "parse_filter\2 raises on invalid filters" do
+    config = struct(Config, opts: [])
+    assert_raise RuntimeError, "No filter function name, defined", fn ->
+      parse_filter(config, %{name: "jason"}).filter
+    end
+  end
 
   test "parse_include\2 turns an include string into a keyword list" do
     config = struct(Config, opts: [include: [:author, comments: :author]])

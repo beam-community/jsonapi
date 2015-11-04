@@ -25,7 +25,7 @@ defmodule JSONAPI.QueryParser do
 
   def parse_filter(config, map) when map_size(map) == 0, do: config
   def parse_filter(%Config{opts: opts}=config, filter) do
-    opts_filter = opts[:filter]
+    opts_filter = Keyword.get(opts, :filter, %{})
     Enum.reduce(filter, config, fn({key, val}, acc) ->
       unless Map.has_key?(opts_filter, key) do
         raise "No filter function #{key}, defined"
