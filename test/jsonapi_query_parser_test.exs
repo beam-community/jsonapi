@@ -10,8 +10,20 @@ defmodule JSONAPI.QueryParserTest do
     def type(), do: "mytype"
   end
 
-  test "parse_sort\2 turns sorts into valid ecto sorts"
-  test "parse_sort\2 raises on invalid sorts"
+  test "parse_sort\2 turns sorts into valid ecto sorts" do
+    config = struct(Config, opts: [sort: [:name, :title]])
+    assert parse_sort(config, "name,title").sort == [asc: :name, asc: :title]
+    assert parse_sort(config, "name").sort == [asc: :name]
+    assert parse_sort(config, "-name").sort == [desc: :name]
+    assert parse_sort(config, "name,-title").sort == [asc: :name, desc: :title]
+  end
+
+  test "parse_sort\2 raises on invalid sorts" do
+    config = struct(Config, opts: [])
+    assert_raise RuntimeError, "Invalid sort, name requested", fn ->
+      parse_sort(config, "name")
+    end
+  end
 
   test "parse_filter\2 turns filters into valid anon functions" do
     config = struct(Config, opts: [filter: %{name: fn (key, val, ds) -> {key, val, ds} end}])
@@ -23,7 +35,7 @@ defmodule JSONAPI.QueryParserTest do
   test "parse_filter\2 raises on invalid filters" do
     config = struct(Config, opts: [])
     assert_raise RuntimeError, "No filter function name, defined", fn ->
-      parse_filter(config, %{name: "jason"}).filter
+      parse_filter(config, %{name: "jason"})
     end
   end
 

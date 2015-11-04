@@ -17,6 +17,7 @@ defmodule JSONAPI.QueryParser do
     |> parse_fields(Map.get(query_params, "fields", %{}))
     |> parse_include(Map.get(query_params, "includes", ""))
     |> parse_filter(Map.get(query_params, "filter", %{}))
+    |> parse_sort(Map.get(query_params, "sort", ""))
     |> IO.inspect()
 
     # config is %JSONAPI.Config{ select....} basically everything parsed into elixir types 
@@ -39,10 +40,10 @@ defmodule JSONAPI.QueryParser do
   end
 
   def parse_fields(config, map) when map_size(map) == 0, do: config
-  def parse_fields(%Config{opts: opts}=config, fields) do
+  def parse_fields(%Config{}=config, fields) do
     Enum.reduce(fields, config, fn ({type, value}, acc) ->
       valid_fields = get_valid_fields_for_type(config, type) |> Enum.into(HashSet.new)
-      requested_fields = String.split(value, ",") |> Enum.map(&String.to_existing_atom/1) |> Enum.into(HashSet.new)
+      requested_fields = String.split(value, ",") |> Enum.map(&String.to_atom/1) |> Enum.into(HashSet.new)
       unless HashSet.subset?(requested_fields, valid_fields) do
         raise "Invalid fields requested for type: #{config.view.type()}"
       end
@@ -53,24 +54,30 @@ defmodule JSONAPI.QueryParser do
     end)
   end
 
-  def get_valid_fields_for_type(config, type) do
-    view = config.view
-    if type == view.type() do
-      view.fields()
-    else
-     get_view_for_type(view, type).fields()
-    end 
+  def parse_sort(config, ""), do: config
+  def parse_sort(%Config{opts: opts}=config, sort_fields) do
+    sorts = String.split(sort_fields, ",")
+    |> Enum.map(fn(field) ->
+      [_, direction, field] = Regex.run(~r/(-?)(\S*)/, field) 
+      field = String.to_atom(field)
+      valid_sort = Keyword.get(opts, :sort, [])
+      unless field in valid_sort do
+        raise "Invalid sort, #{field} requested"
+      end
+
+      build_sort(direction, field)
+    end)
+    |> List.flatten()
+
+    Map.put(config, :sort, sorts)
   end
 
-  def get_view_for_type(my_view, type) do
-    [view | path]  = Module.split(my_view) |> Enum.reverse()
-    path = Enum.reverse(path)
-    Module.concat(path ++ ["#{String.capitalize(type)}View"])
-  end
+  def build_sort("", field), do: [asc: field]
+  def build_sort("-", field), do: [desc: field]
 
   def parse_include(config, ""), do: config
   def parse_include(%Config{opts: opts}=config, include_str) do
-    includes = handle_include(include_str, opts[:include])
+    includes = handle_include(include_str, Keyword.get(opts, :include, []))
     Map.put(config, :include, includes)
   end
 
@@ -80,7 +87,7 @@ defmodule JSONAPI.QueryParser do
       if inc =~ ~r/\w+\.\w+/ do
         acc ++ handle_nested_include(inc, valid_include)
       else
-        inc = String.to_existing_atom(inc)
+        inc = String.to_atom(inc)
         if Enum.any?(valid_include, fn ({key, _val}) -> key == inc  
                                        (key) -> key == inc
                                     end) do
@@ -95,7 +102,7 @@ defmodule JSONAPI.QueryParser do
 
   def handle_nested_include(key, valid_include) do
     keys = String.split(key, ".")
-    |> Enum.map(&String.to_existing_atom/1)
+    |> Enum.map(&String.to_atom/1)
 
     last = List.last(keys)
     path = Enum.slice(keys, 0, Enum.count(keys)-1) 
@@ -110,14 +117,13 @@ defmodule JSONAPI.QueryParser do
 
   def put_as_tree(acc, items, val) do
     [head | tail] = Enum.reverse(items)
-    build_tree(Keyword.put([], head, val), tail)
+    build_tree(Keyword.put(acc, head, val), tail)
   end
 
   def build_tree(acc, []), do: acc
   def build_tree(acc, [head | tail]) do
     build_tree(Keyword.put([], head, acc), tail)
   end
-
 
   def member_of_tree?([], _thing), do: true
   def member_of_tree?([path | tail], include) when is_list(include) do
@@ -126,6 +132,21 @@ defmodule JSONAPI.QueryParser do
     else 
       false 
     end
+  end
+
+  def get_valid_fields_for_type(config, type) do
+    view = config.view
+    if type == view.type() do
+      view.fields()
+    else
+     get_view_for_type(view, type).fields()
+    end 
+  end
+
+  def get_view_for_type(my_view, type) do
+    [_view | path]  = Module.split(my_view) |> Enum.reverse()
+    path = Enum.reverse(path)
+    Module.concat(path ++ ["#{String.capitalize(type)}View"])
   end
 
   defp build_config(opts) do
