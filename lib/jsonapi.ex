@@ -53,7 +53,7 @@ defmodule JSONAPI do
     {Dict.put(doc, :data, data), included}
   end
 
-  defp as_relationship(nil, mod), do: nil
+  defp as_relationship(nil, _mod), do: nil
   defp as_relationship([], _mod), do: []
   defp as_relationship(data, mod) when is_list(data) do
     Enum.map(data, &(as_relationship(&1, mod)))
@@ -99,8 +99,6 @@ defmodule JSONAPI do
       end
 
       assoc_data = Map.get(data, key)
-      rel_data = nil
-
       rel_data = if loaded?(assoc_data) do
         as_relationship(assoc_data, view)
       else
