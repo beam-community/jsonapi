@@ -1,7 +1,7 @@
 defmodule JSONAPI.QueryParser do
   @behaviour Plug
   alias JSONAPI.Config
-  import Plug.Conn
+  alias JSONAPI.Exceptions
 
   # This is the big module that parses the query into a jsonapi config struct that
   # gets passed down to every subsequent jsonapi call. It's important we start at
@@ -61,8 +61,9 @@ defmodule JSONAPI.QueryParser do
       [_, direction, field] = Regex.run(~r/(-?)(\S*)/, field) 
       field = String.to_atom(field)
       valid_sort = Keyword.get(opts, :sort, [])
+
       unless field in valid_sort do
-        raise "Invalid sort, #{field} requested"
+        raise Exceptions.InvalidSortParameter, resource: config.view.type(), param: field
       end
 
       build_sort(direction, field)

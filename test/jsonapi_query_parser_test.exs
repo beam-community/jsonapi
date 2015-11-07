@@ -1,6 +1,7 @@
 defmodule JSONAPI.QueryParserTest do
   use ExUnit.Case
   import JSONAPI.QueryParser
+  alias JSONAPI.Exceptions
   alias JSONAPI.Config
 
   defmodule MyView do
@@ -19,8 +20,8 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_sort\2 raises on invalid sorts" do
-    config = struct(Config, opts: [])
-    assert_raise RuntimeError, "Invalid sort, name requested", fn ->
+    config = struct(Config, opts: [], view: MyView)
+    assert_raise Exceptions.InvalidSortParameter, "invalid sort, name for type mytype", fn ->
       parse_sort(config, "name")
     end
   end
