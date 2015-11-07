@@ -29,7 +29,7 @@ defmodule JSONAPI.QueryParser do
 
   If your controller's index function recieves a query with params inside those
   bounds it will build a JSONAPI.Config that has all the validated and parsed
-  fields for your usage.
+  fields for your usage. The final product will be added to assigns `jsonai_query`.
 
   ## Options
     * `:view` - The JSONAPI View which is the basis for this controller
@@ -50,7 +50,8 @@ defmodule JSONAPI.QueryParser do
     |> parse_include(Map.get(query_params, "includes", ""))
     |> parse_filter(Map.get(query_params, "filter", %{}))
     |> parse_sort(Map.get(query_params, "sort", ""))
-    Plug.Conn.put_private(conn, :jsonapi_config, config)
+
+    Plug.Conn.assigns(conn, :jsonapi_query, config)
   end
 
   def parse_filter(config, map) when map_size(map) == 0, do: config
