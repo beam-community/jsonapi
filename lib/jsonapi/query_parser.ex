@@ -1,7 +1,7 @@
 defmodule JSONAPI.QueryParser do
   @behaviour Plug
   alias JSONAPI.Config
-  alias JSONAPI.Exceptions
+  alias JSONAPI.Exceptions.InvalidQuery
 
   # This is the big module that parses the query into a jsonapi config struct that
   # gets passed down to every subsequent jsonapi call. It's important we start at
@@ -29,7 +29,7 @@ defmodule JSONAPI.QueryParser do
     opts_filter = Keyword.get(opts, :filter, %{})
     Enum.reduce(filter, config, fn({key, val}, acc) ->
       unless Map.has_key?(opts_filter, key) do
-        raise "No filter function #{key}, defined"
+        raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
       end
 
       fun = opts_filter[key]
@@ -45,7 +45,9 @@ defmodule JSONAPI.QueryParser do
       valid_fields = get_valid_fields_for_type(config, type) |> Enum.into(HashSet.new)
       requested_fields = String.split(value, ",") |> Enum.map(&String.to_atom/1) |> Enum.into(HashSet.new)
       unless HashSet.subset?(requested_fields, valid_fields) do
-        raise "Invalid fields requested for type: #{config.view.type()}"
+        bad_fields = HashSet.difference(requested_fields, valid_fields) |> HashSet.to_list |> Enum.join(",")
+        IO.inspect(bad_fields)
+        raise InvalidQuery, resource: config.view.type(), param: bad_fields, param_type: :fields
       end
   
       old_fields = Map.get(acc, :fields, %{})
@@ -63,7 +65,7 @@ defmodule JSONAPI.QueryParser do
       valid_sort = Keyword.get(opts, :sort, [])
 
       unless field in valid_sort do
-        raise Exceptions.InvalidSortParameter, resource: config.view.type(), param: field
+        raise InvalidQuery, resource: config.view.type(), param: field, param_type: :sort
       end
 
       build_sort(direction, field)
@@ -78,15 +80,15 @@ defmodule JSONAPI.QueryParser do
 
   def parse_include(config, ""), do: config
   def parse_include(%Config{opts: opts}=config, include_str) do
-    includes = handle_include(include_str, Keyword.get(opts, :include, []))
+    includes = handle_include(include_str, Keyword.get(opts, :include, []), config)
     Map.put(config, :include, includes)
   end
 
-  def handle_include(str, valid_include) when is_binary(str) do
+  def handle_include(str, valid_include, config) when is_binary(str) do
     String.split(str, ",")
     |> Enum.reduce([], fn(inc, acc) ->
       if inc =~ ~r/\w+\.\w+/ do
-        acc ++ handle_nested_include(inc, valid_include)
+        acc ++ handle_nested_include(inc, valid_include, config)
       else
         inc = String.to_atom(inc)
         if Enum.any?(valid_include, fn ({key, _val}) -> key == inc  
@@ -95,13 +97,13 @@ defmodule JSONAPI.QueryParser do
                                       
           acc ++ [inc]
         else
-          raise "400 Bad Include"
+          raise InvalidQuery, resource: config.view.type(), param: inc , param_type: :include
         end
       end
     end)
   end
 
-  def handle_nested_include(key, valid_include) do
+  def handle_nested_include(key, valid_include, config) do
     keys = String.split(key, ".")
     |> Enum.map(&String.to_atom/1)
 
@@ -112,7 +114,7 @@ defmodule JSONAPI.QueryParser do
     if member_of_tree?(path, valid_include) do
       put_as_tree([], path, last)
     else
-      raise "400 bad Request"
+      raise InvalidQuery, resource: config.view.type() , param: key, param_type: :include
     end
   end
 

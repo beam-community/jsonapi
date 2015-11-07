@@ -1,12 +1,14 @@
 defmodule JSONAPI.Exceptions do
-  defmodule InvalidSortParameter do
-    defexception plug_status: 400, message: "invalid sort parameter", resource: nil, param: nil
+  defmodule InvalidQuery do
+    defexception plug_status: 400, message: "invalid query", resource: nil, param: nil, param_type: nil
 
     def exception(opts) do
-      resource   = Keyword.fetch!(opts, :resource)
-      param      = Keyword.fetch!(opts, :param)
+      resource = Keyword.fetch!(opts, :resource)
+      param    = Keyword.fetch!(opts, :param)
+      type     = Keyword.fetch!(opts, :param_type) 
 
-      %InvalidSortParameter{message: "invalid sort, #{param} for type #{resource}", resource: resource, param: param}
+      %InvalidQuery{message: "invalid #{type}, #{param} for type #{resource}", 
+        resource: resource, param: param, param_type: type}
     end
   end
 end

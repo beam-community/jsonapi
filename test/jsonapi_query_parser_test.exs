@@ -1,7 +1,7 @@
 defmodule JSONAPI.QueryParserTest do
   use ExUnit.Case
   import JSONAPI.QueryParser
-  alias JSONAPI.Exceptions
+  alias JSONAPI.Exceptions.InvalidQuery
   alias JSONAPI.Config
 
   defmodule MyView do
@@ -21,7 +21,7 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_sort\2 raises on invalid sorts" do
     config = struct(Config, opts: [], view: MyView)
-    assert_raise Exceptions.InvalidSortParameter, "invalid sort, name for type mytype", fn ->
+    assert_raise InvalidQuery, "invalid sort, name for type mytype", fn ->
       parse_sort(config, "name")
     end
   end
@@ -34,8 +34,8 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_filter\2 raises on invalid filters" do
-    config = struct(Config, opts: [])
-    assert_raise RuntimeError, "No filter function name, defined", fn ->
+    config = struct(Config, opts: [], view: MyView)
+    assert_raise InvalidQuery, "invalid filter, name for type mytype", fn ->
       parse_filter(config, %{name: "jason"})
     end
   end
@@ -49,8 +49,8 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_include\2 errors with invalid includes" do
-    config = struct(Config, opts: [include: [:author]])
-    assert_raise RuntimeError, "400 bad Request", fn ->
+    config = struct(Config, opts: [include: [:author]], view: MyView)
+    assert_raise InvalidQuery, "invalid include, comments.author for type mytype", fn ->
       parse_include(config, "author,comments.author") 
     end
   end
