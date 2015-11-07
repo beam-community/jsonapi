@@ -60,7 +60,12 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_fields(config, %{"mytype" => "id,text"}).fields == %{"mytype" => [:id, :text]}
   end
 
-  test "parse_fields\2 raises on invalid parsing"
+  test "parse_fields\2 raises on invalid parsing" do
+    config = struct(Config, view: JSONAPI.QueryParserTest.MyView)
+    assert_raise InvalidQuery, "invalid fields, blag for type mytype", fn ->
+      parse_fields(config, %{"mytype" => "blag"})
+    end
+  end
   
   test "member_of_tree?\2 traverses the tree" do
     include = [test: [the: :path]]

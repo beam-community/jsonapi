@@ -50,10 +50,7 @@ defmodule JSONAPI.QueryParser do
     |> parse_include(Map.get(query_params, "includes", ""))
     |> parse_filter(Map.get(query_params, "filter", %{}))
     |> parse_sort(Map.get(query_params, "sort", ""))
-    |> IO.inspect()
-
-    # config is %JSONAPI.Config{ select....} basically everything parsed into elixir types 
-    #assign(conn, :jsonapi_config, config)
+    Plug.Conn.put_private(conn, :jsonapi_config, config)
   end
 
   def parse_filter(config, map) when map_size(map) == 0, do: config
@@ -78,7 +75,6 @@ defmodule JSONAPI.QueryParser do
       requested_fields = String.split(value, ",") |> Enum.map(&String.to_atom/1) |> Enum.into(HashSet.new)
       unless HashSet.subset?(requested_fields, valid_fields) do
         bad_fields = HashSet.difference(requested_fields, valid_fields) |> HashSet.to_list |> Enum.join(",")
-        IO.inspect(bad_fields)
         raise InvalidQuery, resource: config.view.type(), param: bad_fields, param_type: :fields
       end
   
