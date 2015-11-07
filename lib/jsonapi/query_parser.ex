@@ -3,9 +3,41 @@ defmodule JSONAPI.QueryParser do
   alias JSONAPI.Config
   alias JSONAPI.Exceptions.InvalidQuery
 
-  # This is the big module that parses the query into a jsonapi config struct that
-  # gets passed down to every subsequent jsonapi call. It's important we start at
-  # the top.
+  @moduledoc """
+  Implements a fully JSONAPI V1 spec for parsing a complex query string and returning elixir
+  datatypes. The majority of this moduletries to fill in areas that are not already handled
+  by the Phoenix Router and standard path semantics.
+
+  Primarialy this handles:
+    * [sorts](http://jsonapi.org/format/#fetching-sorting)
+    * [includes](http://jsonapi.org/format/#fetching-includes)
+    * [filtering](http://jsonapi.org/format/#fetching-filtering)
+    * [sparse fieldsets](http://jsonapi.org/format/#fetching-includes)
+
+  This plug works in conjunction with a JSONAPI View as well as some controller defined
+  configuration. 
+
+  In your controller you may add
+
+  ```
+  plug JSONAPI.QueryParser,
+    view: MyView,
+    sort: [:created_at, :title],
+    include: [:my_app, creator: :image], 
+    filter: %{title: my_title_filter_fn\3},
+  ```
+
+  If your controller's index function recieves a query with params inside those
+  bounds it will build a JSONAPI.Config that has all the validated and parsed
+  fields for your usage.
+
+  ## Options
+    * `:view` - The JSONAPI View which is the basis for this controller
+    * `:sort` - List of atoms which define which fields can be sorted on
+    * `:include` - Follows the [ecto preload](http://hexdocs.pm/ecto/Ecto.Query.html#preload/3) rules and can allow for nesting. You define how deeply you want to allow a user to nest.
+    * `:filter` - A map where the key is the field to be filter, and the value is the function that applies the filtering to the data set. The filter function needs to accept: a key, a value, the dataset and the conn for scoping. 
+  """
+
   def init(opts) do
     build_config(opts)
   end
@@ -34,7 +66,7 @@ defmodule JSONAPI.QueryParser do
 
       fun = opts_filter[key]
       old_filter = Map.get(acc, :filter, %{})
-      new_filter = Map.put(old_filter, key, fn (ds) -> fun.(key, val, ds) end)
+      new_filter = Map.put(old_filter, key, fn (ds, conn) -> fun.(key, val, ds, conn) end)
       Map.put(acc, :filter, new_filter)
     end)
   end
@@ -153,6 +185,7 @@ defmodule JSONAPI.QueryParser do
   end
 
   defp build_config(opts) do
+    _view = Keyword.fetch!(opts, :view)
     struct(JSONAPI.Config, opts: opts)
   end
 end
