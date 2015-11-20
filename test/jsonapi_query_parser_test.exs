@@ -9,7 +9,23 @@ defmodule JSONAPI.QueryParserTest do
 
     def fields(), do: [:id, :text, :body]
     def type(), do: "mytype"
-    def includes(), do: [authors: MyView]
+    def includes(), do: [author: JSONAPI.QueryParserTest.UserView, comments: JSONAPI.QueryParserTest.CommentView]
+  end
+
+  defmodule UserView do
+    use JSONAPI.View
+
+    def fields(), do: [:id, :username]
+    def type(), do: "user"
+    def includes(), do: []
+  end
+
+  defmodule CommentView do
+    use JSONAPI.View
+
+    def fields(), do: [:id, :text]
+    def type(), do: "comment"
+    def includes(), do: [user: JSONAPI.QueryParserTest.UserView]
   end
 
   test "parse_sort\2 turns sorts into valid ecto sorts" do
@@ -42,17 +58,25 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_include\2 turns an include string into a keyword list" do
-    config = struct(Config, opts: [include: [:author, comments: :author]])
-    assert parse_include(config, "author,comments.author").include == config.opts[:include]
+    config = struct(Config, view: MyView)
+    assert parse_include(config, "author,comments.user").include == [:author, comments: :user]
     assert parse_include(config, "author").include == [:author]
     assert parse_include(config, "comments,author").include == [:comments, :author]
-    assert parse_include(config, "comments.author").include == [comments: :author]
+    assert parse_include(config, "comments.user").include == [comments: :user]
   end
 
   test "parse_include\2 errors with invalid includes" do
-    config = struct(Config, opts: [include: [:author]], view: MyView)
+    config = struct(Config, view: MyView)
+    assert_raise InvalidQuery, "invalid include, user for type mytype", fn ->
+      parse_include(config, "user,comments.author") 
+    end
+    
     assert_raise InvalidQuery, "invalid include, comments.author for type mytype", fn ->
-      parse_include(config, "author,comments.author") 
+      parse_include(config, "comments.author").include
+    end
+    
+    assert_raise InvalidQuery, "invalid include, comments.author.user for type mytype", fn ->
+      parse_include(config, "comments.author.user") 
     end
   end
 
@@ -67,23 +91,15 @@ defmodule JSONAPI.QueryParserTest do
       parse_fields(config, %{"mytype" => "blag"})
     end
   end
-  
-  test "member_of_tree?\2 traverses the tree" do
-    include = [test: [the: :path]]
-    assert member_of_tree?([:test, :the], include) == true
-    assert member_of_tree?([:test], include) == true
 
-    assert member_of_tree?([:blah], include) == false
-    assert member_of_tree?([:test, :not], include) == false
-  end
   test "put_as_tree\3 builds the path" do
     items = [:test, :the, :path]
     assert put_as_tree([], items, :boo) == [test: [the: [path: :boo]]]
   end
+
   test "get_view_for_type\2" do
     mod = MyApp.MyView
     type = "post"
     assert get_view_for_type(mod, type) == MyApp.PostView
   end
-
 end

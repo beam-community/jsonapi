@@ -23,7 +23,6 @@ defmodule JSONAPI.QueryParser do
   plug JSONAPI.QueryParser,
     view: MyView,
     sort: [:created_at, :title],
-    include: [:my_app, creator: :image], 
     filter: [title: my_title_filter_fn\4]
   ```
 
@@ -34,7 +33,6 @@ defmodule JSONAPI.QueryParser do
   ## Options
     * `:view` - The JSONAPI View which is the basis for this controller
     * `:sort` - List of atoms which define which fields can be sorted on
-    * `:include` - Follows the [ecto preload](http://hexdocs.pm/ecto/Ecto.Query.html#preload/3) rules and can allow for nesting. You define how deeply you want to allow a user to nest.
     * `:filter` - A keyword list where the key is the field to be filter, and the value is the function that applies the filtering to the data set. The filter function needs to accept: a key, a value, the dataset and the conn for scoping. 
   """
 
@@ -108,22 +106,20 @@ defmodule JSONAPI.QueryParser do
   def build_sort("-", field), do: [desc: field]
 
   def parse_include(config, ""), do: config
-  def parse_include(%Config{opts: opts}=config, include_str) do
-    includes = handle_include(include_str, Keyword.get(opts, :include, []), config)
+  def parse_include(%Config{}=config, include_str) do
+    includes = handle_include(include_str, config)
     Map.put(config, :include, includes)
   end
 
-  def handle_include(str, valid_include, config) when is_binary(str) do
+  def handle_include(str, config) when is_binary(str) do
+    valid_include = config.view.includes()
     String.split(str, ",")
     |> Enum.reduce([], fn(inc, acc) ->
       if inc =~ ~r/\w+\.\w+/ do
         acc ++ handle_nested_include(inc, valid_include, config)
       else
         inc = String.to_atom(inc)
-        if Enum.any?(valid_include, fn ({key, _val}) -> key == inc  
-                                       (key) -> key == inc
-                                    end) do
-
+        if Enum.any?(valid_include, fn ({key, _val}) -> key == inc end) do
           acc ++ [inc]
         else
           raise InvalidQuery, resource: config.view.type(), param: inc , param_type: :include
@@ -139,8 +135,7 @@ defmodule JSONAPI.QueryParser do
     last = List.last(keys)
     path = Enum.slice(keys, 0, Enum.count(keys)-1) 
 
-    #If the path is allowed in the include we are good, gonna have to punt for now checking if we can select.
-    if member_of_tree?(path, valid_include) do
+    if member_of_tree?(keys, valid_include) do
       put_as_tree([], path, last)
     else
       raise InvalidQuery, resource: config.view.type() , param: key, param_type: :include
@@ -158,9 +153,10 @@ defmodule JSONAPI.QueryParser do
   end
 
   def member_of_tree?([], _thing), do: true
+  def member_of_tree?(_thing, []), do: false
   def member_of_tree?([path | tail], include) when is_list(include) do
     if Dict.has_key?(include, path) do
-      member_of_tree?(tail, include[path])
+      member_of_tree?(tail, include[path].includes())
     else 
       false 
     end
