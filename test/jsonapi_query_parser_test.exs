@@ -28,7 +28,7 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_filter\2 turns filters into valid anon functions" do
-    config = struct(Config, opts: [filter: %{name: fn (key, val, ds, conn) -> {key, val, ds, conn} end}])
+    config = struct(Config, opts: [filter: [name: fn (key, val, ds, conn) -> {key, val, ds, conn} end]])
     %{name: fun} = parse_filter(config, %{name: "jason"}).filter
     assert is_function(fun)
     assert fun.(:x, :conn) == {:name, "jason", :x, :conn}

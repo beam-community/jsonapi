@@ -24,7 +24,7 @@ defmodule JSONAPI.QueryParser do
     view: MyView,
     sort: [:created_at, :title],
     include: [:my_app, creator: :image], 
-    filter: %{title: my_title_filter_fn\3},
+    filter: [title: my_title_filter_fn\4]
   ```
 
   If your controller's index function recieves a query with params inside those
@@ -35,7 +35,7 @@ defmodule JSONAPI.QueryParser do
     * `:view` - The JSONAPI View which is the basis for this controller
     * `:sort` - List of atoms which define which fields can be sorted on
     * `:include` - Follows the [ecto preload](http://hexdocs.pm/ecto/Ecto.Query.html#preload/3) rules and can allow for nesting. You define how deeply you want to allow a user to nest.
-    * `:filter` - A map where the key is the field to be filter, and the value is the function that applies the filtering to the data set. The filter function needs to accept: a key, a value, the dataset and the conn for scoping. 
+    * `:filter` - A keyword list where the key is the field to be filter, and the value is the function that applies the filtering to the data set. The filter function needs to accept: a key, a value, the dataset and the conn for scoping. 
   """
 
   def init(opts) do
@@ -56,9 +56,9 @@ defmodule JSONAPI.QueryParser do
 
   def parse_filter(config, map) when map_size(map) == 0, do: config
   def parse_filter(%Config{opts: opts}=config, filter) do
-    opts_filter = Keyword.get(opts, :filter, %{})
+    opts_filter = Keyword.get(opts, :filter, [])
     Enum.reduce(filter, config, fn({key, val}, acc) ->
-      unless Map.has_key?(opts_filter, key) do
+      unless Keyword.has_key?(opts_filter, key) do
         raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
       end
 
