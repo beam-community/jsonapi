@@ -9,6 +9,7 @@ defmodule JSONAPI.QueryParserTest do
 
     def fields(), do: [:id, :text, :body]
     def type(), do: "mytype"
+    def includes(), do: [authors: MyView]
   end
 
   test "parse_sort\2 turns sorts into valid ecto sorts" do

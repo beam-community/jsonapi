@@ -123,7 +123,7 @@ defmodule JSONAPI.QueryParser do
         if Enum.any?(valid_include, fn ({key, _val}) -> key == inc  
                                        (key) -> key == inc
                                     end) do
-                                      
+
           acc ++ [inc]
         else
           raise InvalidQuery, resource: config.view.type(), param: inc , param_type: :include
