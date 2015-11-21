@@ -5,8 +5,7 @@ defmodule JSONAPI.QueryParser do
 
   @moduledoc """
   Implements a fully JSONAPI V1 spec for parsing a complex query string and returning elixir
-  datatypes. The majority of this moduletries to fill in areas that are not already handled
-  by the Phoenix Router and standard path semantics.
+  datastructures. The purpose is to validate and encode incoming queries and fail quickly. 
 
   Primarialy this handles:
     * [sorts](http://jsonapi.org/format/#fetching-sorting)
@@ -14,7 +13,7 @@ defmodule JSONAPI.QueryParser do
     * [filtering](http://jsonapi.org/format/#fetching-filtering)
     * [sparse fieldsets](http://jsonapi.org/format/#fetching-includes)
 
-  This plug works in conjunction with a JSONAPI View as well as some controller defined
+  This plug works in conjunction with a JSONAPI View as well as some plug defined
   configuration. 
 
   In your controller you may add
@@ -23,17 +22,17 @@ defmodule JSONAPI.QueryParser do
   plug JSONAPI.QueryParser,
     view: MyView,
     sort: [:created_at, :title],
-    filter: [title: my_title_filter_fn\4]
+    filter: [:title]
   ```
 
   If your controller's index function recieves a query with params inside those
   bounds it will build a JSONAPI.Config that has all the validated and parsed
-  fields for your usage. The final product will be added to assigns `jsonai_query`.
+  fields for your usage. The final product will be added to assigns `jsonapi_query`.
 
   ## Options
-    * `:view` - The JSONAPI View which is the basis for this controller
-    * `:sort` - List of atoms which define which fields can be sorted on
-    * `:filter` - A keyword list where the key is the field to be filter, and the value is the function that applies the filtering to the data set. The filter function needs to accept: a key, a value, the dataset and the conn for scoping. 
+    * `:view` - The JSONAPI View which is the basis for this plug.
+    * `:sort` - List of atoms which define which fields can be sorted on.
+    * `:filter` - List of atoms which define which fields can be filtered on. 
   """
 
   def init(opts) do
@@ -56,13 +55,12 @@ defmodule JSONAPI.QueryParser do
   def parse_filter(%Config{opts: opts}=config, filter) do
     opts_filter = Keyword.get(opts, :filter, [])
     Enum.reduce(filter, config, fn({key, val}, acc) ->
-      unless Keyword.has_key?(opts_filter, key) do
+      unless Enum.any?(opts_filter, fn(k) -> k == key end) do
         raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
       end
 
-      fun = opts_filter[key]
       old_filter = Map.get(acc, :filter, %{})
-      new_filter = Map.put(old_filter, key, fn (ds, conn) -> fun.(key, val, ds, conn) end)
+      new_filter = Map.put(old_filter, key, val)
       Map.put(acc, :filter, new_filter)
     end)
   end

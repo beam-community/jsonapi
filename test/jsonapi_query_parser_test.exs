@@ -43,11 +43,10 @@ defmodule JSONAPI.QueryParserTest do
     end
   end
 
-  test "parse_filter\2 turns filters into valid anon functions" do
-    config = struct(Config, opts: [filter: [name: fn (key, val, ds, conn) -> {key, val, ds, conn} end]])
-    %{name: fun} = parse_filter(config, %{name: "jason"}).filter
-    assert is_function(fun)
-    assert fun.(:x, :conn) == {:name, "jason", :x, :conn}
+  test "parse_filter\2 turns filters key/val pairs" do
+    config = struct(Config, opts: [filter: [:name]], view: MyView)
+    filter = parse_filter(config, %{name: "jason"}).filter
+    assert filter[:name] == "jason"
   end
 
   test "parse_filter\2 raises on invalid filters" do
