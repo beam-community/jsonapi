@@ -50,17 +50,39 @@ defmodule JSONAPI.View do
   defmacro __using__(_opts) do
     quote do
       import JSONAPI, only: [show: 4, index: 4]
-      def url_func(), do: fn(_a, _b, _c) -> raise "url_func/0 needs to be defined" end
 
-      def id(data), do: data.id |> to_string()
-      def attributes(data), do: raise "Need to implement attributes/1"
-      def relationships(), do: %{}
+      def id(data), do: Map.get(data, :id) |> to_string()
+      def attributes(data, _conn), do: Map.take(data, fields())
+
+      def includes(), do: []
+      def fields(), do: raise "Need to implement fields/0"
       def type(), do: raise "Need to implement type/0"
 
       def show(model, conn, params), do: show(__MODULE__, model, conn, params)
       def index(models, conn, params), do: index(__MODULE__, models, conn, params)
 
-      defoverridable [url_func: 0, attributes: 1,  relationships: 0, id: 1, type: 0]
+
+      def url_for(data, nil) when is_list(data) do
+        "/#{type()}"
+      end
+
+      def url_for(data, nil) do
+        "/#{type()}/#{id(data)}"
+      end
+
+      def url_for(data, %Plug.Conn{}=conn) when is_list(data) do
+        "#{Atom.to_string(conn.scheme)}://#{conn.host}/#{type()}"
+      end
+
+      def url_for(data, %Plug.Conn{}=conn) do
+        "#{Atom.to_string(conn.scheme)}://#{conn.host}/#{type()}/#{id(data)}"
+      end
+
+      def url_for_rel(data, rel_type, conn) do
+        "#{url_for(data, conn)}/relationships/#{rel_type}"
+      end
+
+      defoverridable [attributes: 2, includes: 0, id: 1, type: 0, fields: 0, url_for: 2, url_for_rel: 3]
     end
   end
 end

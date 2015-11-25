@@ -16,9 +16,9 @@ defmodule JSONAPI do
   your prefered JSON encoder.
   """
   @spec show(module, Map, Plug.Conn.t, Map) :: Map
-  def show(mod, data, _conn, _params) do
+  def show(mod, data, conn, _params) do
     base_doc()
-    |> data_one(data, mod)
+    |> data_one(data, mod, conn)
     |> handle_includes()
   end
 
@@ -36,43 +36,29 @@ defmodule JSONAPI do
     base_doc()
     |> data_many(data, params, mod)
     |> handle_includes()
-    |> handle_paging(mod, Map.drop(params, ["format", :sort, "filter"]), conn_or_endpoint)
   end
 
   defp data_many(doc, data, _params, mod) do
-    {_dc, {total_data, total_included}} = Enum.map_reduce(data, {[], []}, fn(d, {a_data, a_included}) ->
+    {encoded_data, to_include} = Enum.reduce(data, {[], []}, fn(d, {a_data, a_included}) ->
       {encoded_doc, include} = encode(d, mod)
       {nil, {a_data ++ [encoded_doc], a_included ++ include}}
     end)
 
-    {Dict.put(doc, :data, total_data), total_included}
+    doc = Map.put(doc, :data, encoded_data)
+
+    {doc, to_include}
   end
 
-  defp data_one(doc, data, mod) do
-    {data, included} = encode(data, mod)
-    {Dict.put(doc, :data, data), included}
+  defp data_one(doc, data, mod, conn) do
+    {encoded_data, included} = encode(data, mod)
+
+    doc = doc
+    |> Map.put(:data, encoded_data)
+    |> Map.put(:links, %{self: mod.url_for(data, conn)})
+
+    {doc, included}
   end
 
-  defp as_relationship(nil, mod), do: nil
-  defp as_relationship([], _mod), do: []
-  defp as_relationship(data, mod) when is_list(data) do
-    Enum.map(data, &(as_relationship(&1, mod)))
-  end
-  defp as_relationship(d, mod) when is_integer(d) do
-    as_relationship(Integer.to_string(d), mod)
-  end
-  defp as_relationship(d, mod) when is_binary(d) do
-    %{
-      type: mod.type(),
-      id: d
-    }
-  end
-  defp as_relationship(d, mod) do
-    %{
-      type: mod.type(),
-      id: mod.id(d)
-    }
-  end
 
 
   @spec encode(Map, module) :: {Map, list(Map)}
@@ -171,39 +157,28 @@ defmodule JSONAPI do
     end
   end
 
-  defp handle_paging(doc, mod, params, endpoint) do
-    links = %{
-      self: mod.url_func().(endpoint, :index, params),
-    }
-
-    page_number = get_in(params, [:page, :number])
-    page_size  = get_in(params, [:page, :size])
-    resources = Map.get(doc, :data, [])
-
-    if page_number && page_size do
-
-      if Enum.count(resources) == page_size do
-        next_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], page_number+1))
-        links = Dict.put(links, :next_page, next_page)
-      end
-
-      if page_number > 0 do
-        previous_page = mod.url_func().(endpoint, :index, put_in(params, [:page, :number], page_number-1))
-        links = Dict.put(links, :previous_page, previous_page)
-      end
-
-      links = Map.get(doc, :links, %{}) |> Map.merge(links)
-    end
-
-    Map.put(doc, :links, links)
-  end
 
   defp base_doc() do
-    %{
-      links: %{},
-      data: [],
-      included: []
-    }
   end
 
+  defp as_relationship(nil, mod), do: nil
+  defp as_relationship([], _mod), do: %{}
+  defp as_relationship(data, mod) when is_list(data) do
+    Enum.map(data, &(as_relationship(&1, mod)))
+  end
+  defp as_relationship(d, mod) when is_integer(d) do
+    as_relationship(Integer.to_string(d), mod)
+  end
+  defp as_relationship(d, mod) when is_binary(d) do
+    %{
+      type: mod.type(),
+      id: d
+    }
+  end
+  defp as_relationship(d, mod) do
+    %{
+      type: mod.type(),
+      id: mod.id(d)
+    }
+  end
 end

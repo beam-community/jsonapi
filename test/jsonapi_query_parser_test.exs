@@ -58,10 +58,10 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_include\2 turns an include string into a keyword list" do
     config = struct(Config, view: MyView)
-    assert parse_include(config, "author,comments.user").include == [:author, comments: :user]
-    assert parse_include(config, "author").include == [:author]
-    assert parse_include(config, "comments,author").include == [:comments, :author]
-    assert parse_include(config, "comments.user").include == [comments: :user]
+    assert parse_include(config, "author,comments.user").includes == [:author, comments: :user]
+    assert parse_include(config, "author").includes == [:author]
+    assert parse_include(config, "comments,author").includes == [:comments, :author]
+    assert parse_include(config, "comments.user").includes == [comments: :user]
   end
 
   test "parse_include\2 errors with invalid includes" do
@@ -71,7 +71,7 @@ defmodule JSONAPI.QueryParserTest do
     end
     
     assert_raise InvalidQuery, "invalid include, comments.author for type mytype", fn ->
-      parse_include(config, "comments.author").include
+      parse_include(config, "comments.author")
     end
     
     assert_raise InvalidQuery, "invalid include, comments.author.user for type mytype", fn ->
@@ -89,11 +89,6 @@ defmodule JSONAPI.QueryParserTest do
     assert_raise InvalidQuery, "invalid fields, blag for type mytype", fn ->
       parse_fields(config, %{"mytype" => "blag"})
     end
-  end
-
-  test "put_as_tree\3 builds the path" do
-    items = [:test, :the, :path]
-    assert put_as_tree([], items, :boo) == [test: [the: [path: :boo]]]
   end
 
   test "get_view_for_type\2" do

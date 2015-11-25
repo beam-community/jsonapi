@@ -2,6 +2,7 @@ defmodule JSONAPI.QueryParser do
   @behaviour Plug
   alias JSONAPI.Config
   alias JSONAPI.Exceptions.InvalidQuery
+  import JSONAPI.Utils.IncludeTree
 
   @moduledoc """
   Implements a fully JSONAPI V1 spec for parsing a complex query string and returning elixir
@@ -106,7 +107,7 @@ defmodule JSONAPI.QueryParser do
   def parse_include(config, ""), do: config
   def parse_include(%Config{}=config, include_str) do
     includes = handle_include(include_str, config)
-    Map.put(config, :include, includes)
+    Map.put(config, :includes, includes)
   end
 
   def handle_include(str, config) when is_binary(str) do
@@ -137,26 +138,6 @@ defmodule JSONAPI.QueryParser do
       put_as_tree([], path, last)
     else
       raise InvalidQuery, resource: config.view.type() , param: key, param_type: :include
-    end
-  end
-
-  def put_as_tree(acc, items, val) do
-    [head | tail] = Enum.reverse(items)
-    build_tree(Keyword.put(acc, head, val), tail)
-  end
-
-  def build_tree(acc, []), do: acc
-  def build_tree(acc, [head | tail]) do
-    build_tree(Keyword.put([], head, acc), tail)
-  end
-
-  def member_of_tree?([], _thing), do: true
-  def member_of_tree?(_thing, []), do: false
-  def member_of_tree?([path | tail], include) when is_list(include) do
-    if Dict.has_key?(include, path) do
-      member_of_tree?(tail, include[path].includes())
-    else 
-      false 
     end
   end
 
