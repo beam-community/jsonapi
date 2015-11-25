@@ -11,7 +11,7 @@ defmodule JSONAPI.Serializer do
     query_includes = if is_nil(conn) do
       []
     else
-      conn.assigns[:jsonapi_query][:includes]
+      Map.get(conn.assigns[:jsonapi_query], :includes, [])
     end
 
     {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
