@@ -51,7 +51,11 @@ defmodule JSONAPI.View do
       import JSONAPI.Serializer, only: [serialize: 3]
 
       def id(data), do: Map.get(data, :id) |> to_string()
-      def attributes(data, _conn), do: Map.take(data, fields())
+
+      #TODO Figure out the nesting of fields
+      def attributes(data, conn) do
+        Map.take(data, fields)
+      end
 
       def includes(), do: []
       def fields(), do: raise "Need to implement fields/0"
