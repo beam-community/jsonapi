@@ -31,8 +31,11 @@ defmodule JSONAPISerializerTest do
       id: 1,
       text: "Hello", 
       body: "Hello world",
-      author: nil,
-      comments: []
+      author: %{ id: 2, username: "jason"},
+      comments: [
+        %{ id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
+        %{ id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
+      ]
     }
 
     encoded = Serializer.serialize(PostView, data, nil)
@@ -45,7 +48,9 @@ defmodule JSONAPISerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    assert map_size(encoded_data[:relationships]) == 1
+    assert map_size(encoded_data[:relationships]) == 2
+
+    assert Enum.count(encoded[:included]) == 4
   end
 
   test "serialize handles a list " do
@@ -53,8 +58,11 @@ defmodule JSONAPISerializerTest do
       id: 1,
       text: "Hello", 
       body: "Hello world",
-      author: nil,
-      comments: []
+      author: %{ id: 2, username: "jason"},
+      comments: [
+        %{ id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
+        %{ id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
+      ]
     }
     data_list = [data, data, data]
 
@@ -70,7 +78,8 @@ defmodule JSONAPISerializerTest do
       assert attributes[:body] == data[:body]
 
       assert enc[:links][:self] == PostView.url_for(data, nil)
-      assert map_size(enc[:relationships]) == 1
+      assert map_size(enc[:relationships]) == 2
     end)
+    assert Enum.count(encoded[:included]) == 4
   end
 end

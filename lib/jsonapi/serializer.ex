@@ -3,10 +3,11 @@ defmodule JSONAPI.Serializer do
 
   def serialize(view, data, conn) do
     {to_include, encoded_data} = encode_data(view, data, conn)
+    included = flatten_included(to_include)
     %{
       links: %{},
       data: encoded_data,
-      included: []
+      included: included
     }
   end
 
@@ -29,12 +30,15 @@ defmodule JSONAPI.Serializer do
     }
 
     valid_includes = get_valid_includes(view, conn)
+
     Enum.map_reduce(valid_includes, doc, fn({key, rel_view}, acc) ->
       rel_data = data[key]
-      if loaded?(rel_data) && !is_nil(rel_data) do
+      if loaded?(rel_data) && (!is_nil(rel_data) || !Enum.empty(rel_data)) do
         rel_url = view.url_for_rel(data, rel_view.type(), conn)
         acc = put_in(acc, [:relationships, key], encode_relation(rel_view, rel_data, rel_url, conn))
-        {rel_data, acc}
+
+        {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn)
+        {rel_included ++ [encoded_rel], acc}
       else
         {nil, acc}
       end
@@ -63,6 +67,13 @@ defmodule JSONAPI.Serializer do
     }
   end
 
+  def flatten_included(included) do    
+    List.flatten(included)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq_by(fn(i) -> "#{i[:type]}-#{i[:id]}" end) #TODO Better way to do this?
+  end
+
+  # TODO Grab the includes from the query parser config, then build the view tree appropiately.
   def get_valid_includes(view, nil), do: view.includes
   def get_valid_includes(view, conn) do
     include = get_in(conn.assigns, [:jsonapi_query, :includes])
