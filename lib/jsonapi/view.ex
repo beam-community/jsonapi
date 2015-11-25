@@ -3,29 +3,28 @@ defmodule JSONAPI.View do
   A View is simply a module that define certain callbacks to configure proper rendering of your JSONAPI
   documents. 
 
+      defmodule MyView do
+        use JSONAPI.View
+
+        def fields(), do: [:id, :text, :body]
+        def type(), do: "mytype"
+        def includes(), do: [author: JSONAPI.QueryParserTest.UserView, comments: JSONAPI.QueryParserTest.CommentView]
+      end
+
       defmodule UserView do
         use JSONAPI.View
-        def url_func() do
-          &App.Helpers.user_url/3
-        end
 
-        def type, do: "user"
+        def fields(), do: [:id, :username]
+        def type(), do: "user"
+        def includes(), do: []
+      end
 
-        def attributes(model) do
-          Map.take(model, [:username, :created_at,])
-        end
+      defmodule CommentView do
+        use JSONAPI.View
 
-        def relationships() do
-          %{
-            image: %{
-              view: ImageView
-            },
-            posts: %{
-              view: PostView
-              optional: true
-            }
-          }
-        end
+        def fields(), do: [:id, :text]
+        def type(), do: "comment"
+        def includes(), do: [user: JSONAPI.QueryParserTest.UserView]
       end
 
   is an example of a basic view. You can now call `UserView.show(user, conn, params)` and it will 
@@ -49,7 +48,7 @@ defmodule JSONAPI.View do
   """
   defmacro __using__(_opts) do
     quote do
-      import JSONAPI, only: [show: 4, index: 4]
+      import JSONAPI.Serializer, only: [serialize: 3]
 
       def id(data), do: Map.get(data, :id) |> to_string()
       def attributes(data, _conn), do: Map.take(data, fields())
@@ -58,9 +57,8 @@ defmodule JSONAPI.View do
       def fields(), do: raise "Need to implement fields/0"
       def type(), do: raise "Need to implement type/0"
 
-      def show(model, conn, params), do: show(__MODULE__, model, conn, params)
-      def index(models, conn, params), do: index(__MODULE__, models, conn, params)
-
+      def show(model, conn, _params), do: serialize(__MODULE__, model, conn)
+      def index(models, conn, _p), do: serialize(__MODULE__, models, conn)
 
       def url_for(data, nil) when is_list(data) do
         "/#{type()}"
