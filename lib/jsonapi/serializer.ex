@@ -8,10 +8,9 @@ defmodule JSONAPI.Serializer do
 
   """
   def serialize(view, data, conn \\ nil) do
-    query_includes = if is_nil(conn) do
-      []
-    else
-      Map.get(conn.assigns[:jsonapi_query], :includes, [])
+    query_includes = case conn do
+      %Plug.Conn{assigns: %{jsonapi_query: %{includes: includes}}} -> includes
+      _ -> []
     end
 
     {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
