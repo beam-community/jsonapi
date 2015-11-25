@@ -8,7 +8,11 @@ defmodule JSONAPI.Serializer do
 
   """
   def serialize(view, data, conn \\ nil) do
-    query_includes = get_in(conn, [:assigns, :jsonapi_query]) || []
+    query_includes = if is_nil(conn) do
+      []
+    else
+      conn.assigns[:jsonapi_query][:includes]
+    end
 
     {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
 
@@ -94,7 +98,7 @@ defmodule JSONAPI.Serializer do
   def get_valid_includes(view, []), do: view.includes()
   def get_valid_includes(view, query_includes) do
     base=view.includes()
-    Enum.reduce(query_includes, [], fn({key, val}, acc) ->
+    Enum.reduce(query_includes, [], fn({key, _val}, acc) ->
       Keyword.put(acc, key, Keyword.get(base, key))
     end)
   end
