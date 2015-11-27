@@ -13,9 +13,16 @@ defmodule JSONAPI.Utils.IncludeTree do
   def member_of_tree?(_thing, []), do: false
   def member_of_tree?([path | tail], include) when is_list(include) do
     if Dict.has_key?(include, path) do
-      member_of_tree?(tail, include[path].includes())
+      member_of_tree?(tail, get_base_relationships(include[path]))
     else 
       false 
     end
+  end
+
+  def get_base_relationships(view) do
+    view.relationships() 
+    |> Enum.map(fn ({view, :includes}) -> view
+                   (view) -> view
+                end)
   end
 end

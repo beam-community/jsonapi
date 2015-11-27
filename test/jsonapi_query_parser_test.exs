@@ -9,7 +9,7 @@ defmodule JSONAPI.QueryParserTest do
 
     def fields(), do: [:id, :text, :body]
     def type(), do: "mytype"
-    def includes(), do: [author: JSONAPI.QueryParserTest.UserView, comments: JSONAPI.QueryParserTest.CommentView]
+    def relationships(), do: [author: JSONAPI.QueryParserTest.UserView, comments: JSONAPI.QueryParserTest.CommentView]
   end
 
   defmodule UserView do
@@ -17,7 +17,7 @@ defmodule JSONAPI.QueryParserTest do
 
     def fields(), do: [:id, :username]
     def type(), do: "user"
-    def includes(), do: []
+    def relationships(), do: []
   end
 
   defmodule CommentView do
@@ -25,7 +25,7 @@ defmodule JSONAPI.QueryParserTest do
 
     def fields(), do: [:id, :text]
     def type(), do: "comment"
-    def includes(), do: [user: JSONAPI.QueryParserTest.UserView]
+    def relationships(), do: [user: JSONAPI.QueryParserTest.UserView]
   end
 
   test "parse_sort\2 turns sorts into valid ecto sorts" do

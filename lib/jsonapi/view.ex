@@ -57,7 +57,7 @@ defmodule JSONAPI.View do
         Map.take(data, fields)
       end
 
-      def includes(), do: []
+      def relationships(), do: []
       def fields(), do: raise "Need to implement fields/0"
       def type(), do: raise "Need to implement type/0"
 
@@ -84,7 +84,7 @@ defmodule JSONAPI.View do
         "#{url_for(data, conn)}/relationships/#{rel_type}"
       end
 
-      defoverridable [attributes: 2, includes: 0, id: 1, type: 0, fields: 0, url_for: 2, url_for_rel: 3]
+      defoverridable [attributes: 2, relationships: 0, id: 1, type: 0, fields: 0, url_for: 2, url_for_rel: 3]
     end
   end
 end

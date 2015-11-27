@@ -111,7 +111,8 @@ defmodule JSONAPI.QueryParser do
   end
 
   def handle_include(str, config) when is_binary(str) do
-    valid_include = config.view.includes()
+    valid_include = get_base_relationships(config.view)    
+
     String.split(str, ",")
     |> Enum.reduce([], fn(inc, acc) ->
       if inc =~ ~r/\w+\.\w+/ do

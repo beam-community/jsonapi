@@ -7,7 +7,7 @@ defmodule JSONAPISerializerTest do
 
     def fields(), do: [:text, :body]
     def type(), do: "mytype"
-    def includes(), do: [author: JSONAPISerializerTest.UserView, comments: JSONAPISerializerTest.CommentView]
+    def relationships(), do: [author: {JSONAPISerializerTest.UserView, :include}, comments: {JSONAPISerializerTest.CommentView, :include}]
   end
 
   defmodule UserView do
@@ -15,7 +15,7 @@ defmodule JSONAPISerializerTest do
 
     def fields(), do: [:username]
     def type(), do: "user"
-    def includes(), do: []
+    def relationships(), do: []
   end
 
   defmodule CommentView do
@@ -23,7 +23,7 @@ defmodule JSONAPISerializerTest do
 
     def fields(), do: [:text]
     def type(), do: "comment"
-    def includes(), do: [user: JSONAPISerializerTest.UserView]
+    def relationships(), do: [user: {JSONAPISerializerTest.UserView, :include}]
   end
 
   test "serialize handles singular objects" do
