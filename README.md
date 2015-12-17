@@ -20,30 +20,12 @@ Simply add `use JSONAPI.PhoenixView` either to the top of your view, or to the w
 proper functions to your view like so.
 
 ```elixir
-defmodule UserView do
-  use App.Web, :view
-  use JSONAPI.PhoenixView
+defmodule PostView do
+  use JSONAPI.View
 
-  def type, do: "user"
-
-  def attributes(model) do
-    Map.take(model, [:username, :created_at])
-  end
-
-  def relationships() do
-    %{
-      image: %{
-        view: ImageView
-      },
-      posts: %{
-        view: PostView
-      }
-    }
-  end
-  
-  def url_func() do
-    &user_url/3
-  end
+  def fields(), do: [:text, :body]
+  def type(), do: "mytype"
+  def relationships(), do: [author: {JSONAPISerializerTest.UserView, :include}, comments: {JSONAPISerializerTest.CommentView, :include}]
 end
 ```
 is an example of a basic view. You can now call `render` normally in your phoenix application.
@@ -52,7 +34,6 @@ is an example of a basic view. You can now call `render` normally in your phoeni
 ## Philosophy
 
 - DSL's are great until you need something a little different. So use [Maps or functions](http://elixir-lang.org/getting-started/meta/domain-specific-languages.html)
-- Make it work, worry about the rest later.
 
 ## Other
 
