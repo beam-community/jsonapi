@@ -31,7 +31,7 @@ defmodule JSONAPI.Mixfile do
   defp deps do
     [
       {:phoenix, "~> 0.13 or ~> 1.0"},
-      {:ecto, "~> 0.11 or ~> 1.0"},
+      {:ecto, "~> 1.0"},
       {:ex_doc, "~> 0.7", only: :dev},
       {:earmark, ">= 0.0.0", only: :dev}
     ]
