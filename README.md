@@ -1,26 +1,19 @@
 JSONAPI Elixir
 =======
+
 A project that will render your data models into [JSONAPI Documents](http://jsonapi.org/format). 
 
-Currently in beta status.
+[![Build Status](https://travis-ci.org/jeregrine/jsonapi.svg)](https://travis-ci.org/jeregrine/jsonapi)
 
 ## JSONAPI Support
-- [x] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding [issue
-- [x] Basic support for [compound documents](http://jsonapi.org/format/#document-compound-documents)
-- [ ] [Links](http://jsonapi.org/format/#document-links), [issue#1](https://github.com/jeregrine/jsonapi/issues/1)
-- [ ] Relationship links (handling relationships /user/1/image but only if its in a relationship :() [issue#2](https://github.com/jeregrine/jsonapi/issues/2)
-- [x] Parsing of `sort` query parameter into Ecto Query order_by
-- [ ] Parsing and limiting of `filter` keywords. [issue#3](https://github.com/jeregrine/jsonapi/issues/3)
-- [ ] Handling of sparse fieldsets
-- [ ] Handling of includes
-
-## JSONAPI Elixir TODO
-- [ ] Support full JSONAPI [Spec](http://jsonapi.org/format/)
-- [ ] Make dependency on Phoenix optional [issue#4](https://github.com/jeregrine/jsonapi/issues/4)
-- [ ] Make dependency on Ecto optional [issue#4](https://github.com/jeregrine/jsonapi/issues/4)
-- [ ] Create a plug to handle query param validation and cleanup [issue#3](https://github.com/jeregrine/jsonapi/issues/3)
-- [ ] Cleanup query/controller functions 
-- [ ] Tests
+- [X] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding [issue
+- [X] Basic support for [compound documents](http://jsonapi.org/format/#document-compound-documents)
+- [X] [Links](http://jsonapi.org/format/#document-links), 
+- [X] Relationship links 
+- [X] Parsing of `sort` query parameter into Ecto Query order_by
+- [X] Parsing and limiting of `filter` keywords. )
+- [X] Handling of sparse fieldsets
+- [X] Handling of includes
 
 ## How to use
 Simply add `use JSONAPI.PhoenixView` either to the top of your view, or to the web.ex view section and add the
