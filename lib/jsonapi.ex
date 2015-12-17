@@ -5,7 +5,7 @@ defmodule JSONAPI do
   out a map to be rendered by Poison.
 
   """
-  import Ecto.Association, only: [loaded?: 1]
+  import Ecto, only: [assoc_loaded?: 1]
 
   @doc """
   Encodes a single map and its associations according to the view module's callbacks.
@@ -87,7 +87,7 @@ defmodule JSONAPI do
       assoc_data = Map.get(data, key)
       rel_data = nil
 
-      rel_data = if loaded?(assoc_data) do
+      rel_data = if assoc_loaded?(assoc_data) do
         as_relationship(assoc_data, view)
       else
         map_key = String.to_atom("#{key}_id")
@@ -105,7 +105,7 @@ defmodule JSONAPI do
         data: rel_data
       })
 
-      if loaded?(assoc_data) && rel_data do
+      if assoc_loaded?(assoc_data) && rel_data do
         data = Map.put(val, :data, assoc_data)
         Map.update!(acc, :include, fn(v) -> v ++ [data] end)
       else
