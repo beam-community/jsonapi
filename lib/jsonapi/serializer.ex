@@ -59,6 +59,7 @@ defmodule JSONAPI.Serializer do
         case rel_view do
           {rel_view, :include} -> 
             rel_query_includes = Keyword.get(query_includes, key, []) 
+            #TODO Possibly only return a list of data + view, and encode it after the fact once instead of N times.
             {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn, rel_query_includes)
             {rel_included ++ [encoded_rel], acc}
           view -> 
