@@ -65,3 +65,4 @@ You will need to handle filtering yourself, the filter is just a map with key=va
 - Feel free to make PR's. I will do my best to respond within a day or two. 
 - If you want to take one of the TODO items just create an issue or PR and let me know so we avoid duplication.
 - If you need help, I am on irc and twitter. 
+- [Example project](https://github.com/alexjp/jsonapi-testing)
