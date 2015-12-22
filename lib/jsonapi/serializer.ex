@@ -48,7 +48,7 @@ defmodule JSONAPI.Serializer do
     # Handle all the relationships
     Enum.map_reduce(valid_includes, doc, fn({key, rel_view}, acc) ->
       rel_data = Map.get(data, key)   
-      if assoc_loaded?(rel_data) && (!is_nil(rel_data) || !Enum.empty(rel_data)) do #Check if we can handle this
+      if assoc_loaded?(rel_data) && (!is_nil(rel_data) || !Enum.empty?(rel_data)) do #Check if we can handle this
         only_rel_view = get_view(rel_view)
         # Build the relationship url
         rel_url = view.url_for_rel(data, only_rel_view.type(), conn) 
@@ -97,7 +97,7 @@ defmodule JSONAPI.Serializer do
   def flatten_included(included) do    
     List.flatten(included)
     |> Enum.reject(&is_nil/1)
-    |> Enum.uniq_by(fn(i) -> "#{i[:type]}-#{i[:id]}" end) #TODO Better way to do this?
+    |> Enum.uniq(fn(i) -> "#{i[:type]}-#{i[:id]}" end) #TODO Better way to do this?
   end
 
   # This makes a mapping between includes from the query parser and includes in the view. 
