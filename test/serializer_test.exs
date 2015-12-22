@@ -82,4 +82,54 @@ defmodule JSONAPISerializerTest do
     end)
     assert Enum.count(encoded[:included]) == 4
   end
+
+  test "serialize handles an empty relationship " do
+    data = %{
+      id: 1,
+      text: "Hello",
+      body: "Hello world",
+      author: %{ id: 2, username: "jason"},
+      comments: []
+    }
+
+    encoded = Serializer.serialize(PostView, data, nil)
+
+    encoded_data = encoded[:data]
+    assert encoded_data[:id] == PostView.id(data)
+    assert encoded_data[:type] == PostView.type()
+
+    attributes = encoded_data[:attributes]
+    assert attributes[:text] == data[:text]
+    assert attributes[:body] == data[:body]
+
+    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
+    assert map_size(encoded_data[:relationships]) == 1
+
+    assert Enum.count(encoded[:included]) == 1
+  end
+
+  test "serialize handles a nil relationship " do
+    data = %{
+      id: 1,
+      text: "Hello",
+      body: "Hello world",
+      author: %{ id: 2, username: "jason"},
+      comments: nil
+    }
+
+    encoded = Serializer.serialize(PostView, data, nil)
+
+    encoded_data = encoded[:data]
+    assert encoded_data[:id] == PostView.id(data)
+    assert encoded_data[:type] == PostView.type()
+
+    attributes = encoded_data[:attributes]
+    assert attributes[:text] == data[:text]
+    assert attributes[:body] == data[:body]
+
+    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
+    assert map_size(encoded_data[:relationships]) == 1
+
+    assert Enum.count(encoded[:included]) == 1
+  end
 end
