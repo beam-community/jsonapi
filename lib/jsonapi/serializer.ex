@@ -97,7 +97,7 @@ defmodule JSONAPI.Serializer do
   def flatten_included(included) do    
     List.flatten(included)
     |> Enum.reject(&is_nil/1)
-    |> Enum.uniq_by(fn(i) -> "#{i[:type]}-#{i[:id]}" end) #TODO Better way to do this?
+    |> Enum.uniq(fn(i) -> "#{i[:type]}-#{i[:id]}" end) #TODO Better way to do this?
   end
 
   # This makes a mapping between includes from the query parser and includes in the view. 
