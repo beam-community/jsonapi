@@ -175,7 +175,7 @@ defmodule JSONAPI.QueryParser do
     end
   end
 
-  @spec get_view_for_type(atom, binary) :: atom
+  @spec get_view_for_type(module, binary) :: atom
   def get_view_for_type(my_view, type) do
     [_view | path]  = Module.split(my_view) |> Enum.reverse()
     path = Enum.reverse(path)

@@ -1,7 +1,7 @@
 defmodule JSONAPI.Config do
   @type t :: %JSONAPI.Config {
     fields: map,
-    view: atom,
+    view: module,
     filter: map,
     includes: list,
     sort: list,
