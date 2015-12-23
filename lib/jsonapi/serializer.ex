@@ -8,6 +8,8 @@ defmodule JSONAPI.Serializer do
   Please refer to `JSONAPI.View` for more information. If you are in interested in relationships
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
+
+  @spec serialize(atom, map, Plug.Conn.t | nil) :: map
   def serialize(view, data, conn \\ nil) do
     query_includes = case conn do
       %Plug.Conn{assigns: %{jsonapi_query: %{includes: includes}}} -> includes
@@ -24,6 +26,7 @@ defmodule JSONAPI.Serializer do
     }
   end
 
+  @spec encode_data(atom, list, Plug.Conn.t, any) :: {any, list}
   def encode_data(view, data, conn, query_includes) when is_list(data) do
     Enum.map_reduce(data,[], fn(d, acc) ->
       {to_include, encoded_data} = encode_data(view, d, conn, query_includes)
@@ -31,6 +34,7 @@ defmodule JSONAPI.Serializer do
     end)
   end
 
+  @spec encode_data(atom, map, Plug.Conn.t, any) :: tuple
   def encode_data(view, data, conn, query_includes) do
     valid_includes = get_includes(view, query_includes)
 
@@ -73,14 +77,17 @@ defmodule JSONAPI.Serializer do
     end)
   end
 
+  @spec is_data_loaded?(map) :: boolean
   def is_data_loaded?(rel_data) when is_map(rel_data) do
     assoc_loaded?(rel_data)
   end
 
+  @spec is_data_loaded?(list) :: boolean
   def is_data_loaded?(rel_data) when is_list(rel_data) do
     !Enum.empty?(rel_data)
   end
 
+  @spec encode_relation(atom, map, binary, Plug.Conn.t) :: map
   def encode_relation(rel_view, rel_data, rel_url, conn) do
     %{
       links: %{
@@ -91,12 +98,17 @@ defmodule JSONAPI.Serializer do
     }
   end
 
+  @spec encode_rel_data(any, nil) :: nil
   def encode_rel_data(_view, nil), do: nil
+
+  @spec encode_rel_data(atom, list) :: [map]
   def encode_rel_data(view, data) when is_list(data) do
     Enum.map(data, fn(d) ->
       encode_rel_data(view, d)
     end)
   end
+
+  @spec encode_rel_data(atom, map) :: map
   def encode_rel_data(view, data) do
     %{
       type: view.type(),
@@ -105,6 +117,7 @@ defmodule JSONAPI.Serializer do
   end
 
   # Flatten and unique all the included objects
+  @spec flatten_included(list) :: list
   def flatten_included(included) do
     List.flatten(included)
     |> Enum.reject(&is_nil/1)
@@ -112,6 +125,7 @@ defmodule JSONAPI.Serializer do
   end
 
   # This makes a mapping between includes from the query parser and includes in the view.
+  @spec get_includes(atom, list | nil) :: list
   defp get_includes(view, nil), do: view.relationships()
   defp get_includes(view, []), do: view.relationships()
   defp get_includes(view, query_includes) do
