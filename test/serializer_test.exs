@@ -103,7 +103,7 @@ defmodule JSONAPISerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    assert map_size(encoded_data[:relationships]) == 1
+    assert map_size(encoded_data[:relationships]) == 2
 
     assert Enum.count(encoded[:included]) == 1
   end
@@ -128,7 +128,7 @@ defmodule JSONAPISerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    assert map_size(encoded_data[:relationships]) == 1
+    assert map_size(encoded_data[:relationships]) == 2
 
     assert Enum.count(encoded[:included]) == 1
   end

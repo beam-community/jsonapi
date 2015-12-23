@@ -32,7 +32,8 @@ defmodule JSONAPI.Mixfile do
     [
       {:plug, "~> 1.0"},
       {:ex_doc, "~> 0.7", only: :dev},
-      {:earmark, ">= 0.0.0", only: :dev}
+      {:earmark, ">= 0.0.0", only: :dev},
+      {:poison, "~> 1.5.0", only: :test}
     ]
   end
 

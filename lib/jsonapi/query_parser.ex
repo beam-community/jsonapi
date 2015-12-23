@@ -10,7 +10,7 @@ defmodule JSONAPI.QueryParser do
 
   Primarialy this handles:
     * [sorts](http://jsonapi.org/format/#fetching-sorting)
-    * [includes](http://jsonapi.org/format/#fetching-includes)
+    * [include](http://jsonapi.org/format/#fetching-includes)
     * [filtering](http://jsonapi.org/format/#fetching-filtering)
     * [sparse fieldsets](http://jsonapi.org/format/#fetching-includes)
 
@@ -60,11 +60,11 @@ defmodule JSONAPI.QueryParser do
 
     config = opts
     |> parse_fields(Map.get(query_params, "fields", %{}))
-    |> parse_include(Map.get(query_params, "includes", ""))
+    |> parse_include(Map.get(query_params, "include", ""))
     |> parse_filter(Map.get(query_params, "filter", %{}))
     |> parse_sort(Map.get(query_params, "sort", ""))
 
-    Plug.Conn.assigns(conn, :jsonapi_query, config)
+    Plug.Conn.assign(conn, :jsonapi_query, config)
   end
 
   def parse_filter(config, map) when map_size(map) == 0, do: config
@@ -173,8 +173,8 @@ defmodule JSONAPI.QueryParser do
   end
 
   defp build_config(opts) do
-    _view = Keyword.fetch!(opts, :view)
-    struct(JSONAPI.Config, opts: opts)
+    view = Keyword.fetch!(opts, :view)
+    struct(JSONAPI.Config, opts: opts, view: view)
   end
 end
 

@@ -72,6 +72,10 @@ defmodule JSONAPI.View do
       def show(model, conn, _params), do: serialize(__MODULE__, model, conn)
       def index(models, conn, _p), do: serialize(__MODULE__, models, conn)
 
+      def url_for(nil, nil) do
+        "/#{type()}"
+      end
+
       def url_for(data, nil) when is_list(data) do
         "/#{type()}"
       end

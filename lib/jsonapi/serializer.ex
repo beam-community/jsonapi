@@ -46,29 +46,35 @@ defmodule JSONAPI.Serializer do
     }
 
     # Handle all the relationships
-    Enum.map_reduce(valid_includes, doc, fn({key, rel_view}, acc) ->
-      rel_data = Map.get(data, key)   
-      if assoc_loaded?(rel_data) && (is_map(rel_data) || (is_list(rel_data) && !Enum.empty?(rel_data))) do #Check if we can handle this
-        only_rel_view = get_view(rel_view)
-        # Build the relationship url
-        rel_url = view.url_for_rel(data, only_rel_view.type(), conn) 
-        # Build the relationship
-        acc = put_in(acc, [:relationships, key], encode_relation(only_rel_view, rel_data, rel_url, conn)) 
+    Enum.map_reduce(view.relationships(), doc, fn({key, include_view}, acc) ->
 
-        # Begin handling the relationship recursion for encoding includes
-        case rel_view do
-          {rel_view, :include} -> 
-            rel_query_includes = Keyword.get(query_includes, key, []) 
-            #TODO Possibly only return a list of data + view, and encode it after the fact once instead of N times.
-            {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn, rel_query_includes)
-            {rel_included ++ [encoded_rel], acc}
-          view -> 
-            {nil, acc}
-        end
+      rel_view = case include_view do
+        {view, :include} -> view
+        view -> view
+      end
+      
+      rel_data = Map.get(data, key)
+
+      only_rel_view = get_view(rel_view)
+      # Build the relationship url
+      rel_url = view.url_for_rel(data, only_rel_view.type(), conn) 
+      # Build the relationship
+      acc = put_in(acc, [:relationships, key], encode_relation(only_rel_view, rel_data, rel_url, conn)) 
+
+      valid_include_view = Keyword.get(valid_includes, key)
+      if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
+        rel_query_includes = Keyword.get(query_includes, key, []) 
+        #TODO Possibly only return a list of data + view, and encode it after the fact once instead of N times.
+        {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn, rel_query_includes)
+        {rel_included ++ [encoded_rel], acc}
       else
         {nil, acc}
       end
     end)
+  end
+
+  def is_data_loaded?(rel_data) do
+    assoc_loaded?(rel_data) && (is_map(rel_data) || (is_list(rel_data) && !Enum.empty?(rel_data)))
   end
 
   def encode_relation(rel_view, rel_data, rel_url, conn) do
@@ -81,6 +87,7 @@ defmodule JSONAPI.Serializer do
     }
   end
 
+  def encode_rel_data(view, nil), do: nil
   def encode_rel_data(view, data) when is_list(data) do
     Enum.map(data, fn(d) ->
       encode_rel_data(view, d)
@@ -105,11 +112,8 @@ defmodule JSONAPI.Serializer do
   defp get_includes(view, []), do: view.relationships()
   defp get_includes(view, query_includes) do
     base=view.relationships()
-    Enum.reduce(query_includes, [], fn({key, _val}, acc) ->
-      new_view = case Keyword.get(base, key) do
-        {v, :include} -> v
-        v -> v
-      end
+    Enum.reduce(query_includes, [], fn(key, acc) ->
+      new_view = Keyword.get(base, key) 
       Keyword.put(acc, key, {new_view, :include})
     end)
   end
