@@ -21,16 +21,16 @@ proper functions to your view like so.
 
 ```elixir
 defmodule PostView do
-  use JSONAPI.View
+  use JSONAPI.PhoenixView
 
   def fields(), do: [:text, :body]
   def type(), do: "mytype"
-  def relationships(), do: [author: {JSONAPISerializerTest.UserView, :include}, comments: {JSONAPISerializerTest.CommentView, :include}]
+  def relationships(), do: [author: {JSONAPISerializerTest.UserView, :include}, comments: JSONAPISerializerTest.CommentView]
 end
 ```
-is an example of a basic view. You can now call `render` normally in your phoenix application.
+is an example of a basic view. You can now call `render(conn, "show.json", PostView, %{data: my_data})` or `'list.json` normally.
 
-If you'd like to use this without phoenix simply call `JSONAPI.Serialize(PostView, data, conn)`.
+If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serialize(PostView, data, conn)`.
 
 ## Parsing and validating a JSONAPI Request
 
@@ -55,10 +55,6 @@ This sort of behavior is consistent for includes. Sparse fieldsets happen in the
 when Ecto gets more complex field selection support we will go further to only query the data we need. 
 
 You will need to handle filtering yourself, the filter is just a map with key=value. 
-
-## Philosophy
-
-- DSL's are great until you need something a little different. So use [Maps or functions](http://elixir-lang.org/getting-started/meta/domain-specific-languages.html)
 
 ## Other
 

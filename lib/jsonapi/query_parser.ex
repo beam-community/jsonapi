@@ -28,7 +28,22 @@ defmodule JSONAPI.QueryParser do
 
   If your controller's index function recieves a query with params inside those
   bounds it will build a JSONAPI.Config that has all the validated and parsed
-  fields for your usage. The final product will be added to assigns `jsonapi_query`.
+  fields for your usage. The final configuration will be added to assigns `jsonapi_query`.
+
+  The final output will be a `JSONAPI.Config` struct and will look similar to like
+      %JSONAPI.Config{
+        view: MyView,
+        opts: [view: MyView, sort: [:created_at, :title], filter: [:title]],
+        sort: [desc: :created_at] # Easily insertable into an ecto order_by,
+        filter: %{title: "my title"} # Easily reduceable into ecto where clauses
+        includes: [ comments: :user] # Easily insertable into a Repo.preload,
+        fields: %{"myview" => [:id, :text], "comment" => [:id, :body]} 
+      }
+
+  The final result should allow you to build a query quickly and with little overhead. 
+  You will notice the fields section is a not as easy to work with as the others and 
+  that is a result of Ecto not supporting high quality selects quite yet. This is a WIP.
+  
 
   ## Options
     * `:view` - The JSONAPI View which is the basis for this plug.

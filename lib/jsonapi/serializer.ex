@@ -5,8 +5,8 @@ defmodule JSONAPI.Serializer do
   Takes a view, data and a optional plug connection and returns a fully JSONAPI Serialized document.
   This assumes you are using the JSONAPI.View and have data in maps or structs. 
 
-
-  relationships, do [key: View, key2: {View2, :included}]
+  Please refer to `JSONAPI.View` for more information. If you are in interested in relationships 
+  and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
   def serialize(view, data, conn \\ nil) do
     query_includes = case conn do

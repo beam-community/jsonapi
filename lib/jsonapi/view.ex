@@ -3,7 +3,7 @@ defmodule JSONAPI.View do
   A View is simply a module that define certain callbacks to configure proper rendering of your JSONAPI
   documents. 
 
-      defmodule MyView do
+      defmodule PostView do
         use JSONAPI.View
 
         def fields(), do: [:id, :text, :body]
@@ -24,7 +24,8 @@ defmodule JSONAPI.View do
 
         def fields(), do: [:id, :text]
         def type(), do: "comment"
-        def includes(), do: [user: JSONAPI.QueryParserTest.UserView]
+        def includes(), do: [user: {:JSONAPI.QueryParserTest.UserView, :include}]
+
       end
 
   is an example of a basic view. You can now call `UserView.show(user, conn, params)` and it will 
@@ -42,9 +43,16 @@ defmodule JSONAPI.View do
         end
       end
 
-  and the relationships map from above it will always encode an image relationship or leave it as nil
-  and it will only encode a posts relationship if it is loaded. Support for the query parameter 
-  `includes` is on the todo list. 
+  and the includes setup from above. If your Post has loaded the author and the query asks for it
+  then it will be loaded.
+
+  So for example:
+  `GET /posts?include=post.author` if the author record is loaded on the Post, and you are using
+  the `JSONAPI.QueryParser` it will be included in the `includes` section of the JSONAPI document.
+  
+  If you always want to include a relationship. First make sure its always preloaded
+  and then use the `[user: {UserView, :include}]` syntax in your `includes` function. This tells
+  the serializer to *always* include if its loaded.
   """
   defmacro __using__(_opts) do
     quote do
