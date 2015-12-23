@@ -40,10 +40,10 @@ defmodule JSONAPITest do
 
   test "handles simple requests" do
     conn = conn(:get, "/posts")
-    |> Plug.Conn.assign(:data, [%{ 
+    |> Plug.Conn.assign(:data, [%{
       id: 1,
-      text: "Hello", 
-      body: "Hi", 
+      text: "Hello",
+      body: "Hi",
       author: %{username: "jason", id: 2},
       other_user: %{username: "josh", id: 3}}])
     |> MyPostPlug.call([])
@@ -62,7 +62,7 @@ defmodule JSONAPITest do
     assert map_size(relationships) == 2
     assert Enum.sort(Map.keys(relationships)) == ["author", "other_user"]
     author_rel = Map.get(relationships, "author")
-  
+
     assert get_in(author_rel, ["data", "type"]) == "user"
     assert get_in(author_rel, ["data", "id"]) == "2"
 
@@ -80,10 +80,10 @@ defmodule JSONAPITest do
 
   test "handles includes properly" do
     conn = conn(:get, "/posts?include=author")
-    |> Plug.Conn.assign(:data, [%{ 
+    |> Plug.Conn.assign(:data, [%{
       id: 1,
-      text: "Hello", 
-      body: "Hi", 
+      text: "Hello",
+      body: "Hi",
       author: %{username: "jason", id: 2},
       other_user: %{username: "josh", id: 3}}])
     |> Plug.Conn.fetch_query_params()
@@ -103,7 +103,7 @@ defmodule JSONAPITest do
     assert map_size(relationships) == 2
     assert Enum.sort(Map.keys(relationships)) == ["author", "other_user"]
     author_rel = Map.get(relationships, "author")
-  
+
     assert get_in(author_rel, ["data", "type"]) == "user"
     assert get_in(author_rel, ["data", "id"]) == "2"
 

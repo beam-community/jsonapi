@@ -1,7 +1,7 @@
 defmodule JSONAPI.View do
   @moduledoc """
   A View is simply a module that define certain callbacks to configure proper rendering of your JSONAPI
-  documents. 
+  documents.
 
       defmodule PostView do
         use JSONAPI.View
@@ -28,8 +28,8 @@ defmodule JSONAPI.View do
 
       end
 
-  is an example of a basic view. You can now call `UserView.show(user, conn, params)` and it will 
-  render a valid jsonapi doc. 
+  is an example of a basic view. You can now call `UserView.show(user, conn, params)` and it will
+  render a valid jsonapi doc.
 
   ## Relationships
   Currently the relationships callback expects that a map is returned configuring the information
@@ -49,7 +49,7 @@ defmodule JSONAPI.View do
   So for example:
   `GET /posts?include=post.author` if the author record is loaded on the Post, and you are using
   the `JSONAPI.QueryParser` it will be included in the `includes` section of the JSONAPI document.
-  
+
   If you always want to include a relationship. First make sure its always preloaded
   and then use the `[user: {UserView, :include}]` syntax in your `includes` function. This tells
   the serializer to *always* include if its loaded.

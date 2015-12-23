@@ -1,8 +1,8 @@
 defmodule JSONAPI.Ecto do
   @doc """
-  Checks to see if an associated table is Loaded. 
+  Checks to see if an associated table is Loaded.
 
-  If the model is an `Ecto.Association.NotLoaded` 
+  If the model is an `Ecto.Association.NotLoaded`
   """
   def assoc_loaded?(association) do
     case association do

@@ -3,9 +3,9 @@ defmodule JSONAPI.Serializer do
 
   @doc """
   Takes a view, data and a optional plug connection and returns a fully JSONAPI Serialized document.
-  This assumes you are using the JSONAPI.View and have data in maps or structs. 
+  This assumes you are using the JSONAPI.View and have data in maps or structs.
 
-  Please refer to `JSONAPI.View` for more information. If you are in interested in relationships 
+  Please refer to `JSONAPI.View` for more information. If you are in interested in relationships
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
   def serialize(view, data, conn \\ nil) do
@@ -52,18 +52,18 @@ defmodule JSONAPI.Serializer do
         {view, :include} -> view
         view -> view
       end
-      
+
       rel_data = Map.get(data, key)
 
       only_rel_view = get_view(rel_view)
       # Build the relationship url
-      rel_url = view.url_for_rel(data, only_rel_view.type(), conn) 
+      rel_url = view.url_for_rel(data, only_rel_view.type(), conn)
       # Build the relationship
-      acc = put_in(acc, [:relationships, key], encode_relation(only_rel_view, rel_data, rel_url, conn)) 
+      acc = put_in(acc, [:relationships, key], encode_relation(only_rel_view, rel_data, rel_url, conn))
 
       valid_include_view = Keyword.get(valid_includes, key)
       if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
-        rel_query_includes = Keyword.get(query_includes, key, []) 
+        rel_query_includes = Keyword.get(query_includes, key, [])
         #TODO Possibly only return a list of data + view, and encode it after the fact once instead of N times.
         {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn, rel_query_includes)
         {rel_included ++ [encoded_rel], acc}
@@ -83,7 +83,7 @@ defmodule JSONAPI.Serializer do
         self: rel_url,
         related: rel_view.url_for(rel_data, conn)
       },
-      data: encode_rel_data(rel_view, rel_data)    
+      data: encode_rel_data(rel_view, rel_data)
     }
   end
 
@@ -101,19 +101,19 @@ defmodule JSONAPI.Serializer do
   end
 
   # Flatten and unique all the included objects
-  def flatten_included(included) do    
+  def flatten_included(included) do
     List.flatten(included)
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq(fn(i) -> "#{i[:type]}-#{i[:id]}" end) #TODO Better way to do this?
   end
 
-  # This makes a mapping between includes from the query parser and includes in the view. 
+  # This makes a mapping between includes from the query parser and includes in the view.
   defp get_includes(view, nil), do: view.relationships()
   defp get_includes(view, []), do: view.relationships()
   defp get_includes(view, query_includes) do
     base=view.relationships()
     Enum.reduce(query_includes, [], fn(key, acc) ->
-      new_view = Keyword.get(base, key) 
+      new_view = Keyword.get(base, key)
       Keyword.put(acc, key, {new_view, :include})
     end)
   end

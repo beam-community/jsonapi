@@ -6,7 +6,7 @@ defmodule JSONAPI.QueryParser do
 
   @moduledoc """
   Implements a fully JSONAPI V1 spec for parsing a complex query string and returning elixir
-  datastructures. The purpose is to validate and encode incoming queries and fail quickly. 
+  datastructures. The purpose is to validate and encode incoming queries and fail quickly.
 
   Primarialy this handles:
     * [sorts](http://jsonapi.org/format/#fetching-sorting)
@@ -15,7 +15,7 @@ defmodule JSONAPI.QueryParser do
     * [sparse fieldsets](http://jsonapi.org/format/#fetching-includes)
 
   This plug works in conjunction with a JSONAPI View as well as some plug defined
-  configuration. 
+  configuration.
 
   In your controller you may add
 
@@ -37,18 +37,18 @@ defmodule JSONAPI.QueryParser do
         sort: [desc: :created_at] # Easily insertable into an ecto order_by,
         filter: %{title: "my title"} # Easily reduceable into ecto where clauses
         includes: [ comments: :user] # Easily insertable into a Repo.preload,
-        fields: %{"myview" => [:id, :text], "comment" => [:id, :body]} 
+        fields: %{"myview" => [:id, :text], "comment" => [:id, :body]}
       }
 
-  The final result should allow you to build a query quickly and with little overhead. 
-  You will notice the fields section is a not as easy to work with as the others and 
+  The final result should allow you to build a query quickly and with little overhead.
+  You will notice the fields section is a not as easy to work with as the others and
   that is a result of Ecto not supporting high quality selects quite yet. This is a WIP.
-  
+
 
   ## Options
     * `:view` - The JSONAPI View which is the basis for this plug.
     * `:sort` - List of atoms which define which fields can be sorted on.
-    * `:filter` - List of atoms which define which fields can be filtered on. 
+    * `:filter` - List of atoms which define which fields can be filtered on.
   """
 
   def init(opts) do
@@ -90,7 +90,7 @@ defmodule JSONAPI.QueryParser do
         bad_fields = HashSet.difference(requested_fields, valid_fields) |> HashSet.to_list |> Enum.join(",")
         raise InvalidQuery, resource: config.view.type(), param: bad_fields, param_type: :fields
       end
-  
+
       old_fields = Map.get(acc, :fields, %{})
       new_fields = Map.put(old_fields, type, HashSet.to_list(requested_fields))
       Map.put(acc, :fields, new_fields)
@@ -101,7 +101,7 @@ defmodule JSONAPI.QueryParser do
   def parse_sort(%Config{opts: opts}=config, sort_fields) do
     sorts = String.split(sort_fields, ",")
     |> Enum.map(fn(field) ->
-      [_, direction, field] = Regex.run(~r/(-?)(\S*)/, field) 
+      [_, direction, field] = Regex.run(~r/(-?)(\S*)/, field)
       field = String.to_atom(field)
       valid_sort = Keyword.get(opts, :sort, [])
 
@@ -126,7 +126,7 @@ defmodule JSONAPI.QueryParser do
   end
 
   def handle_include(str, config) when is_binary(str) do
-    valid_include = get_base_relationships(config.view)    
+    valid_include = get_base_relationships(config.view)
 
     String.split(str, ",")
     |> Enum.reduce([], fn(inc, acc) ->
@@ -148,7 +148,7 @@ defmodule JSONAPI.QueryParser do
     |> Enum.map(&String.to_atom/1)
 
     last = List.last(keys)
-    path = Enum.slice(keys, 0, Enum.count(keys)-1) 
+    path = Enum.slice(keys, 0, Enum.count(keys)-1)
 
     if member_of_tree?(keys, valid_include) do
       put_as_tree([], path, last)
@@ -163,7 +163,7 @@ defmodule JSONAPI.QueryParser do
       view.fields()
     else
      get_view_for_type(view, type).fields()
-    end 
+    end
   end
 
   def get_view_for_type(my_view, type) do

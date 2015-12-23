@@ -29,7 +29,7 @@ defmodule JSONAPISerializerTest do
   test "serialize handles singular objects" do
     data = %{
       id: 1,
-      text: "Hello", 
+      text: "Hello",
       body: "Hello world",
       author: %{ id: 2, username: "jason"},
       comments: [
@@ -56,7 +56,7 @@ defmodule JSONAPISerializerTest do
   test "serialize handles a list " do
     data = %{
       id: 1,
-      text: "Hello", 
+      text: "Hello",
       body: "Hello world",
       author: %{ id: 2, username: "jason"},
       comments: [
