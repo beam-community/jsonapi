@@ -43,22 +43,22 @@ plug JSONAPI.QueryParser
   view: PostView
 ```
 
-This will add a `JSONAPI.Config` struct called `jsonapi_config` to your conn.assigns. If a user tries to 
-sort, filter, include, or sparse fieldset an invalid field it will raise a plug error that shows the 
-proper error message. 
+This will add a `JSONAPI.Config` struct called `jsonapi_config` to your conn.assigns. If a user tries to
+sort, filter, include, or sparse fieldset an invalid field it will raise a plug error that shows the
+proper error message.
 
 The config holds the values parsed into things that are easy to pass into an Ecto query, for example
 
-`sort=-name` will be parsed into `sort: [desc: :name]` which can be passed directly to the order_by in ecto. 
+`sort=-name` will be parsed into `sort: [desc: :name]` which can be passed directly to the order_by in ecto.
 
-This sort of behavior is consistent for includes. Sparse fieldsets happen in the view using Map.take but 
-when Ecto gets more complex field selection support we will go further to only query the data we need. 
+This sort of behavior is consistent for includes. Sparse fieldsets happen in the view using Map.take but
+when Ecto gets more complex field selection support we will go further to only query the data we need.
 
-You will need to handle filtering yourself, the filter is just a map with key=value. 
+You will need to handle filtering yourself, the filter is just a map with key=value.
 
 ## Other
 
-- Feel free to make PR's. I will do my best to respond within a day or two. 
+- Feel free to make PR's. I will do my best to respond within a day or two.
 - If you want to take one of the TODO items just create an issue or PR and let me know so we avoid duplication.
-- If you need help, I am on irc and twitter. 
+- If you need help, I am on irc and twitter.
 - [Example project](https://github.com/alexjp/jsonapi-testing)
