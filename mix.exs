@@ -30,15 +30,14 @@ defmodule JSONAPI.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [
-      {:phoenix, "~> 1.0"},
-      {:ecto, "~> 1.1"},
+      {:plug, "~> 1.0"},
       {:ex_doc, "~> 0.7", only: :dev},
       {:earmark, ">= 0.0.0", only: :dev}
     ]
   end
 
   defp package do
-    [contributors: ["Jason Stiebs", "Mitchell Henke"],
+    [contributors: ["Jason Stiebs", "Mitchell Henke", "Jake Robers"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/jeregrine/jsonapi", docs: "http://hexdocs.pm/jsonapi/"}]
   end

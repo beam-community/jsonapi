@@ -1,5 +1,5 @@
 defmodule JSONAPI.Serializer do
-  import Ecto, only: [assoc_loaded?: 1]
+  import JSONAPI.Ecto, only: [assoc_loaded?: 1]
 
   @doc """
   Takes a view, data and a optional plug connection and returns a fully JSONAPI Serialized document.
