@@ -35,7 +35,7 @@ defmodule JSONAPI.Mixfile do
 
   defp description do
     """
-    Fully functional JSONAPI V1 Serializer as well as a QueryParser for Plug bases projects and applications.
+    Fully functional JSONAPI V1 Serializer as well as a QueryParser for Plug based projects and applications.
     """
   end
 end
