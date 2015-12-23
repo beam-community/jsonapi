@@ -51,10 +51,12 @@ defmodule JSONAPI.QueryParser do
     * `:filter` - List of atoms which define which fields can be filtered on.
   """
 
+  @spec init(list) :: Config.t
   def init(opts) do
     build_config(opts)
   end
 
+  @spec call(Plug.Conn.t, list) :: Plug.Conn.t
   def call(conn, opts) do
     query_params = conn.query_params
 
@@ -67,6 +69,7 @@ defmodule JSONAPI.QueryParser do
     Plug.Conn.assign(conn, :jsonapi_query, config)
   end
 
+  @spec parse_filter(Config.t, map) :: Config.t | no_return
   def parse_filter(config, map) when map_size(map) == 0, do: config
   def parse_filter(%Config{opts: opts}=config, filter) do
     opts_filter = Keyword.get(opts, :filter, [])
@@ -81,6 +84,7 @@ defmodule JSONAPI.QueryParser do
     end)
   end
 
+  @spec parse_fields(Config.t, map) :: Config.t
   def parse_fields(config, map) when map_size(map) == 0, do: config
   def parse_fields(%Config{}=config, fields) do
     Enum.reduce(fields, config, fn ({type, value}, acc) ->
@@ -97,6 +101,7 @@ defmodule JSONAPI.QueryParser do
     end)
   end
 
+  @spec parse_sort(Config.t, binary) :: Config.t | no_return
   def parse_sort(config, ""), do: config
   def parse_sort(%Config{opts: opts}=config, sort_fields) do
     sorts = String.split(sort_fields, ",")
@@ -116,15 +121,18 @@ defmodule JSONAPI.QueryParser do
     Map.put(config, :sort, sorts)
   end
 
+  @spec build_sort(binary, atom) :: list
   def build_sort("", field), do: [asc: field]
   def build_sort("-", field), do: [desc: field]
 
+  @spec parse_include(Config.t, binary) :: Config.t
   def parse_include(config, ""), do: config
   def parse_include(%Config{}=config, include_str) do
     includes = handle_include(include_str, config)
     Map.put(config, :includes, includes)
   end
 
+  @spec handle_include(binary, Config.t) :: list | no_return
   def handle_include(str, config) when is_binary(str) do
     valid_include = get_base_relationships(config.view)
 
@@ -157,21 +165,24 @@ defmodule JSONAPI.QueryParser do
     end
   end
 
+  @spec get_valid_fields_for_type(Config.t, binary) :: [atom]
   def get_valid_fields_for_type(config, type) do
     view = config.view
     if type == view.type() do
       view.fields()
     else
-     get_view_for_type(view, type).fields()
+      get_view_for_type(view, type).fields()
     end
   end
 
+  @spec get_view_for_type(atom, binary) :: atom
   def get_view_for_type(my_view, type) do
     [_view | path]  = Module.split(my_view) |> Enum.reverse()
     path = Enum.reverse(path)
     Module.concat(path ++ ["#{String.capitalize(type)}View"])
   end
 
+  @spec build_config(list) :: Config.t
   defp build_config(opts) do
     view = Keyword.fetch!(opts, :view)
     struct(JSONAPI.Config, opts: opts, view: view)
