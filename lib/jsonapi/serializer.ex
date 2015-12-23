@@ -73,8 +73,12 @@ defmodule JSONAPI.Serializer do
     end)
   end
 
-  def is_data_loaded?(rel_data) do
-    assoc_loaded?(rel_data) && (is_map(rel_data) || (is_list(rel_data) && !Enum.empty?(rel_data)))
+  def is_data_loaded?(rel_data) when is_map(rel_data) do
+    assoc_loaded?(rel_data)
+  end
+
+  def is_data_loaded?(rel_data) when is_list(rel_data) do
+    !Enum.empty?(rel_data)
   end
 
   def encode_relation(rel_view, rel_data, rel_url, conn) do
