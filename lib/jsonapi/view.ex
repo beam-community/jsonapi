@@ -61,7 +61,7 @@ defmodule JSONAPI.View do
       def id(data), do: Map.get(data, :id) |> to_string()
 
       #TODO Figure out the nesting of fields
-      def attributes(data, conn) do
+      def attributes(data, _conn) do
         Map.take(data, fields)
       end
 
