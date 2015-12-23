@@ -5,6 +5,7 @@ defmodule JSONAPI.Mixfile do
     [app: :jsonapi,
       version: "0.1.0",
       package: package(),
+      description: description(),
       elixir: "~> 1.0",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
@@ -30,5 +31,11 @@ defmodule JSONAPI.Mixfile do
       maintainers: ["Jason Stiebs", "Mitchell Henke", "Jake Robers"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/jeregrine/jsonapi", docs: "http://hexdocs.pm/jsonapi/"}]
+  end
+
+  defp description do
+    """
+    Fully functional JSONAPI V1 Serializer as well as a QueryParser for Plug bases projects and applications.
+    """
   end
 end
