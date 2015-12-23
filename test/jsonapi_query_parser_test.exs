@@ -67,15 +67,15 @@ defmodule JSONAPI.QueryParserTest do
   test "parse_include\2 errors with invalid includes" do
     config = struct(Config, view: MyView)
     assert_raise InvalidQuery, "invalid include, user for type mytype", fn ->
-      parse_include(config, "user,comments.author") 
+      parse_include(config, "user,comments.author")
     end
-    
+
     assert_raise InvalidQuery, "invalid include, comments.author for type mytype", fn ->
       parse_include(config, "comments.author")
     end
-    
+
     assert_raise InvalidQuery, "invalid include, comments.author.user for type mytype", fn ->
-      parse_include(config, "comments.author.user") 
+      parse_include(config, "comments.author.user")
     end
   end
 

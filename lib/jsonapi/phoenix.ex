@@ -2,7 +2,7 @@ defmodule JSONAPI.PhoenixView do
   @moduledoc """
   This is an optional Phoenix specific module to include. It will give you default render show and index.json methods.
   """
-  
+
   defmacro __using__(_opts) do
     quote do
       use JSONAPI.View
