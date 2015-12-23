@@ -3,7 +3,7 @@ defmodule JSONAPI.Mixfile do
 
   def project do
     [app: :jsonapi,
-      version: "0.0.2",
+      version: "0.1.0",
       package: package(),
       elixir: "~> 1.0",
       build_embedded: Mix.env == :prod,
@@ -12,22 +12,10 @@ defmodule JSONAPI.Mixfile do
       deps: deps]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type `mix help compile.app` for more information
   def application do
     []
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:mydep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
-  #
-  # Type `mix help deps` for more examples and options
   defp deps do
     [
       {:plug, "~> 1.0"},
@@ -38,9 +26,9 @@ defmodule JSONAPI.Mixfile do
   end
 
   defp package do
-    [contributors: ["Jason Stiebs", "Mitchell Henke", "Jake Robers"],
+    [
+      maintainers: ["Jason Stiebs", "Mitchell Henke", "Jake Robers"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/jeregrine/jsonapi", docs: "http://hexdocs.pm/jsonapi/"}]
   end
-
 end
