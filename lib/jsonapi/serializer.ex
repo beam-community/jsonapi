@@ -87,7 +87,7 @@ defmodule JSONAPI.Serializer do
     }
   end
 
-  def encode_rel_data(view, nil), do: nil
+  def encode_rel_data(_view, nil), do: nil
   def encode_rel_data(view, data) when is_list(data) do
     Enum.map(data, fn(d) ->
       encode_rel_data(view, d)
