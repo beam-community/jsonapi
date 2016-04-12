@@ -57,7 +57,7 @@ defmodule JSONAPI.Serializer do
 
       only_rel_view = get_view(rel_view)
       # Build the relationship url
-      rel_url = view.url_for_rel(data, only_rel_view.type(), conn)
+      rel_url = view.url_for_rel(data, key, conn)
       # Build the relationship
       acc = put_in(acc, [:relationships, key], encode_relation(only_rel_view, rel_data, rel_url, conn))
 
