@@ -8,10 +8,10 @@ A project that will render your data models into [JSONAPI Documents](http://json
 ## JSONAPI Support
 - [X] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding [issue
 - [X] Basic support for [compound documents](http://jsonapi.org/format/#document-compound-documents)
-- [X] [Links](http://jsonapi.org/format/#document-links),
+- [X] [Links](http://jsonapi.org/format/#document-links)
 - [X] Relationship links
 - [X] Parsing of `sort` query parameter into Ecto Query order_by
-- [X] Parsing and limiting of `filter` keywords. )
+- [X] Parsing and limiting of `filter` keywords.
 - [X] Handling of sparse fieldsets
 - [X] Handling of includes
 
