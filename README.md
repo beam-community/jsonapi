@@ -20,17 +20,25 @@ Simply add `use JSONAPI.View` either to the top of your view, or to the web.ex v
 proper functions to your view like so.
 
 ```elixir
-defmodule PostView do
+defmodule MyApp.PostView do
   use JSONAPI.PhoenixView
 
-  def fields(), do: [:text, :body]
-  def type(), do: "mytype"
-  def relationships(), do: [author: {JSONAPISerializerTest.UserView, :include}, comments: JSONAPISerializerTest.CommentView]
+  def type, do: "post"
+
+  def fields do
+    [:text, :body]
+  end
+
+  def relationships do
+    # The post's author will be included by default
+    [author: {MyApp.UserView, :include},
+     comments: MyApp.CommentView]
+  end
 end
 ```
-is an example of a basic view. You can now call `render(conn, "show.json", PostView, %{data: my_data})` or `'list.json` normally.
+is an example of a basic view. You can now call `render(conn, "show.json", MyApp.PostView, %{data: my_data})` or `'list.json` normally.
 
-If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serialize(PostView, data, conn)`.
+If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serialize(MyApp.PostView, data, conn)`.
 
 ## Parsing and validating a JSONAPI Request
 
