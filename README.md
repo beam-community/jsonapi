@@ -44,10 +44,8 @@ If you'd like to use this without phoenix simply use the `JSONAPI.View` and call
 
 ```elixir
 plug JSONAPI.QueryParser
-  opts: [
-    sort: [:name, :title],
-    filter: [:q]
-  ],
+  sort: [:name, :title],
+  filter: [:q]
   view: PostView
 ```
 
