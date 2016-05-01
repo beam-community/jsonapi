@@ -1,39 +1,45 @@
 defmodule JSONAPI.View do
   @moduledoc """
-  A View is simply a module that define certain callbacks to configure proper rendering of your JSONAPI
-  documents.
+  A View is simply a module that defines certain callbacks to configure proper
+  rendering of your JSONAPI documents.
 
       defmodule PostView do
         use JSONAPI.View
 
-        def fields(), do: [:id, :text, :body]
-        def type(), do: "mytype"
-        def includes(), do: [author: JSONAPI.QueryParserTest.UserView, comments: JSONAPI.QueryParserTest.CommentView]
+        def fields, do: [:id, :text, :body]
+        def type, do: "post"
+        def relationships do
+          [author: UserView,
+           comments: CommentView]
+        end
       end
 
       defmodule UserView do
         use JSONAPI.View
 
-        def fields(), do: [:id, :username]
-        def type(), do: "user"
-        def includes(), do: []
+        def fields, do: [:id, :username]
+        def type, do: "user"
+        def relationships, do: []
       end
 
       defmodule CommentView do
         use JSONAPI.View
 
-        def fields(), do: [:id, :text]
-        def type(), do: "comment"
-        def includes(), do: [user: {:JSONAPI.QueryParserTest.UserView, :include}]
-
+        def fields, do: [:id, :text]
+        def type, do: "comment"
+        def relationships do
+          [user: {UserView, :include}]
+        end
       end
 
-  is an example of a basic view. You can now call `UserView.show(user, conn, params)` and it will
-  render a valid jsonapi doc.
+  You can now call `UserView.show(user, conn, conn.params)` and it will render
+  a valid jsonapi doc.
 
   ## Relationships
-  Currently the relationships callback expects that a map is returned configuring the information
-  you will need. If you have the following Ecto Model setup
+
+  Currently the relationships callback expects that a map is returned
+  configuring the information you will need. If you have the following Ecto
+  Model setup
 
       defmodule User do
         schema "users" do
@@ -43,8 +49,8 @@ defmodule JSONAPI.View do
         end
       end
 
-  and the includes setup from above. If your Post has loaded the author and the query asks for it
-  then it will be loaded.
+  and the includes setup from above. If your Post has loaded the author and the
+  query asks for it then it will be loaded.
 
   So for example:
   `GET /posts?include=post.author` if the author record is loaded on the Post, and you are using
@@ -58,19 +64,21 @@ defmodule JSONAPI.View do
     quote do
       import JSONAPI.Serializer, only: [serialize: 3]
 
-      def id(data), do: Map.get(data, :id) |> to_string()
+      def id(nil), do: nil
+      def id(%{__struct__: Ecto.Association.NotLoaded}), do: nil
+      def id(%{id: id}), do: to_string(id)
 
       #TODO Figure out the nesting of fields
       def attributes(data, conn) do
         Map.take(data, fields)
       end
 
-      def relationships(), do: []
-      def fields(), do: raise "Need to implement fields/0"
-      def type(), do: raise "Need to implement type/0"
+      def relationships, do: []
+      def fields, do: raise "Need to implement fields/0"
+      def type, do: raise "Need to implement type/0"
 
       def show(model, conn, _params), do: serialize(__MODULE__, model, conn)
-      def index(models, conn, _p), do: serialize(__MODULE__, models, conn)
+      def index(models, conn, _params), do: serialize(__MODULE__, models, conn)
 
       def url_for(nil, nil) do
         "/#{type()}"
