@@ -147,4 +147,31 @@ defmodule JSONAPISerializerTest do
     encoded_data = encoded[:data]
     assert encoded_data[:relationships][:author][:links][:self] == "/mytype/1/relationships/author"
   end
+
+  test "serialize handles including from the query" do
+    data = %{
+      id: 1,
+      text: "Hello",
+      body: "Hello world",
+      author: %{ id: 2, username: "jason"},
+      comments: [
+        %{ id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
+        %{ id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
+      ]
+    }
+
+    conn = %Plug.Conn{
+      assigns: %{
+        jsonapi_query: %{
+          includes: [comments: :user]
+        }
+      }
+    }
+
+    encoded = Serializer.serialize(PostView, data, conn)
+
+    encoded_data = encoded[:data]
+    assert encoded_data[:relationships][:author][:links][:self] == "http://www.example.com/mytype/1/relationships/author"
+    assert Enum.count(encoded_data[:included]) == 4
+  end
 end

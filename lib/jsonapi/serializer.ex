@@ -14,6 +14,8 @@ defmodule JSONAPI.Serializer do
       _ -> []
     end
 
+    IO.inspect(query_includes)
+    IO.puts "HHI:"
     {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
 
     included = flatten_included(to_include)
@@ -62,6 +64,9 @@ defmodule JSONAPI.Serializer do
       acc = put_in(acc, [:relationships, key], encode_relation(only_rel_view, rel_data, rel_url, conn))
 
       valid_include_view = Keyword.get(valid_includes, key)
+      IO.inspect(key)
+      IO.inspect(valid_include_view)
+      IO.puts "---------"
       if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
         rel_query_includes = Keyword.get(query_includes, key, [])
         #TODO Possibly only return a list of data + view, and encode it after the fact once instead of N times.
@@ -112,10 +117,24 @@ defmodule JSONAPI.Serializer do
   defp get_includes(view, []), do: view.relationships()
   defp get_includes(view, query_includes) do
     base=view.relationships()
-    Enum.reduce(query_includes, [], fn(key, acc) ->
-      new_view = Keyword.get(base, key)
-      Keyword.put(acc, key, {new_view, :include})
+    Enum.reduce(query_includes, [], fn (key, acc) ->
+      handle_include(base, key, acc)
     end)
+  end
+
+  defp handle_include(base, {parent, child}, acc) do 
+    new_view = Keyword.get(base, parent)
+    acc = Keyword.put(acc, parent, new_view)
+    handle_include(new_view, child, acc)
+  end
+
+  defp handle_include({base, :include}, child, acc) do
+    handle_include(base.relationships(), child, acc)
+  end
+
+  defp handle_include(base, child, acc) do 
+    new_view = Keyword.get(base, child)
+    Keyword.put(acc, child, new_view)
   end
 
   def get_view({view, :include}), do: view
