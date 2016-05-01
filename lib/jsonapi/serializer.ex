@@ -108,7 +108,7 @@ defmodule JSONAPI.Serializer do
   defp get_includes(view, nil), do: view.relationships()
   defp get_includes(view, []), do: view.relationships()
   defp get_includes(view, query_includes) do
-    base=view.relationships()
+    base = view.relationships()
     Enum.reduce(query_includes, [], fn(key, acc) ->
       new_view = Keyword.get(base, key)
       Keyword.put(acc, key, {new_view, :include})

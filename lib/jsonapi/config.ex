@@ -1,3 +1,10 @@
 defmodule JSONAPI.Config do
-  defstruct fields: %{}, view: nil, filter: %{}, includes: [], sort: nil, data: nil, required_fields: nil, opts: nil
+  defstruct data: nil,
+            fields: %{},
+            filter: %{},
+            includes: [],
+            opts: nil,
+            required_fields: nil,
+            sort: nil,
+            view: nil
 end
