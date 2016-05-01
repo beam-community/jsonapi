@@ -8,10 +8,10 @@ A project that will render your data models into [JSONAPI Documents](http://json
 ## JSONAPI Support
 - [X] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding [issue
 - [X] Basic support for [compound documents](http://jsonapi.org/format/#document-compound-documents)
-- [X] [Links](http://jsonapi.org/format/#document-links),
+- [X] [Links](http://jsonapi.org/format/#document-links)
 - [X] Relationship links
 - [X] Parsing of `sort` query parameter into Ecto Query order_by
-- [X] Parsing and limiting of `filter` keywords. )
+- [X] Parsing and limiting of `filter` keywords.
 - [X] Handling of sparse fieldsets
 - [X] Handling of includes
 
@@ -20,26 +20,32 @@ Simply add `use JSONAPI.View` either to the top of your view, or to the web.ex v
 proper functions to your view like so.
 
 ```elixir
-defmodule PostView do
+defmodule MyApp.PostView do
   use JSONAPI.PhoenixView
 
-  def fields(), do: [:text, :body]
-  def type(), do: "mytype"
-  def relationships(), do: [author: {JSONAPISerializerTest.UserView, :include}, comments: JSONAPISerializerTest.CommentView]
+  def type, do: "post"
+
+  def fields do
+    [:text, :body]
+  end
+
+  def relationships do
+    # The post's author will be included by default
+    [author: {MyApp.UserView, :include},
+     comments: MyApp.CommentView]
+  end
 end
 ```
-is an example of a basic view. You can now call `render(conn, "show.json", PostView, %{data: my_data})` or `'list.json` normally.
+is an example of a basic view. You can now call `render(conn, "show.json", MyApp.PostView, %{data: my_data})` or `'list.json` normally.
 
-If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serialize(PostView, data, conn)`.
+If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serialize(MyApp.PostView, data, conn)`.
 
 ## Parsing and validating a JSONAPI Request
 
 ```elixir
 plug JSONAPI.QueryParser
-  opts: [
-    sort: [:name, :title],
-    filter: [:q]
-  ],
+  sort: [:name, :title],
+  filter: [:q]
   view: PostView
 ```
 
