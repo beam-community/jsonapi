@@ -114,7 +114,7 @@ defmodule JSONAPITest do
 
     [author | _rest] = included
     assert Map.get(author, "type") == "user"
-    assert Map.get(author, "id") == "2"
+    assert Map.get(author, "id") == "3"
 
     assert Map.has_key?(json, "links")
   end

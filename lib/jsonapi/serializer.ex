@@ -9,10 +9,7 @@ defmodule JSONAPI.Serializer do
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
   def serialize(view, data, conn \\ nil) do
-    query_includes = case conn do
-      %Plug.Conn{assigns: %{jsonapi_query: %{includes: includes}}} -> includes
-      _ -> []
-    end
+    query_includes = []
 
     {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
 
