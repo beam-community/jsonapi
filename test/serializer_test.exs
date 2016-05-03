@@ -5,25 +5,30 @@ defmodule JSONAPISerializerTest do
   defmodule PostView do
     use JSONAPI.View
 
-    def fields(), do: [:text, :body]
-    def type(), do: "mytype"
-    def relationships(), do: [author: {JSONAPISerializerTest.UserView, :include}, comments: {JSONAPISerializerTest.CommentView, :include}]
+    def fields, do: [:text, :body]
+    def type, do: "mytype"
+    def relationships do
+      [author: {JSONAPISerializerTest.UserView, :include},
+       comments: {JSONAPISerializerTest.CommentView, :include}]
+    end
   end
 
   defmodule UserView do
     use JSONAPI.View
 
-    def fields(), do: [:username]
-    def type(), do: "user"
-    def relationships(), do: []
+    def fields, do: [:username]
+    def type, do: "user"
+    def relationships, do: []
   end
 
   defmodule CommentView do
     use JSONAPI.View
 
-    def fields(), do: [:text]
-    def type(), do: "comment"
-    def relationships(), do: [user: {JSONAPISerializerTest.UserView, :include}]
+    def fields, do: [:text]
+    def type, do: "comment"
+    def relationships do
+      [user: {JSONAPISerializerTest.UserView, :include}]
+    end
   end
 
   test "serialize handles singular objects" do
@@ -146,5 +151,31 @@ defmodule JSONAPISerializerTest do
 
     encoded_data = encoded[:data]
     assert encoded_data[:relationships][:author][:links][:self] == "/mytype/1/relationships/author"
+  end
+
+  test "serialize handles including from the query" do
+    data = %{
+      id: 1,
+      text: "Hello",
+      body: "Hello world",
+      author: %{ id: 2, username: "jason"},
+      comments: [
+        %{id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
+        %{id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
+      ]
+    }
+
+    conn = %Plug.Conn{
+      assigns: %{
+        jsonapi_query: %{
+          includes: [comments: :user]
+        }
+      }
+    }
+
+    encoded = Serializer.serialize(PostView, data, conn)
+
+    assert encoded.data.relationships.author.links.self == "http://www.example.com/mytype/1/relationships/author"
+    assert Enum.count(encoded.included) == 4
   end
 end
