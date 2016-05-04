@@ -62,7 +62,11 @@ defmodule JSONAPI.Serializer do
 
       valid_include_view =
         case valid_includes do
-          list when is_list(list) -> {Keyword.get(valid_includes, key), :include}
+          list when is_list(list) ->
+            case Keyword.get(valid_includes, key) do
+              {view, :include} -> {view, :include}
+              view -> {view, :include}
+            end
           {view, :include} -> {view, :include}
           view -> {view, :include}
         end

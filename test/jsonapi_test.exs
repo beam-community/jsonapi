@@ -72,9 +72,9 @@ defmodule JSONAPITest do
     assert Map.has_key?(json, "included")
     included = Map.get(json, "included")
     assert is_list(included)
-    assert Enum.count(included) == 1
+    assert Enum.count(included) == 2
 
-    [author] = included
+    [author | _] = included
     assert Map.get(author, "type") == "user"
     assert Map.get(author, "id") == "2"
 
