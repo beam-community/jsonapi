@@ -71,7 +71,7 @@ defmodule JSONAPI.QueryParser do
   def parse_filter(%Config{opts: opts} = config, filter) do
     opts_filter = Keyword.get(opts, :filter, [])
     Enum.reduce(filter, config, fn({key, val}, acc) ->
-      unless Enum.any?(opts_filter, fn(k) -> k == key end) do
+      unless Enum.any?(opts_filter, fn k -> Atom.to_string(k) == key end) do
         raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
       end
 
