@@ -48,8 +48,8 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_filter/2 turns filters key/val pairs" do
     config = struct(Config, opts: [filter: [:name]], view: MyView)
-    filter = parse_filter(config, %{name: "jason"}).filter
-    assert filter[:name] == "jason"
+    filter = parse_filter(config, %{"name" => "jason"}).filter
+    assert filter["name"] == "jason"
   end
 
   test "parse_filter/2 raises on invalid filters" do
