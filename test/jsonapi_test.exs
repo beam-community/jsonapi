@@ -5,17 +5,20 @@ defmodule JSONAPITest do
   defmodule PostView do
     use JSONAPI.View
 
-    def fields(), do: [:text, :body]
-    def type(), do: "mytype"
-    def relationships(), do: [author: JSONAPITest.UserView, other_user: {JSONAPITest.UserView, :include}]
+    def fields, do: [:text, :body]
+    def type, do: "mytype"
+    def relationships do
+      [author: JSONAPITest.UserView,
+       other_user: {JSONAPITest.UserView, :include}]
+    end
   end
 
   defmodule UserView do
     use JSONAPI.View
 
-    def fields(), do: [:username]
-    def type(), do: "user"
-    def relationships(), do: []
+    def fields, do: [:username]
+    def type, do: "user"
+    def relationships, do: []
   end
 
 
@@ -69,11 +72,11 @@ defmodule JSONAPITest do
     assert Map.has_key?(json, "included")
     included = Map.get(json, "included")
     assert is_list(included)
-    assert Enum.count(included) == 1
+    assert Enum.count(included) == 2
 
-    [other_user | _rest] = included
-    assert Map.get(other_user, "type") == "user"
-    assert Map.get(other_user, "id") == "3"
+    [author | _] = included
+    assert Map.get(author, "type") == "user"
+    assert Map.get(author, "id") == "2"
 
     assert Map.has_key?(json, "links")
   end
@@ -112,9 +115,9 @@ defmodule JSONAPITest do
     assert is_list(included)
     assert Enum.count(included) == 1
 
-    [author | _rest] = included
+    [author] = included
     assert Map.get(author, "type") == "user"
-    assert Map.get(author, "id") == "3"
+    assert Map.get(author, "id") == "2"
 
     assert Map.has_key?(json, "links")
   end
