@@ -76,7 +76,7 @@ defmodule JSONAPI.QueryParser do
       end
 
       old_filter = Map.get(acc, :filter, %{})
-      new_filter = Map.put(old_filter, key, val)
+      new_filter = Map.put(old_filter, String.to_atom(key), val)
       Map.put(acc, :filter, new_filter)
     end)
   end
