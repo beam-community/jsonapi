@@ -1,7 +1,7 @@
 JSONAPI Elixir
 =======
 
-A project that will render your data models into [JSONAPI Documents](http://jsonapi.org/format).
+A project that will render your data models into [JSONAPI Documents](http://jsonapi.org/format) and parse/verify JSONAPI query strings.
 
 [![Build Status](https://travis-ci.org/jeregrine/jsonapi.svg)](https://travis-ci.org/jeregrine/jsonapi)
 
