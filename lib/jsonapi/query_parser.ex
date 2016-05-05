@@ -75,9 +75,7 @@ defmodule JSONAPI.QueryParser do
         raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
       end
 
-      old_filter = Map.get(acc, :filter, %{})
-      new_filter = Map.put(old_filter, String.to_atom(key), val)
-      Map.put(acc, :filter, new_filter)
+      %{acc | filter: Keyword.put(acc.filter, String.to_atom(key), val)}
     end)
   end
 

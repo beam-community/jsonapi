@@ -54,8 +54,8 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_filter/2 raises on invalid filters" do
     config = struct(Config, opts: [], view: MyView)
-    assert_raise InvalidQuery, "invalid filter, name for type mytype", fn ->
-      parse_filter(config, %{name: "jason"})
+    assert_raise InvalidQuery, "invalid filter, noop for type mytype", fn ->
+      parse_filter(config, %{"noop" => "jason"})
     end
   end
 
