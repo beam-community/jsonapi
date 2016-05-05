@@ -21,9 +21,7 @@ proper functions to your view like so.
 
 ```elixir
 defmodule MyApp.PostView do
-  use JSONAPI.PhoenixView
-
-  def type, do: "post"
+  use JSONAPI.View, type: "posts"
 
   def fields do
     [:text, :body]

@@ -1,9 +1,23 @@
 defmodule JSONAPI.ViewTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
+
+  setup tags do
+    if tags[:compile_phoenix] do
+      Module.create(Phoenix, [], __ENV__)
+
+      defmodule CommentView do
+        use JSONAPI.View, type: "comments"
+      end
+    end
+
+    :ok
+  end
 
   defmodule PostView do
     use JSONAPI.View, type: "posts", namespace: "/api"
   end
+
+  alias JSONAPI.ViewTest.CommentView
 
   test "type/0 when specified via using macro" do
     assert PostView.type == "posts"
@@ -17,5 +31,14 @@ defmodule JSONAPI.ViewTest do
     assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.example.com/api/posts/1"
     assert PostView.url_for_rel([], "comments", %Plug.Conn{}) == "http://www.example.com/api/posts/relationships/comments"
     assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) == "http://www.example.com/api/posts/1/relationships/comments"
+  end
+
+  @tag :compile_phoenix
+  test "render/2 is defined when 'Phoenix' is loaded" do
+    assert {:render, 2} in CommentView.__info__(:functions)
+  end
+
+  test "render/2 is not defined when 'Phoenix' is not loaded" do
+    refute {:render, 2} in PostView.__info__(:functions)
   end
 end
