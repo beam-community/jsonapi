@@ -60,13 +60,25 @@ defmodule JSONAPI.View do
   and then use the `[user: {UserView, :include}]` syntax in your `includes` function. This tells
   the serializer to *always* include if its loaded.
   """
-  defmacro __using__(_opts) do
+  defmacro __using__(opts \\ []) do
+    {type, opts} = Keyword.pop(opts, :type)
+    {namespace, _opts} = Keyword.pop(opts, :namespace, "")
+
     quote do
       import JSONAPI.Serializer, only: [serialize: 3]
+
+      @resource_type unquote(type)
+      @namespace unquote(namespace)
 
       def id(nil), do: nil
       def id(%{__struct__: Ecto.Association.NotLoaded}), do: nil
       def id(%{id: id}), do: to_string(id)
+
+      if @resource_type do
+        def type, do: @resource_type
+      else
+        def type, do: raise "Need to implement type/0"
+      end
 
       #TODO Figure out the nesting of fields
       def attributes(data, conn) do
@@ -75,29 +87,30 @@ defmodule JSONAPI.View do
 
       def relationships, do: []
       def fields, do: raise "Need to implement fields/0"
-      def type, do: raise "Need to implement type/0"
 
-      def show(model, conn, _params), do: serialize(__MODULE__, model, conn)
-      def index(models, conn, _params), do: serialize(__MODULE__, models, conn)
+      def show(model, conn, _params),
+        do: serialize(__MODULE__, model, conn)
+      def index(models, conn, _params),
+        do: serialize(__MODULE__, models, conn)
 
       def url_for(nil, nil) do
-        "/#{type()}"
+        "#{@namespace}/#{type}"
       end
 
       def url_for(data, nil) when is_list(data) do
-        "/#{type()}"
+        "#{@namespace}/#{type}"
       end
 
       def url_for(data, nil) do
-        "/#{type()}/#{id(data)}"
+        "#{@namespace}/#{type}/#{id(data)}"
       end
 
       def url_for(data, %Plug.Conn{}=conn) when is_list(data) do
-        "#{Atom.to_string(conn.scheme)}://#{conn.host}/#{type()}"
+        "#{Atom.to_string(conn.scheme)}://#{conn.host}#{@namespace}/#{type}"
       end
 
       def url_for(data, %Plug.Conn{}=conn) do
-        "#{Atom.to_string(conn.scheme)}://#{conn.host}/#{type()}/#{id(data)}"
+        "#{Atom.to_string(conn.scheme)}://#{conn.host}#{@namespace}/#{type}/#{id(data)}"
       end
 
       def url_for_rel(data, rel_type, conn) do
