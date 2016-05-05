@@ -170,19 +170,19 @@ defmodule JSONAPI.QueryParser do
     end
   end
 
-  def get_valid_fields_for_type(config, type) do
-    view = config.view
-    if type == view.type() do
-      view.fields()
+  def get_valid_fields_for_type(%{view: view}, type) do
+    if type == view.type do
+      view.fields
     else
-     get_view_for_type(view, type).fields()
+     get_view_for_type(view, type).fields
     end
   end
 
   def get_view_for_type(view, type) do
-    [_view | path] = view |> Module.split() |> Enum.reverse()
-    path = Enum.reverse(path)
-    Module.concat(path ++ ["#{String.capitalize(type)}View"])
+    case Enum.find(view.relationships, fn {k, _v} -> Atom.to_string(k) == type end) do
+      {_, view} -> view
+      nil -> raise InvalidQuery, resource: view.type, param: type, param_type: :fields
+    end
   end
 
   defp build_config(opts) do
