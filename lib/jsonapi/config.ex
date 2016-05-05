@@ -1,7 +1,7 @@
 defmodule JSONAPI.Config do
   defstruct data: nil,
             fields: %{},
-            filter: %{},
+            filter: [],
             includes: [],
             opts: nil,
             required_fields: nil,
