@@ -32,7 +32,7 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_sort/2 turns sorts into valid ecto sorts" do
-    config = struct(Config, opts: [sort: [:name, :title]])
+    config = struct(Config, opts: [sort: ~w(name title)], view: MyView)
     assert parse_sort(config, "name,title").sort == [asc: :name, asc: :title]
     assert parse_sort(config, "name").sort == [asc: :name]
     assert parse_sort(config, "-name").sort == [desc: :name]
@@ -47,7 +47,7 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_filter/2 turns filters key/val pairs" do
-    config = struct(Config, opts: [filter: [:name]], view: MyView)
+    config = struct(Config, opts: [filter: ~w(name)], view: MyView)
     filter = parse_filter(config, %{"name" => "jason"}).filter
     assert filter[:name] == "jason"
   end
@@ -83,12 +83,12 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_fields/2 turns a fields map into a map of validated fields" do
-    config = struct(Config, view: JSONAPI.QueryParserTest.MyView)
+    config = struct(Config, view: MyView)
     assert parse_fields(config, %{"mytype" => "id,text"}).fields == %{"mytype" => [:id, :text]}
   end
 
   test "parse_fields/2 raises on invalid parsing" do
-    config = struct(Config, view: JSONAPI.QueryParserTest.MyView)
+    config = struct(Config, view: MyView)
     assert_raise InvalidQuery, "invalid fields, blag for type mytype", fn ->
       parse_fields(config, %{"mytype" => "blag"})
     end
