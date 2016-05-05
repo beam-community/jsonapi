@@ -21,9 +21,9 @@ defmodule JSONAPI.QueryParser do
 
   ```
   plug JSONAPI.QueryParser,
-    view: MyView,
-    sort: [:created_at, :title],
-    filter: [:title]
+    filter: ~w(title),
+    sort: ~w(created_at title),
+    view: MyView
   ```
 
   If your controller's index function recieves a query with params inside those
@@ -33,9 +33,9 @@ defmodule JSONAPI.QueryParser do
   The final output will be a `JSONAPI.Config` struct and will look similar to like
       %JSONAPI.Config{
         view: MyView,
-        opts: [view: MyView, sort: [:created_at, :title], filter: [:title]],
+        opts: [view: MyView, sort: ["created_at", "title"], filter: ["title"]],
         sort: [desc: :created_at] # Easily insertable into an ecto order_by,
-        filter: %{title: "my title"} # Easily reduceable into ecto where clauses
+        filter: [title: "my title"] # Easily reduceable into ecto where clauses
         includes: [comments: :user] # Easily insertable into a Repo.preload,
         fields: %{"myview" => [:id, :text], "comment" => [:id, :body]}
       }
@@ -71,7 +71,7 @@ defmodule JSONAPI.QueryParser do
   def parse_filter(%Config{opts: opts} = config, filter) do
     opts_filter = Keyword.get(opts, :filter, [])
     Enum.reduce(filter, config, fn({key, val}, acc) ->
-      unless Enum.any?(opts_filter, fn k -> Atom.to_string(k) == key end) do
+      unless Enum.any?(opts_filter, fn k -> k == key end) do
         raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
       end
 
@@ -105,29 +105,28 @@ defmodule JSONAPI.QueryParser do
                             param_type: :fields
       end
 
-      old_fields = Map.get(acc, :fields, %{})
-      new_fields = Map.put(old_fields, type, HashSet.to_list(requested_fields))
-      Map.put(acc, :fields, new_fields)
+      %{acc | fields: Map.put(acc.fields, type, HashSet.to_list(requested_fields))}
     end)
   end
 
   def parse_sort(config, ""), do: config
   def parse_sort(%Config{opts: opts} = config, sort_fields) do
-    sorts = String.split(sort_fields, ",")
-    |> Enum.map(fn(field) ->
-      [_, direction, field] = Regex.run(~r/(-?)(\S*)/, field)
-      field = String.to_atom(field)
-      valid_sort = Keyword.get(opts, :sort, [])
+    sorts =
+      sort_fields
+      |> String.split(",")
+      |> Enum.map(fn field ->
+        valid_sort = Keyword.get(opts, :sort, [])
+        [_, direction, field] = Regex.run(~r/(-?)(\S*)/, field)
 
-      unless field in valid_sort do
-        raise InvalidQuery, resource: config.view.type(), param: field, param_type: :sort
-      end
+        unless field in valid_sort do
+          raise InvalidQuery, resource: config.view.type(), param: field, param_type: :sort
+        end
 
-      build_sort(direction, field)
-    end)
-    |> List.flatten()
+        build_sort(direction, String.to_atom(field))
+      end)
+      |> List.flatten()
 
-    Map.put(config, :sort, sorts)
+    %{config | sort: sorts}
   end
 
   def build_sort("", field), do: [asc: field]
