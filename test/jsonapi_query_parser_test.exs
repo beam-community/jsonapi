@@ -95,8 +95,12 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "get_view_for_type/2" do
-    mod = MyApp.MyView
-    type = "post"
-    assert get_view_for_type(mod, type) == MyApp.PostView
+    assert get_view_for_type(MyView, "comments") == JSONAPI.QueryParserTest.CommentView
+  end
+
+  test "get_view_for_type/2 raises on invalid fiels" do
+    assert_raise InvalidQuery, "invalid fields, comment for type mytype", fn ->
+      get_view_for_type(MyView, "comment")
+    end
   end
 end
