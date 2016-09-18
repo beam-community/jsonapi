@@ -41,7 +41,7 @@ If you'd like to use this without phoenix simply use the `JSONAPI.View` and call
 ## Parsing and validating a JSONAPI Request
 
 ```elixir
-plug JSONAPI.QueryParser
+plug JSONAPI.QueryParser,
   filter: ~w(name),
   sort: ~w(name title inserted_at),
   view: PostView
