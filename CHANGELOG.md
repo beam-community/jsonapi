@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.0 (2016-12-02)
+* Removed PhoenixView
+
+
 ## v0.1.0 (2015-06-?)
 
 * Made params optional
