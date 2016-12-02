@@ -21,9 +21,7 @@ proper functions to your view like so.
 
 ```elixir
 defmodule MyApp.PostView do
-  use JSONAPI.PhoenixView
-
-  def type, do: "post"
+  use JSONAPI.View, type: "posts"
 
   def fields do
     [:text, :body]
@@ -43,7 +41,7 @@ If you'd like to use this without phoenix simply use the `JSONAPI.View` and call
 ## Parsing and validating a JSONAPI Request
 
 ```elixir
-plug JSONAPI.QueryParser
+plug JSONAPI.QueryParser,
   filter: ~w(name),
   sort: ~w(name title inserted_at),
   view: PostView

@@ -117,7 +117,26 @@ defmodule JSONAPI.View do
         "#{url_for(data, conn)}/relationships/#{rel_type}"
       end
 
-      defoverridable [attributes: 2, relationships: 0, id: 1, type: 0, fields: 0, url_for: 2, url_for_rel: 3]
+
+      if Code.ensure_loaded?(Phoenix) do
+        def render("show.json", %{data: data, conn: conn}),
+          do: show(data, conn, conn.params)
+        def render("show.json", %{data: data, conn: conn, params: params}),
+          do: show(data, conn, params)
+
+        def render("index.json", %{data: data, conn: conn}),
+          do: index(data, conn, conn.params)
+        def render("index.json", %{data: data, conn: conn, params: params}),
+          do: show(data, conn, params)
+      end
+
+      defoverridable attributes: 2,
+                     fields: 0,
+                     id: 1,
+                     relationships: 0,
+                     type: 0,
+                     url_for: 2,
+                     url_for_rel: 3
     end
   end
 end
