@@ -82,7 +82,7 @@ defmodule JSONAPI.View do
 
       #TODO Figure out the nesting of fields
       def attributes(data, conn) do
-        Map.take(data, fields)
+        Map.take(data, fields())
       end
 
       def relationships, do: []
@@ -94,23 +94,23 @@ defmodule JSONAPI.View do
         do: serialize(__MODULE__, models, conn)
 
       def url_for(nil, nil) do
-        "#{@namespace}/#{type}"
+        "#{@namespace}/#{type()}"
       end
 
       def url_for(data, nil) when is_list(data) do
-        "#{@namespace}/#{type}"
+        "#{@namespace}/#{type()}"
       end
 
       def url_for(data, nil) do
-        "#{@namespace}/#{type}/#{id(data)}"
+        "#{@namespace}/#{type()}/#{id(data)}"
       end
 
       def url_for(data, %Plug.Conn{}=conn) when is_list(data) do
-        "#{Atom.to_string(conn.scheme)}://#{conn.host}#{@namespace}/#{type}"
+        "#{Atom.to_string(conn.scheme)}://#{conn.host}#{@namespace}/#{type()}"
       end
 
       def url_for(data, %Plug.Conn{}=conn) do
-        "#{Atom.to_string(conn.scheme)}://#{conn.host}#{@namespace}/#{type}/#{id(data)}"
+        "#{Atom.to_string(conn.scheme)}://#{conn.host}#{@namespace}/#{type()}/#{id(data)}"
       end
 
       def url_for_rel(data, rel_type, conn) do
