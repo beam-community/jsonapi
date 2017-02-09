@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.1 (2017-02-09)
+* Updated codebase for elixir 1.4
+* Updated poison dep to 3.0
+* Fixed failing travis tests
+
 ## v0.4.0 (2016-12-02)
 * Removed PhoenixView
 
