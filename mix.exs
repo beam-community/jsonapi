@@ -10,7 +10,7 @@ defmodule JSONAPI.Mixfile do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       source_url: "https://github.com/jeregrine/jsonapi",
-      deps: deps]
+      deps: deps()]
   end
 
   def application do
