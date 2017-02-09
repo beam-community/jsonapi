@@ -85,19 +85,19 @@ defmodule JSONAPI.QueryParser do
       valid_fields =
         config
         |> get_valid_fields_for_type(type)
-        |> Enum.into(HashSet.new)
+        |> Enum.into(MapSet.new)
 
       requested_fields =
         value
         |> String.split(",")
         |> Enum.map(&String.to_atom/1)
-        |> Enum.into(HashSet.new)
+        |> Enum.into(MapSet.new)
 
-      unless HashSet.subset?(requested_fields, valid_fields) do
+      unless MapSet.subset?(requested_fields, valid_fields) do
         bad_fields =
           requested_fields
-          |> HashSet.difference(valid_fields)
-          |> HashSet.to_list()
+          |> MapSet.difference(valid_fields)
+          |> MapSet.to_list()
           |> Enum.join(",")
 
         raise InvalidQuery, resource: config.view.type(),
@@ -105,7 +105,7 @@ defmodule JSONAPI.QueryParser do
                             param_type: :fields
       end
 
-      %{acc | fields: Map.put(acc.fields, type, HashSet.to_list(requested_fields))}
+      %{acc | fields: Map.put(acc.fields, type, MapSet.to_list(requested_fields))}
     end)
   end
 
