@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.4.1 (2017-02-09)
+## v0.4.2 (2017-04-17)
 * Updated codebase for elixir 1.4
 * Updated poison dep to 3.0
 * Fixed failing travis tests
