@@ -6,6 +6,7 @@ defmodule JSONAPISerializerTest do
     use JSONAPI.View
 
     def fields, do: [:text, :body]
+    def meta(data, _conn), do: %{meta_text: "meta_#{data[:text]}"}
     def type, do: "mytype"
     def relationships do
       [author: {JSONAPISerializerTest.UserView, :include},
@@ -31,6 +32,14 @@ defmodule JSONAPISerializerTest do
     end
   end
 
+  test "serialize only includes meta if provided" do
+    encoded = Serializer.serialize(PostView, %{id: 1, text: "Hello"}, nil)
+    assert %{meta_text: "meta_Hello"} = encoded[:data][:meta]
+
+    encoded = Serializer.serialize(CommentView, %{id: 1}, nil)
+    refute Map.has_key?(encoded[:data], :meta)
+  end
+
   test "serialize handles singular objects" do
     data = %{
       id: 1,
@@ -47,6 +56,8 @@ defmodule JSONAPISerializerTest do
     encoded_data = encoded[:data]
     assert encoded_data[:id] == PostView.id(data)
     assert encoded_data[:type] == PostView.type()
+
+    assert %{meta_text: "meta_Hello"} = encoded_data[:meta]
 
     attributes = encoded_data[:attributes]
     assert attributes[:text] == data[:text]

@@ -15,7 +15,7 @@ defmodule JSONAPI.Serializer do
     end
 
     {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
-    
+
     %{
       links: %{},
       data: encoded_data,
@@ -43,6 +43,12 @@ defmodule JSONAPI.Serializer do
         self: view.url_for(data, conn)
       }
     }
+
+    doc =
+      case view.meta(data, conn) do
+        nil -> doc
+        meta -> Map.put(doc, :meta, meta)
+      end
 
     # Handle all the relationships
     Enum.map_reduce(view.relationships(), doc, fn({key, include_view}, acc) ->
@@ -72,7 +78,7 @@ defmodule JSONAPI.Serializer do
         end
 
       if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
-        rel_query_includes = 
+        rel_query_includes =
           if is_list(query_includes) do
             Keyword.get(query_includes, key, [])
           else
