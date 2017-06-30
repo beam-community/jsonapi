@@ -85,7 +85,10 @@ defmodule JSONAPI.View do
         Map.take(data, fields())
       end
 
+      def meta(_data, _conn), do: nil
+
       def relationships, do: []
+
       def fields, do: raise "Need to implement fields/0"
 
       def show(model, conn, _params),
@@ -133,6 +136,7 @@ defmodule JSONAPI.View do
       defoverridable attributes: 2,
                      fields: 0,
                      id: 1,
+                     meta: 2,
                      relationships: 0,
                      type: 0,
                      url_for: 2,
