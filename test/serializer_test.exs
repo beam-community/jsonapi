@@ -69,7 +69,7 @@ defmodule JSONAPISerializerTest do
     assert Enum.count(encoded[:included]) == 4
   end
 
-  test "serialize handles a list " do
+  test "serialize handles a list" do
     data = %{
       id: 1,
       text: "Hello",
@@ -99,7 +99,7 @@ defmodule JSONAPISerializerTest do
     assert Enum.count(encoded[:included]) == 4
   end
 
-  test "serialize handles an empty relationship " do
+  test "serialize handles an empty relationship" do
     data = %{
       id: 1,
       text: "Hello",
@@ -124,7 +124,7 @@ defmodule JSONAPISerializerTest do
     assert Enum.count(encoded[:included]) == 1
   end
 
-  test "serialize handles a nil relationship " do
+  test "serialize handles a nil relationship" do
     data = %{
       id: 1,
       text: "Hello",

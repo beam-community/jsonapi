@@ -17,6 +17,16 @@ defmodule JSONAPI.ViewTest do
     use JSONAPI.View, type: "posts", namespace: "/api"
   end
 
+  defmodule UserView do
+    use JSONAPI.View,
+      type: "users",
+      namespace: "/api"
+
+    def fields do
+      [:age, :first_name, :last_name]
+    end
+  end
+
   alias JSONAPI.ViewTest.CommentView
 
   test "type/0 when specified via using macro" do
@@ -40,5 +50,11 @@ defmodule JSONAPI.ViewTest do
 
   test "render/2 is not defined when 'Phoenix' is not loaded" do
     refute {:render, 2} in PostView.__info__(:functions)
+  end
+
+  test "attributes/2 with `:underscore_to_dash` option" do
+    Application.put_env(:jsonapi, :underscore_to_dash, true)
+    expected_map = %{age: 100, "first-name": "Jason", "last-name": "S"}
+    assert expected_map == UserView.attributes(%{age: 100, first_name: "Jason", last_name: "S"}, nil)
   end
 end
