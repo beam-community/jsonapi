@@ -82,7 +82,15 @@ defmodule JSONAPI.View do
 
       #TODO Figure out the nesting of fields
       def attributes(data, conn) do
-        Map.take(data, fields())
+        underscore_to_dash = Application.get_env(:jsonapi, :underscore_to_dash, false)
+
+        data = Map.take(data, fields())
+
+        if underscore?() do
+          underscore(data)
+        else
+          data
+        end
       end
 
       def meta(_data, _conn), do: nil
@@ -120,7 +128,6 @@ defmodule JSONAPI.View do
         "#{url_for(data, conn)}/relationships/#{rel_type}"
       end
 
-
       if Code.ensure_loaded?(Phoenix) do
         def render("show.json", %{data: data, conn: conn}),
           do: show(data, conn, conn.params)
@@ -131,6 +138,21 @@ defmodule JSONAPI.View do
           do: index(data, conn, conn.params)
         def render("index.json", %{data: data, conn: conn, params: params}),
           do: show(data, conn, params)
+      end
+
+      defp underscore?, do: Application.get_env(:jsonapi, :underscore_to_dash, false)
+
+      defp underscore(data) do
+        data
+        |> Enum.map(fn {key, value} -> {underscore_key(key), value} end)
+        |> Enum.into(%{})
+      end
+
+      defp underscore_key(key) do
+        key
+        |> to_string
+        |> String.replace("_", "-")
+        |> String.to_atom
       end
 
       defoverridable attributes: 2,
