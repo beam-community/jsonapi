@@ -36,7 +36,7 @@ end
 ```
 is an example of a basic view. You can now call `render(conn, "show.json", MyApp.PostView, %{data: my_data})` or `'list.json` normally.
 
-If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serialize(MyApp.PostView, data, conn)`.
+If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serializer.serialize(MyApp.PostView, data, conn)`.
 
 ## Parsing and validating a JSONAPI Request
 
