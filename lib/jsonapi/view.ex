@@ -137,7 +137,7 @@ defmodule JSONAPI.View do
         def render("index.json", %{data: data, conn: conn}),
           do: index(data, conn, conn.params)
         def render("index.json", %{data: data, conn: conn, params: params}),
-          do: show(data, conn, params)
+          do: index(data, conn, params)
       end
 
       defp underscore?, do: Application.get_env(:jsonapi, :underscore_to_dash, false)
