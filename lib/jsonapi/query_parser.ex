@@ -55,7 +55,10 @@ defmodule JSONAPI.QueryParser do
   end
 
   def call(conn, opts) do
-    query_params = conn.query_params
+    query_params =
+      conn
+      |> Plug.Conn.fetch_query_params()
+      |> Map.get(:query_params)
 
     config = opts
     |> parse_fields(Map.get(query_params, "fields", %{}))

@@ -21,7 +21,6 @@ defmodule JSONAPITest do
     def relationships, do: []
   end
 
-
   defmodule MyPostPlug do
     use Plug.Builder
 
@@ -33,23 +32,26 @@ defmodule JSONAPITest do
     plug :passthrough
 
     defp passthrough(conn, _) do
-      resp = JSONAPI.Serializer.serialize(PostView, conn.assigns[:data], conn)
-      |> Poison.encode!
+      resp =
+        PostView
+        |> JSONAPI.Serializer.serialize(conn.assigns[:data], conn)
+        |> Poison.encode!
 
       Plug.Conn.send_resp(conn, 200, resp)
     end
   end
 
-
   test "handles simple requests" do
-    conn = conn(:get, "/posts")
-    |> Plug.Conn.assign(:data, [%{
-      id: 1,
-      text: "Hello",
-      body: "Hi",
-      author: %{username: "jason", id: 2},
-      other_user: %{username: "josh", id: 3}}])
-    |> MyPostPlug.call([])
+    conn =
+      :get
+      |> conn("/posts")
+      |> Plug.Conn.assign(:data, [%{
+        id: 1,
+        text: "Hello",
+        body: "Hi",
+        author: %{username: "jason", id: 2},
+        other_user: %{username: "josh", id: 3}}])
+      |> MyPostPlug.call([])
 
     json = conn.resp_body |> Poison.decode!
 
