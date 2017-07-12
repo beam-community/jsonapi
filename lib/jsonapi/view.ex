@@ -116,11 +116,11 @@ defmodule JSONAPI.View do
         "#{@namespace}/#{type()}/#{id(data)}"
       end
 
-      def url_for(data, %Plug.Conn{}=conn) when is_list(data) do
+      def url_for(data, %Plug.Conn{} = conn) when is_list(data) do
         "#{scheme(conn)}://#{host(conn)}#{@namespace}/#{type()}"
       end
 
-      def url_for(data, %Plug.Conn{}=conn) do
+      def url_for(data, %Plug.Conn{} = conn) do
         "#{scheme(conn)}://#{host(conn)}#{@namespace}/#{type()}/#{id(data)}"
       end
 

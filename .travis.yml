@@ -1,3 +1,12 @@
 language: elixir
 elixir:
   - 1.4
+otp_release:
+  - 20.0
+  - 19.3
+notifications:
+  email: false
+sudo: false
+script:
+  - mix test
+  - mix credo
