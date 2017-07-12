@@ -44,7 +44,6 @@ defmodule JSONAPI.QueryParser do
   You will notice the fields section is a not as easy to work with as the others and
   that is a result of Ecto not supporting high quality selects quite yet. This is a WIP.
 
-
   ## Options
     * `:view` - The JSONAPI View which is the basis for this plug.
     * `:sort` - List of atoms which define which fields can be sorted on.
@@ -70,13 +69,17 @@ defmodule JSONAPI.QueryParser do
   def parse_filter(config, map) when map_size(map) == 0, do: config
   def parse_filter(%Config{opts: opts} = config, filter) do
     opts_filter = Keyword.get(opts, :filter, [])
-    Enum.reduce(filter, config, fn({key, val}, acc) ->
-      unless Enum.any?(opts_filter, fn k -> k == key end) do
-        raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
-      end
 
+    Enum.reduce(filter, config, fn({key, val}, acc) ->
+      check_filter_validity!(opts_filter, key, config)
       %{acc | filter: Keyword.put(acc.filter, String.to_atom(key), val)}
     end)
+  end
+
+  defp check_filter_validity!(filters, key, config) do
+    unless key in filters do
+      raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
+    end
   end
 
   def parse_fields(config, map) when map_size(map) == 0, do: config
@@ -160,7 +163,7 @@ defmodule JSONAPI.QueryParser do
     keys = key |> String.split(".") |> Enum.map(&String.to_existing_atom/1)
 
     last = List.last(keys)
-    path = Enum.slice(keys, 0, Enum.count(keys)-1)
+    path = Enum.slice(keys, 0, Enum.count(keys) - 1)
 
     if member_of_tree?(keys, valid_include) do
       put_as_tree([], path, last)
@@ -189,4 +192,3 @@ defmodule JSONAPI.QueryParser do
     struct(JSONAPI.Config, opts: opts, view: view)
   end
 end
-
