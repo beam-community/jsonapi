@@ -33,7 +33,7 @@ defmodule JSONAPI.ViewTest do
     assert PostView.type == "posts"
   end
 
-  test "url_for/2 with namespace" do
+  test "url_for/2" do
     assert PostView.url_for(nil, nil) == "/api/posts"
     assert PostView.url_for([], nil) == "/api/posts"
     assert PostView.url_for(%{id: 1}, nil) == "/api/posts/1"
@@ -41,6 +41,18 @@ defmodule JSONAPI.ViewTest do
     assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.example.com/api/posts/1"
     assert PostView.url_for_rel([], "comments", %Plug.Conn{}) == "http://www.example.com/api/posts/relationships/comments"
     assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) == "http://www.example.com/api/posts/1/relationships/comments"
+
+    Application.put_env(:jsonapi, :host, "www.otherhost.com")
+    assert PostView.url_for([], %Plug.Conn{}) == "http://www.otherhost.com/api/posts"
+    assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.otherhost.com/api/posts/1"
+    assert PostView.url_for_rel([], "comments", %Plug.Conn{}) == "http://www.otherhost.com/api/posts/relationships/comments"
+    assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) == "http://www.otherhost.com/api/posts/1/relationships/comments"
+
+    Application.put_env(:jsonapi, :scheme, "ftp")
+    assert PostView.url_for([], %Plug.Conn{}) == "ftp://www.otherhost.com/api/posts"
+    assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "ftp://www.otherhost.com/api/posts/1"
+    assert PostView.url_for_rel([], "comments", %Plug.Conn{}) == "ftp://www.otherhost.com/api/posts/relationships/comments"
+    assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) == "ftp://www.otherhost.com/api/posts/1/relationships/comments"
   end
 
   @tag :compile_phoenix
