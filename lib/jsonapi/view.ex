@@ -82,9 +82,7 @@ defmodule JSONAPI.View do
 
       #TODO Figure out the nesting of fields
       def attributes(data, conn) do
-        underscore_to_dash = Application.get_env(:jsonapi, :underscore_to_dash, false)
-
-        data = Map.take(data, fields())
+        data = visible_fields(data)
 
         if underscore?() do
           underscore(data)
@@ -98,6 +96,8 @@ defmodule JSONAPI.View do
       def relationships, do: []
 
       def fields, do: raise "Need to implement fields/0"
+
+      def hidden, do: []
 
       def show(model, conn, _params),
         do: serialize(__MODULE__, model, conn)
@@ -140,6 +140,8 @@ defmodule JSONAPI.View do
           do: show(data, conn, params)
       end
 
+      defp visible_fields(data), do: Map.take(data, fields() -- hidden())
+
       defp underscore?, do: Application.get_env(:jsonapi, :underscore_to_dash, false)
 
       defp underscore(data) do
@@ -157,6 +159,7 @@ defmodule JSONAPI.View do
 
       defoverridable attributes: 2,
                      fields: 0,
+                     hidden: 0,
                      id: 1,
                      meta: 2,
                      relationships: 0,
