@@ -23,7 +23,11 @@ defmodule JSONAPI.ViewTest do
       namespace: "/api"
 
     def fields do
-      [:age, :first_name, :last_name]
+      [:age, :first_name, :last_name, :password]
+    end
+
+    def hidden do
+      [:password]
     end
   end
 
@@ -64,9 +68,15 @@ defmodule JSONAPI.ViewTest do
     refute {:render, 2} in PostView.__info__(:functions)
   end
 
+  test "attributes/2 does not display hidden fields" do
+    expected_map = %{age: 100, first_name: "Jason", last_name: "S"}
+    assert expected_map == UserView.attributes(%{age: 100, first_name: "Jason", last_name: "S", password: "securepw"}, nil)
+  end
+
   test "attributes/2 with `:underscore_to_dash` option" do
     Application.put_env(:jsonapi, :underscore_to_dash, true)
     expected_map = %{age: 100, "first-name": "Jason", "last-name": "S"}
     assert expected_map == UserView.attributes(%{age: 100, first_name: "Jason", last_name: "S"}, nil)
+    Application.put_env(:jsonapi, :underscore_to_dash, false)
   end
 end
