@@ -1,4 +1,8 @@
 defmodule JSONAPI.Utils.IncludeTree do
+  @moduledoc """
+  Internal utility for building trees of resource relationships
+  """
+
   def put_as_tree(acc, items, val) do
     [head | tail] = Enum.reverse(items)
     build_tree(Keyword.put(acc, head, val), tail)

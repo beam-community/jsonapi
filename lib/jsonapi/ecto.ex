@@ -1,4 +1,8 @@
 defmodule JSONAPI.Ecto do
+  @moduledoc """
+  Helper functions for working with Ecto
+  """
+
   @doc """
   Checks to see if an associated table is Loaded.
 

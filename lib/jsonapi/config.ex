@@ -1,4 +1,8 @@
 defmodule JSONAPI.Config do
+  @moduledoc """
+  Configuration struct containing JSON API information for a request
+  """
+
   defstruct data: nil,
             fields: %{},
             filter: [],

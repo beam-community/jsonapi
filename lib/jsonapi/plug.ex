@@ -14,10 +14,10 @@ defmodule JSONAPI.PlugResponseContentType do
 
   def call(conn, _opts) do
     register_before_send(conn, fn(conn) ->
-      if !conn.assigns[:override_jsonapi] do
-        put_resp_content_type(conn, "application/vnd.api+json")
-      else
+      if conn.assigns[:override_jsonapi] do
         conn
+      else
+        put_resp_content_type(conn, "application/vnd.api+json")
       end
     end)
   end

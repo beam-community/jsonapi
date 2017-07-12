@@ -1,4 +1,8 @@
 defmodule JSONAPI.Serializer do
+  @moduledoc """
+  Serialize a map of data into a properly formatted JSON API response object
+  """
+
   import JSONAPI.Ecto, only: [assoc_loaded?: 1]
 
   @doc """
@@ -50,48 +54,54 @@ defmodule JSONAPI.Serializer do
         meta -> Map.put(doc, :meta, meta)
       end
 
-    # Handle all the relationships
-    Enum.map_reduce(view.relationships(), doc, fn({key, include_view}, acc) ->
+    encode_relationships(conn, doc, {view, data, query_includes, valid_includes})
+  end
 
-      rel_view = case include_view do
+  def encode_relationships(conn, doc, {view, _, _, _} = view_info) do
+    rels = view.relationships()
+    Enum.map_reduce(rels, doc, &build_relationships(conn, view_info, &1, &2))
+  end
+
+  def build_relationships(conn, {view, data, query_includes, valid_includes}, {key, include_view}, acc) do
+    rel_view =
+      case include_view do
         {view, :include} -> view
         view -> view
       end
 
-      rel_data = Map.get(data, key)
+    rel_data = Map.get(data, key)
 
-      only_rel_view = get_view(rel_view)
-      # Build the relationship url
-      rel_url = view.url_for_rel(data, key, conn)
-      # Build the relationship
-      acc = put_in(acc, [:relationships, key], encode_relation(only_rel_view, rel_data, rel_url, conn))
+    only_rel_view = get_view(rel_view)
+    # Build the relationship url
+    rel_url = view.url_for_rel(data, key, conn)
+    # Build the relationship
+    acc = put_in(acc, [:relationships, key], encode_relation(only_rel_view, rel_data, rel_url, conn))
 
-      valid_include_view =
-        case valid_includes do
-          list when is_list(list) ->
-            case Keyword.get(valid_includes, key) do
-              {view, :include} -> {view, :include}
-              view -> {view, :include}
-            end
-          {view, :include} -> {view, :include}
-          view -> {view, :include}
+    valid_include_view = include_view(valid_includes, key)
+
+    if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
+      rel_query_includes =
+        if is_list(query_includes) do
+          Keyword.get(query_includes, key, [])
+        else
+          []
         end
-
-      if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
-        rel_query_includes =
-          if is_list(query_includes) do
-            Keyword.get(query_includes, key, [])
-          else
-            []
-          end
-        #TODO Possibly only return a list of data + view, and encode it after the fact once instead of N times.
-        {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn, rel_query_includes)
-        {rel_included ++ [encoded_rel], acc}
-      else
-        {nil, acc}
-      end
-    end)
+      #TODO Possibly only return a list of data + view, and encode it after the fact once instead of N times.
+      {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn, rel_query_includes)
+      {rel_included ++ [encoded_rel], acc}
+    else
+      {nil, acc}
+    end
   end
+
+  defp include_view(valid_includes, key) when is_list(valid_includes) do
+    case Keyword.get(valid_includes, key) do
+      {view, :include} -> {view, :include}
+      view -> {view, :include}
+    end
+  end
+  defp include_view({view, :include}, _key), do: {view, :include}
+  defp include_view(view, _key), do: {view, :include}
 
   def is_data_loaded?(rel_data) do
     assoc_loaded?(rel_data) && (is_map(rel_data) || (is_list(rel_data) && !Enum.empty?(rel_data)))
