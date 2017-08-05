@@ -59,6 +59,16 @@ defmodule JSONAPI.View do
   If you always want to include a relationship. First make sure its always preloaded
   and then use the `[user: {UserView, :include}]` syntax in your `includes` function. This tells
   the serializer to *always* include if its loaded.
+
+  ## Options
+    * `:host` (binary) - Allows the `host` to be overrided for generated URLs.  Defaults to `host` of the supplied `conn`.
+    
+    * `:scheme` (atom) - Enables configuration of the HTTP scheme for generated URLS.  Defaults to `scheme` from the provided `conn`.
+
+    * `:underscore_to_dash` (boolean) - Use dash (`-`) as the word separated for JSON in place of underscore (`_`) per the JSONAPI spec [recommendations](http://jsonapi.org/recommendations/).  Defaults to `false`.
+
+  The default behaviour for `host` and `scheme` is to derive it from the `conn` provided, while the
+  default style for presentation in names is to be underscored and not dashed.
   """
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)

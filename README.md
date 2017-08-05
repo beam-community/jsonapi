@@ -60,6 +60,18 @@ when Ecto gets more complex field selection support we will go further to only q
 
 You will need to handle filtering yourself, the filter is just a map with key=value.
 
+## Configuration
+By default host and scheme are pulled from the provided conn but can be overridden via configuration like so:
+
+```elixir
+config :jsonapi,
+  host: "www.someotherhost.com",
+  scheme: "https",
+  underscore_to_dash: true
+```
+
+Additionally, JSONAPI now recommends the use of dashes (`-`) in place of underscore (`_`) as a word separator. Enabling this change is easy with the `underscore_to_dash` option, which handles the conversion for you.
+
 ## Other
 
 - Feel free to make PR's. I will do my best to respond within a day or two.
