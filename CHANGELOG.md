@@ -1,5 +1,11 @@
 # Changelog
 
+
+## v0.5.1 (2017-07-07)
+
+* [Added](https://github.com/jeregrine/jsonapi/commit/1f9e45aee4058ca6b3a8a55aaec6eebcada525a6) plug to make verifying reqeusts and their errors easier 
+
+
 ## v0.5.0 (2017-07-07)
 
 * [Added](https://github.com/jeregrine/jsonapi/commit/def022b327ac13e5e906a665321969b442048f3b) support for meta fields
