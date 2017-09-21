@@ -6,7 +6,7 @@ A project that will render your data models into [JSONAPI Documents](http://json
 [![Build Status](https://travis-ci.org/jeregrine/jsonapi.svg)](https://travis-ci.org/jeregrine/jsonapi)
 
 ## JSONAPI Support
-- [X] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding [issue
+- [X] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding 
 - [X] Basic support for [compound documents](http://jsonapi.org/format/#document-compound-documents)
 - [X] [Links](http://jsonapi.org/format/#document-links)
 - [X] Relationship links
