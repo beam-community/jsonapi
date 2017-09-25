@@ -6,7 +6,7 @@ A project that will render your data models into [JSONAPI Documents](http://json
 [![Build Status](https://travis-ci.org/jeregrine/jsonapi.svg)](https://travis-ci.org/jeregrine/jsonapi)
 
 ## JSONAPI Support
-- [X] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding 
+- [X] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding
 - [X] Basic support for [compound documents](http://jsonapi.org/format/#document-compound-documents)
 - [X] [Links](http://jsonapi.org/format/#document-links)
 - [X] Relationship links
@@ -16,6 +16,7 @@ A project that will render your data models into [JSONAPI Documents](http://json
 - [X] Handling of includes
 
 ## How to use with Phoenix
+
 Simply add `use JSONAPI.View` either to the top of your view, or to the web.ex view section and add the
 proper functions to your view like so.
 
@@ -60,7 +61,25 @@ when Ecto gets more complex field selection support we will go further to only q
 
 You will need to handle filtering yourself, the filter is just a map with key=value.
 
+## Spec Enforcement
+
+We include a set of Plugs to make enforcing the JSONAPI spec for requests easy.  To add spec enforcement to your application, add `JSONAPI.EnsureSpec` to your pipeline:
+
+
+```elixir
+plug JSONAPI.EnsureSpec
+```
+
+Under-the-hood `JSONAPI.EnsureSpec` relies on three individual plugs:
+
++ `JSONAPI.ContentTypeNegotiation` — Requires the `Content-Type` and `Accept` headers are set correctly.
+
++ `JSONAPI.FormatRequired` — Verifies that the JSON body matches the expected `%{data: %{attributes: attributes}}` format.
+
++ `JSONAPI.IdRequired` — Confirm the `id` key is present in `%{data: data}` and that it matches the resource's `id` in the URI.
+
 ## Configuration
+
 By default host and scheme are pulled from the provided conn but can be overridden via configuration like so:
 
 ```elixir
