@@ -67,6 +67,15 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_include(config, "comments.user").includes == [comments: :user]
   end
 
+  test "parse_include/2 returns a map with duplicate values for include and includes for compatibility" do
+    include_list =
+    Config
+    |> struct(view: MyView)
+    |> parse_include("comments.user")
+
+    assert include_list.includes == include_list.include
+  end
+
   test "parse_include/2 errors with invalid includes" do
     config = struct(Config, view: MyView)
     assert_raise InvalidQuery, "invalid include, user for type mytype", fn ->
@@ -98,7 +107,17 @@ defmodule JSONAPI.QueryParserTest do
     assert get_view_for_type(MyView, "comments") == JSONAPI.QueryParserTest.CommentView
   end
 
-  test "get_view_for_type/2 raises on invalid fiels" do
+  test "parse_pagination/2 turns a fields map into a map of pagination values" do
+    config = struct(Config, view: MyView)
+    assert parse_pagination(config, config.page).page.__struct__ == JSONAPI.Page
+    assert parse_pagination(config, %{"limit" => 1}).page.limit == 1
+    assert parse_pagination(config, %{"offset" => 1}).page.offset == 1
+    assert parse_pagination(config, %{"page" => 1}).page.page == 1
+    assert parse_pagination(config, %{"size" => 1}).page.size == 1
+    assert parse_pagination(config, %{"cursor" => 1}).page.cursor == 1
+  end
+
+  test "get_view_for_type/2 raises on invalid fields" do
     assert_raise InvalidQuery, "invalid fields, comment for type mytype", fn ->
       get_view_for_type(MyView, "comment")
     end

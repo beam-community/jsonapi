@@ -4,6 +4,7 @@ defmodule JSONAPI.Serializer do
   """
 
   import JSONAPI.Ecto, only: [assoc_loaded?: 1]
+  alias JSONAPI.Utils.Underscore
 
   @doc """
   Takes a view, data and a optional plug connection and returns a fully JSONAPI Serialized document.
@@ -41,7 +42,7 @@ defmodule JSONAPI.Serializer do
     doc = %{
       id: view.id(data),
       type: view.type(),
-      attributes: view.attributes(data, conn),
+      attributes: underscore(view.attributes(data, conn)),
       relationships: %{},
       links: %{
         self: view.url_for(data, conn)
@@ -75,7 +76,7 @@ defmodule JSONAPI.Serializer do
     # Build the relationship url
     rel_url = view.url_for_rel(data, key, conn)
     # Build the relationship
-    acc = put_in(acc, [:relationships, key], encode_relation(only_rel_view, rel_data, rel_url, conn))
+    acc = put_in(acc, [:relationships, underscore(key)], encode_relation(only_rel_view, rel_data, rel_url, conn))
 
     valid_include_view = include_view(valid_includes, key)
 
@@ -163,4 +164,12 @@ defmodule JSONAPI.Serializer do
 
   def get_view({view, :include}), do: view
   def get_view(view), do: view
+
+  def underscore(data) do
+    if Underscore.underscore?() do
+      Underscore.underscore(data)
+    else
+      data
+    end
+  end
 end
