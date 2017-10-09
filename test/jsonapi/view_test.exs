@@ -72,11 +72,4 @@ defmodule JSONAPI.ViewTest do
     expected_map = %{age: 100, first_name: "Jason", last_name: "S"}
     assert expected_map == UserView.attributes(%{age: 100, first_name: "Jason", last_name: "S", password: "securepw"}, nil)
   end
-
-  test "attributes/2 with `:underscore_to_dash` option" do
-    Application.put_env(:jsonapi, :underscore_to_dash, true)
-    expected_map = %{age: 100, "first-name": "Jason", "last-name": "S"}
-    assert expected_map == UserView.attributes(%{age: 100, first_name: "Jason", last_name: "S"}, nil)
-    Application.put_env(:jsonapi, :underscore_to_dash, false)
-  end
 end
