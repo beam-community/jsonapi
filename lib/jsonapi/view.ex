@@ -90,15 +90,8 @@ defmodule JSONAPI.View do
         def type, do: raise "Need to implement type/0"
       end
 
-      #TODO Figure out the nesting of fields
       def attributes(data, conn) do
-        data = visible_fields(data)
-
-        if underscore?() do
-          underscore(data)
-        else
-          data
-        end
+        visible_fields(data)
       end
 
       def meta(_data, _conn), do: nil
@@ -151,21 +144,6 @@ defmodule JSONAPI.View do
       end
 
       defp visible_fields(data), do: Map.take(data, fields() -- hidden())
-
-      defp underscore?, do: Application.get_env(:jsonapi, :underscore_to_dash, false)
-
-      defp underscore(data) do
-        data
-        |> Enum.map(fn {key, value} -> {underscore_key(key), value} end)
-        |> Enum.into(%{})
-      end
-
-      defp underscore_key(key) do
-        key
-        |> to_string
-        |> String.replace("_", "-")
-        |> String.to_atom
-      end
 
       defp host(conn), do: Application.get_env(:jsonapi, :host, conn.host)
 
