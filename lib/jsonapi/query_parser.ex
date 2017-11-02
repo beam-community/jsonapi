@@ -65,6 +65,8 @@ defmodule JSONAPI.QueryParser do
     |> parse_include(Map.get(query_params, "include", ""))
     |> parse_filter(Map.get(query_params, "filter", %{}))
     |> parse_sort(Map.get(query_params, "sort", ""))
+    |> Map.put(:limit, Map.get(query_params, "limit", ""))
+    |> Map.put(:offset, Map.get(query_params, "offset", ""))
 
     Plug.Conn.assign(conn, :jsonapi_query, config)
   end
