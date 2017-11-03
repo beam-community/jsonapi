@@ -28,7 +28,7 @@ defmodule JSONAPI.QueryParser do
     view: MyView
   ```
 
-  If your controller's index function recieves a query with params inside those
+  If your controller's index function receives a query with params inside those
   bounds it will build a JSONAPI.Config that has all the validated and parsed
   fields for your usage. The final configuration will be added to assigns `jsonapi_query`.
 
@@ -69,17 +69,18 @@ defmodule JSONAPI.QueryParser do
       |> Map.get(:query_params)
       |> struct_from_map(%Config{})
 
-    query_params_page_struct = struct_from_map(query_params_config_struct.page, %Page{})
-
     config = opts
     |> parse_fields(query_params_config_struct.fields)
     |> parse_include(query_params_config_struct.include)
     |> parse_filter(query_params_config_struct.filter)
     |> parse_sort(query_params_config_struct.sort)
-    |> Map.put(:page, query_params_page_struct)
+    |> parse_pagination(query_params_config_struct.page)
 
     Plug.Conn.assign(conn, :jsonapi_query, config)
   end
+
+  def parse_pagination(config, map) when map_size(map) == 0, do: config
+  def parse_pagination(%Config{} = config, page), do: Map.put(config, :page, struct_from_map(page, %Page{}))
 
   def parse_filter(config, map) when map_size(map) == 0, do: config
   def parse_filter(%Config{opts: opts} = config, filter) do
