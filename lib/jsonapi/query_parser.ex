@@ -56,9 +56,12 @@ defmodule JSONAPI.QueryParser do
   end
 
   def call(conn, opts) do
-    query_params = conn |> Plug.Conn.fetch_query_params() |> Map.get(:query_params)
-    query_page_params = atomize_map(query_params["page"])
-    query_params = atomize_map(query_params)
+    query_params = conn
+      |> Plug.Conn.fetch_query_params()
+      |> Map.get(:query_params)
+      |> atomize_map()
+
+    query_page_params = atomize_map(query_params.page)
 
     query_params_config_struct = struct(Config, query_params)
     query_params_page_struct = struct(Page, query_page_params)
