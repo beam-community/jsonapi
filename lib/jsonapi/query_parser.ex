@@ -1,6 +1,7 @@
 defmodule JSONAPI.QueryParser do
   @behaviour Plug
   alias JSONAPI.Config
+  alias JSONAPI.Page
   alias JSONAPI.Exceptions.InvalidQuery
   import JSONAPI.Utils.IncludeTree
 
@@ -55,18 +56,19 @@ defmodule JSONAPI.QueryParser do
   end
 
   def call(conn, opts) do
-    query_params =
-      conn
-      |> Plug.Conn.fetch_query_params()
-      |> Map.get(:query_params)
+    query_params = conn |> Plug.Conn.fetch_query_params() |> Map.get(:query_params)
+    query_page_params = atomize_map(query_params["page"])
+    query_params = atomize_map(query_params)
+
+    query_params_config_struct = struct(Config, query_params)
+    query_params_page_struct = struct(Page, query_page_params)
 
     config = opts
-    |> parse_fields(Map.get(query_params, "fields", %{}))
-    |> parse_include(Map.get(query_params, "include", ""))
-    |> parse_filter(Map.get(query_params, "filter", %{}))
-    |> parse_sort(Map.get(query_params, "sort", ""))
-    |> Map.put(:limit, Map.get(query_params, "limit", ""))
-    |> Map.put(:offset, Map.get(query_params, "offset", ""))
+    |> parse_fields(query_params_config_struct.fields)
+    |> parse_include(query_params_config_struct.includes)
+    |> parse_filter(query_params_config_struct.filter)
+    |> parse_sort(query_params_config_struct.sort)
+    |> Map.put(:page, query_params_page_struct)
 
     Plug.Conn.assign(conn, :jsonapi_query, config)
   end
@@ -117,7 +119,7 @@ defmodule JSONAPI.QueryParser do
     end)
   end
 
-  def parse_sort(config, ""), do: config
+  def parse_sort(config, nil), do: config
   def parse_sort(%Config{opts: opts} = config, sort_fields) do
     sorts =
       sort_fields
@@ -140,7 +142,7 @@ defmodule JSONAPI.QueryParser do
   def build_sort("", field), do: [asc: field]
   def build_sort("-", field), do: [desc: field]
 
-  def parse_include(config, ""), do: config
+  def parse_include(config, []), do: config
   def parse_include(%Config{} = config, include_str) do
     includes = handle_include(include_str, config)
     Map.put(config, :includes, includes)
@@ -196,4 +198,6 @@ defmodule JSONAPI.QueryParser do
     view = Keyword.fetch!(opts, :view)
     struct(JSONAPI.Config, opts: opts, view: view)
   end
+
+  defp atomize_map(map), do: for {key, val} <- map, into: %{}, do: {String.to_atom(key), val}
 end
