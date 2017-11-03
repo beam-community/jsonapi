@@ -56,15 +56,12 @@ defmodule JSONAPI.QueryParser do
   end
 
   def call(conn, opts) do
-    query_params = conn
+    query_params_config_struct = conn
       |> Plug.Conn.fetch_query_params()
       |> Map.get(:query_params)
-      |> atomize_map()
+      |> struct_from_map(%Config{})
 
-    query_page_params = atomize_map(query_params.page)
-
-    query_params_config_struct = struct(Config, query_params)
-    query_params_page_struct = struct(Page, query_page_params)
+    query_params_page_struct = struct_from_map(query_params_config_struct.page, %Page{})
 
     config = opts
     |> parse_fields(query_params_config_struct.fields)
@@ -202,5 +199,15 @@ defmodule JSONAPI.QueryParser do
     struct(JSONAPI.Config, opts: opts, view: view)
   end
 
-  defp atomize_map(map), do: for {key, val} <- map, into: %{}, do: {String.to_atom(key), val}
+  defp struct_from_map(params, struct) do
+    struct_keys = Map.keys(struct) |> Enum.filter(fn x -> x != :__struct__ end)
+    processed_map =
+    for struct_key <- struct_keys, into: %{} do
+        case Map.get(params, to_string(struct_key)) do
+          nil -> {false, false}
+          value -> {struct_key, value}
+        end
+      end
+    struct(struct, processed_map)
+  end
 end
