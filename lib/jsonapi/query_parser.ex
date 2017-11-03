@@ -65,7 +65,7 @@ defmodule JSONAPI.QueryParser do
 
     config = opts
     |> parse_fields(query_params_config_struct.fields)
-    |> parse_include(query_params_config_struct.includes)
+    |> parse_include(query_params_config_struct.include)
     |> parse_filter(query_params_config_struct.filter)
     |> parse_sort(query_params_config_struct.sort)
     |> Map.put(:page, query_params_page_struct)
@@ -200,9 +200,7 @@ defmodule JSONAPI.QueryParser do
   end
 
   defp struct_from_map(params, struct) do
-    struct_keys = Map.keys(struct) |> Enum.filter(fn x -> x != :__struct__ end)
-    processed_map =
-    for struct_key <- struct_keys, into: %{} do
+    processed_map = for {struct_key, _ } <- Map.from_struct(struct), into: %{} do
         case Map.get(params, to_string(struct_key)) do
           nil -> {false, false}
           value -> {struct_key, value}
