@@ -11,5 +11,5 @@ defmodule JSONAPI.Config do
             required_fields: nil,
             sort: nil,
             view: nil,
-            page: nil
+            page: %{}
           end

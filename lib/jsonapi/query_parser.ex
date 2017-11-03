@@ -14,6 +14,7 @@ defmodule JSONAPI.QueryParser do
     * [include](http://jsonapi.org/format/#fetching-includes)
     * [filtering](http://jsonapi.org/format/#fetching-filtering)
     * [sparse fieldsets](http://jsonapi.org/format/#fetching-includes)
+    * [pagination](http://jsonapi.org/format/#fetching-pagination)
 
   This plug works in conjunction with a JSONAPI View as well as some plug defined
   configuration.
@@ -38,7 +39,14 @@ defmodule JSONAPI.QueryParser do
         sort: [desc: :created_at] # Easily insertable into an ecto order_by,
         filter: [title: "my title"] # Easily reduceable into ecto where clauses
         includes: [comments: :user] # Easily insertable into a Repo.preload,
-        fields: %{"myview" => [:id, :text], "comment" => [:id, :body]}
+        fields: %{"myview" => [:id, :text], "comment" => [:id, :body],
+        page: %JSONAPI.Page{
+          limit: limit,
+          offset: offset,
+          page: page,
+          size: size,
+          cursor: cursor
+        }}
       }
 
   The final result should allow you to build a query quickly and with little overhead.
