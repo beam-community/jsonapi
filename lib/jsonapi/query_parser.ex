@@ -154,7 +154,11 @@ defmodule JSONAPI.QueryParser do
   def parse_include(config, []), do: config
   def parse_include(%Config{} = config, include_str) do
     includes = handle_include(include_str, config)
+
+    Deprecation.warn(:includes)
+
     Map.put(config, :includes, includes)
+    |> Map.put(:include, includes)
   end
 
   def handle_include(str, config) when is_binary(str) do

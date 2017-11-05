@@ -67,6 +67,13 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_include(config, "comments.user").includes == [comments: :user]
   end
 
+  test "parse_include/2 returns a map with duplicate values for include and includes for compatibility" do
+    include_list = struct(Config, view: MyView)
+    |> parse_include("comments.user")
+
+    assert include_list.includes == include_list.include
+  end
+
   test "parse_include/2 errors with invalid includes" do
     config = struct(Config, view: MyView)
     assert_raise InvalidQuery, "invalid include, user for type mytype", fn ->
