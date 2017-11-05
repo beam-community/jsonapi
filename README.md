@@ -87,10 +87,13 @@ By default host and scheme are pulled from the provided conn but can be overridd
 config :jsonapi,
   host: "www.someotherhost.com",
   scheme: "https",
-  underscore_to_dash: true
+  underscore_to_dash: true,
+  remove_links: true
 ```
 
 Additionally, JSONAPI now recommends the use of dashes (`-`) in place of underscore (`_`) as a word separator. Enabling this change is easy with the `underscore_to_dash` option, which handles the conversion for you.
+
+`links` data can optionally be removed from the payload via the configuration above.
 
 ## Other
 

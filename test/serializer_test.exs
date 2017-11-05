@@ -218,4 +218,28 @@ defmodule JSONAPISerializerTest do
 
     Application.delete_env(:jsonapi, :underscore_to_dash)
   end
+
+  test "serialize does not include links if remove_links is configured" do
+    data = %{
+      id: 1,
+      text: "Hello",
+      body: "Hello world",
+      full_description: "This_is_my_description",
+      author: %{ id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+      best_comments: [
+        %{id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack", last_name: "bronds"}},
+      ]
+    }
+
+    Application.put_env(:jsonapi, :remove_links, true)
+
+    encoded = Serializer.serialize(PostView, data, nil)
+
+    relationships = encoded[:data][:relationships]
+
+    refute relationships[:links]
+    refute encoded[:data][:links]
+
+    Application.delete_env(:jsonapi, :remove_links)
+  end
 end
