@@ -6,9 +6,11 @@ defmodule JSONAPI.Config do
   defstruct data: nil,
             fields: %{},
             filter: [],
+            include: [],
             includes: [],
             opts: nil,
             required_fields: nil,
             sort: nil,
-            view: nil
+            view: nil,
+            page: %JSONAPI.Page{}
 end

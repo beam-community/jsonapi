@@ -1,6 +1,7 @@
 defmodule JSONAPI.QueryParser do
   @behaviour Plug
   alias JSONAPI.Config
+  alias JSONAPI.Page
   alias JSONAPI.Exceptions.InvalidQuery
   import JSONAPI.Utils.IncludeTree
 
@@ -13,6 +14,7 @@ defmodule JSONAPI.QueryParser do
     * [include](http://jsonapi.org/format/#fetching-includes)
     * [filtering](http://jsonapi.org/format/#fetching-filtering)
     * [sparse fieldsets](http://jsonapi.org/format/#fetching-includes)
+    * [pagination](http://jsonapi.org/format/#fetching-pagination)
 
   This plug works in conjunction with a JSONAPI View as well as some plug defined
   configuration.
@@ -26,7 +28,7 @@ defmodule JSONAPI.QueryParser do
     view: MyView
   ```
 
-  If your controller's index function recieves a query with params inside those
+  If your controller's index function receives a query with params inside those
   bounds it will build a JSONAPI.Config that has all the validated and parsed
   fields for your usage. The final configuration will be added to assigns `jsonapi_query`.
 
@@ -37,7 +39,14 @@ defmodule JSONAPI.QueryParser do
         sort: [desc: :created_at] # Easily insertable into an ecto order_by,
         filter: [title: "my title"] # Easily reduceable into ecto where clauses
         includes: [comments: :user] # Easily insertable into a Repo.preload,
-        fields: %{"myview" => [:id, :text], "comment" => [:id, :body]}
+        fields: %{"myview" => [:id, :text], "comment" => [:id, :body],
+        page: %JSONAPI.Page{
+          limit: limit,
+          offset: offset,
+          page: page,
+          size: size,
+          cursor: cursor
+        }}
       }
 
   The final result should allow you to build a query quickly and with little overhead.
@@ -55,19 +64,23 @@ defmodule JSONAPI.QueryParser do
   end
 
   def call(conn, opts) do
-    query_params =
-      conn
+    query_params_config_struct = conn
       |> Plug.Conn.fetch_query_params()
       |> Map.get(:query_params)
+      |> struct_from_map(%Config{})
 
     config = opts
-    |> parse_fields(Map.get(query_params, "fields", %{}))
-    |> parse_include(Map.get(query_params, "include", ""))
-    |> parse_filter(Map.get(query_params, "filter", %{}))
-    |> parse_sort(Map.get(query_params, "sort", ""))
+    |> parse_fields(query_params_config_struct.fields)
+    |> parse_include(query_params_config_struct.include)
+    |> parse_filter(query_params_config_struct.filter)
+    |> parse_sort(query_params_config_struct.sort)
+    |> parse_pagination(query_params_config_struct.page)
 
     Plug.Conn.assign(conn, :jsonapi_query, config)
   end
+
+  def parse_pagination(config, map) when map_size(map) == 0, do: config
+  def parse_pagination(%Config{} = config, page), do: Map.put(config, :page, struct_from_map(page, %Page{}))
 
   def parse_filter(config, map) when map_size(map) == 0, do: config
   def parse_filter(%Config{opts: opts} = config, filter) do
@@ -115,7 +128,7 @@ defmodule JSONAPI.QueryParser do
     end)
   end
 
-  def parse_sort(config, ""), do: config
+  def parse_sort(config, nil), do: config
   def parse_sort(%Config{opts: opts} = config, sort_fields) do
     sorts =
       sort_fields
@@ -138,10 +151,15 @@ defmodule JSONAPI.QueryParser do
   def build_sort("", field), do: [asc: field]
   def build_sort("-", field), do: [desc: field]
 
-  def parse_include(config, ""), do: config
+  def parse_include(config, []), do: config
   def parse_include(%Config{} = config, include_str) do
     includes = handle_include(include_str, config)
-    Map.put(config, :includes, includes)
+
+    Deprecation.warn(:includes)
+
+    config
+    |> Map.put(:includes, includes)
+    |> Map.put(:include, includes)
   end
 
   def handle_include(str, config) when is_binary(str) do
@@ -193,5 +211,15 @@ defmodule JSONAPI.QueryParser do
   defp build_config(opts) do
     view = Keyword.fetch!(opts, :view)
     struct(JSONAPI.Config, opts: opts, view: view)
+  end
+
+  defp struct_from_map(params, struct) do
+    processed_map = for {struct_key, _ } <- Map.from_struct(struct), into: %{} do
+        case Map.get(params, to_string(struct_key)) do
+          nil -> {false, false}
+          value -> {struct_key, value}
+        end
+      end
+    struct(struct, processed_map)
   end
 end
