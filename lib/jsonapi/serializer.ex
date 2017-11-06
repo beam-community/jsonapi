@@ -96,11 +96,11 @@ defmodule JSONAPI.Serializer do
   defp include_view(valid_includes, key) when is_list(valid_includes) do
     case Keyword.get(valid_includes, key) do
       {view, :include} -> {view, :include}
-      view -> {view, :include}
+      _view -> false
     end
   end
   defp include_view({view, :include}, _key), do: {view, :include}
-  defp include_view(view, _key), do: {view, :include}
+  defp include_view(_view, _key), do: false
 
   def is_data_loaded?(rel_data) do
     assoc_loaded?(rel_data) && (is_map(rel_data) || (is_list(rel_data) && !Enum.empty?(rel_data)))

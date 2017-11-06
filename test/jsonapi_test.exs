@@ -8,7 +8,7 @@ defmodule JSONAPITest do
     def fields, do: [:text, :body]
     def type, do: "mytype"
     def relationships do
-      [author: JSONAPITest.UserView,
+      [author: {JSONAPITest.UserView, :include},
        other_user: {JSONAPITest.UserView, :include}]
     end
   end

@@ -33,6 +33,18 @@ defmodule JSONAPISerializerTest do
     end
   end
 
+  defmodule NotIncludedView do
+    use JSONAPI.View
+
+    def fields, do: [:foo]
+    def type, do: "not-included"
+    def relationships do
+      [author: JSONAPISerializerTest.UserView,
+       best_comments: JSONAPISerializerTest.CommentView
+      ]
+    end
+  end
+
   test "serialize only includes meta if provided" do
     encoded = Serializer.serialize(PostView, %{id: 1, text: "Hello"}, nil)
     assert %{meta_text: "meta_Hello"} = encoded[:data][:meta]
@@ -217,6 +229,20 @@ defmodule JSONAPISerializerTest do
     assert List.first(relationships["best-comments"][:data])[:id] == "5"
 
     Application.delete_env(:jsonapi, :underscore_to_dash)
+  end
+
+  test "serialize does not merge `included` if not configured" do
+    data = %{
+      id: 1,
+      foo: "Hello",
+      author: %{ id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"}
+    }
+
+    encoded = Serializer.serialize(NotIncludedView, data, nil)
+
+    included = encoded[:included]
+
+    assert included == []
   end
 
   test "serialize does not include links if remove_links is configured" do
