@@ -157,7 +157,8 @@ defmodule JSONAPI.QueryParser do
 
     Deprecation.warn(:includes)
 
-    Map.put(config, :includes, includes)
+    config
+    |> Map.put(:includes, includes)
     |> Map.put(:include, includes)
   end
 

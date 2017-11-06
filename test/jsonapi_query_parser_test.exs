@@ -68,7 +68,9 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_include/2 returns a map with duplicate values for include and includes for compatibility" do
-    include_list = struct(Config, view: MyView)
+    include_list =
+    Config
+    |> struct(view: MyView)
     |> parse_include("comments.user")
 
     assert include_list.includes == include_list.include
