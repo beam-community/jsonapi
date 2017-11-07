@@ -38,16 +38,14 @@ defmodule JSONAPI.Serializer do
   def encode_data(view, data, conn, query_includes) do
     valid_includes = get_includes(view, query_includes)
 
-    # Encode the data
-    doc = %{
+    encoded_data = %{
       id: view.id(data),
       type: view.type(),
       attributes: underscore(view.attributes(data, conn)),
-      relationships: %{},
-      links: %{
-        self: view.url_for(data, conn)
-      }
+      relationships: %{}
     }
+
+    doc = merge_links(encoded_data, data, view, conn, Application.get_env(:jsonapi, :remove_links, false))
 
     doc =
       case view.meta(data, conn) do
@@ -76,7 +74,7 @@ defmodule JSONAPI.Serializer do
     # Build the relationship url
     rel_url = view.url_for_rel(data, key, conn)
     # Build the relationship
-    acc = put_in(acc, [:relationships, underscore(key)], encode_relation(only_rel_view, rel_data, rel_url, conn))
+    acc = put_in(acc, [:relationships, underscore(key)], encode_relation({only_rel_view, rel_data, rel_url, conn}))
 
     valid_include_view = include_view(valid_includes, key)
 
@@ -98,25 +96,32 @@ defmodule JSONAPI.Serializer do
   defp include_view(valid_includes, key) when is_list(valid_includes) do
     case Keyword.get(valid_includes, key) do
       {view, :include} -> {view, :include}
-      view -> {view, :include}
+      _view -> false
     end
   end
   defp include_view({view, :include}, _key), do: {view, :include}
-  defp include_view(view, _key), do: {view, :include}
+  defp include_view(_view, _key), do: false
 
   def is_data_loaded?(rel_data) do
     assoc_loaded?(rel_data) && (is_map(rel_data) || (is_list(rel_data) && !Enum.empty?(rel_data)))
   end
 
-  def encode_relation(rel_view, rel_data, rel_url, conn) do
+  def encode_relation({rel_view, rel_data, _rel_url, _conn} = info) do
     %{
-      links: %{
-        self: rel_url,
-        related: rel_view.url_for(rel_data, conn)
-      },
       data: encode_rel_data(rel_view, rel_data)
     }
+    |> merge_related_links(info, Application.get_env(:jsonapi, :remove_links, false))
   end
+
+  defp merge_links(doc, data, view, conn, false) do
+    Map.merge(doc, %{links: %{self: view.url_for(data, conn)}})
+  end
+  defp merge_links(doc, _data, _view, _conn, _remove_links), do: doc
+
+  defp merge_related_links(encoded_data, {rel_view, rel_data, rel_url, conn}, false = _remove_links) do
+    Map.merge(encoded_data, %{links: %{self: rel_url, related: rel_view.url_for(rel_data, conn)}})
+  end
+  defp merge_related_links(encoded_rel_data, _info, _remove_links), do: encoded_rel_data
 
   def encode_rel_data(_view, nil), do: nil
   def encode_rel_data(view, data) when is_list(data) do
