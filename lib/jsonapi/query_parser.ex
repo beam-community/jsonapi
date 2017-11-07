@@ -214,7 +214,7 @@ defmodule JSONAPI.QueryParser do
   end
 
   defp struct_from_map(params, struct) do
-    processed_map = for {struct_key, _ } <- Map.from_struct(struct), into: %{} do
+    processed_map = for {struct_key, _} <- Map.from_struct(struct), into: %{} do
         case Map.get(params, to_string(struct_key)) do
           nil -> {false, false}
           value -> {struct_key, value}

@@ -150,7 +150,7 @@ defmodule JSONAPISerializerTest do
     assert Enum.count(encoded[:included]) == 1
   end
 
-  test "serialize handles a relationship self link" do
+  test "serialize handles a relationship self link on a show request" do
     data = %{
       id: 1,
       text: "Hello",
@@ -163,6 +163,12 @@ defmodule JSONAPISerializerTest do
 
     encoded_data = encoded[:data]
     assert encoded_data[:relationships][:author][:links][:self] == "/mytype/1/relationships/author"
+  end
+
+  test "serialize handles a relationship self link on an index request" do
+    encoded = Serializer.serialize(PostView, [], nil)
+
+    assert encoded[:links][:self] == "/mytype"
   end
 
   test "serialize handles including from the query" do
