@@ -38,14 +38,14 @@ defmodule JSONAPI.Serializer do
   def encode_data(view, data, conn, query_includes) do
     valid_includes = get_includes(view, query_includes)
 
-    # Encode the data
-    doc = %{
+    encoded_data = %{
       id: view.id(data),
       type: view.type(),
       attributes: underscore(view.attributes(data, conn)),
       relationships: %{}
     }
-    |> merge_links(data, view, conn, Application.get_env(:jsonapi, :remove_links, false))
+
+    doc = merge_links(encoded_data, data, view, conn, Application.get_env(:jsonapi, :remove_links, false))
 
     doc =
       case view.meta(data, conn) do
@@ -113,15 +113,13 @@ defmodule JSONAPI.Serializer do
     |> merge_related_links(info, Application.get_env(:jsonapi, :remove_links, false))
   end
 
-  defp merge_links(doc, data, view, conn, false = _remove_links) do
-    doc
-    |> Map.merge(%{links: %{self: view.url_for(data, conn)}})
+  defp merge_links(doc, data, view, conn, false) do
+    Map.merge(doc, %{links: %{self: view.url_for(data, conn)}})
   end
   defp merge_links(doc, _data, _view, _conn, _remove_links), do: doc
 
   defp merge_related_links(encoded_data, {rel_view, rel_data, rel_url, conn}, false = _remove_links) do
-    encoded_data
-    |> Map.merge(%{links: %{self: rel_url, related: rel_view.url_for(rel_data, conn)}})
+    Map.merge(encoded_data, %{links: %{self: rel_url, related: rel_view.url_for(rel_data, conn)}})
   end
   defp merge_related_links(encoded_rel_data, _info, _remove_links), do: encoded_rel_data
 
