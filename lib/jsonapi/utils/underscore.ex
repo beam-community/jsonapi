@@ -15,6 +15,10 @@ defmodule JSONAPI.Utils.Underscore do
     String.replace(value, "_", "-")
   end
 
+  def underscore(%{__struct__: _} = value) when is_map(value) do
+    value
+  end
+
   def underscore(value) when is_map(value) do
     value
     |> Enum.map(&underscore/1)
