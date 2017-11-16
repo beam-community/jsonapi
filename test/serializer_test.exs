@@ -5,7 +5,7 @@ defmodule JSONAPISerializerTest do
   defmodule PostView do
     use JSONAPI.View
 
-    def fields, do: [:text, :body, :full_description]
+    def fields, do: [:text, :body, :full_description, :inserted_at]
     def meta(data, _conn), do: %{meta_text: "meta_#{data[:text]}"}
     def type, do: "mytype"
     def relationships do
@@ -213,6 +213,7 @@ defmodule JSONAPISerializerTest do
     data = %{
       id: 1,
       text: "Hello",
+      inserted_at: NaiveDateTime.utc_now,
       body: "Hello world",
       full_description: "This_is_my_description",
       author: %{ id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
@@ -230,6 +231,7 @@ defmodule JSONAPISerializerTest do
     included = encoded[:included]
 
     assert attributes["full-description"] == data[:full_description]
+    assert attributes["inserted-at"] == data[:inserted_at]
     assert Enum.find(included, fn(i) -> i[:type] == "user" && i[:id] == "2" end)[:attributes]["last-name"] == "bonds"
     assert Enum.find(included, fn(i) -> i[:type] == "user" && i[:id] == "4" end)[:attributes]["last-name"] == "bronds"
     assert List.first(relationships["best-comments"][:data])[:id] == "5"
@@ -268,7 +270,7 @@ defmodule JSONAPISerializerTest do
     encoded = Serializer.serialize(PostView, data, nil)
 
     relationships = encoded[:data][:relationships]
-
+`
     refute relationships[:links]
     assert encoded[:links][:self] == "/mytype/1"
 
