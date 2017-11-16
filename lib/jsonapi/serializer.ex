@@ -44,7 +44,10 @@ defmodule JSONAPI.Serializer do
       id: view.id(data),
       type: view.type(),
       attributes: underscore(view.attributes(data, conn)),
-      relationships: %{}
+      relationships: %{},
+      links: %{
+        self: view.url_for(data, conn)
+      }
     }
 
     doc = merge_links(encoded_data, data, view, conn, Application.get_env(:jsonapi, :remove_links, false))
@@ -76,6 +79,7 @@ defmodule JSONAPI.Serializer do
     # Build the relationship url
     rel_url = view.url_for_rel(data, key, conn)
     # Build the relationship
+   #acc = put_in(acc, [:relationships, underscore(key)], encode_relation(only_rel_view, rel_data, rel_url, conn))
     acc = put_in(acc, [:relationships, underscore(key)], encode_relation({only_rel_view, rel_data, rel_url, conn}))
 
     valid_include_view = include_view(valid_includes, key)

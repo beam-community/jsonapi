@@ -270,7 +270,7 @@ defmodule JSONAPISerializerTest do
     relationships = encoded[:data][:relationships]
 
     refute relationships[:links]
-    refute encoded[:data][:links]
+    assert encoded[:links][:self] == "/mytype/1"
 
     Application.delete_env(:jsonapi, :remove_links)
   end
