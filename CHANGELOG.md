@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.0 (2017-11-17)
+
+* [Added](https://github.com/jeregrine/jsonapi/commit/44888596461a1891376b937057bb504345cff8dc) Optional Data Links. 
+* [Added](https://github.com/jeregrine/jsonapi/commit/ba9d9cb84c10ef85a4b8e42df88a9e92f3809651) Paging Support
+* [Added](https://github.com/jeregrine/jsonapi/commit/0c50bc60db9b8678f631ac274062150499e4fb8b) Option to replace underscores with dahses
+
 
 ## v0.5.1 (2017-07-07)
 
