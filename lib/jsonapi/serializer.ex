@@ -22,7 +22,9 @@ defmodule JSONAPI.Serializer do
     {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
 
     %{
-      links: %{},
+      links: %{
+        self: view.url_for(data, conn)
+      },
       data: encoded_data,
       included: flatten_included(to_include)
     }
