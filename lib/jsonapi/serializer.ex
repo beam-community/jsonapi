@@ -82,8 +82,8 @@ defmodule JSONAPI.Serializer do
 
     if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
       rel_query_includes =
-        if is_list(query_includes) do
-          Keyword.get(query_includes, key, [])
+        if Keyword.keyword?(query_includes) do
+          Keyword.take(query_includes, [key]) |> Keyword.values
         else
           []
         end
@@ -163,6 +163,12 @@ defmodule JSONAPI.Serializer do
   end
   defp handle_include({base, :include}, child, acc) do
     handle_include(base.relationships(), child, acc)
+  end
+  defp handle_include(base, children, acc) when is_list(children) do
+    Enum.reduce(children, acc, fn child, acc ->
+      base = if is_list(base), do: base, else: base.relationships()
+      handle_include(base, child, acc)
+    end)
   end
   defp handle_include(base, child, acc) do
     view = if is_list(base), do: Keyword.get(base, child), else: base
