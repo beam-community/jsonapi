@@ -82,8 +82,15 @@ defmodule JSONAPI.Serializer do
 
     if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
       rel_query_includes =
-        if Keyword.keyword?(query_includes) do
-          Keyword.take(query_includes, [key]) |> Keyword.values
+        if is_list(query_includes) do
+          Enum.map(query_includes, fn include ->
+            case include do
+              {key, value} -> value
+              _ -> nil
+            end
+          end)
+          |> Enum.reject(&is_nil/1)
+          |> List.flatten
         else
           []
         end
@@ -98,11 +105,11 @@ defmodule JSONAPI.Serializer do
   defp include_view(valid_includes, key) when is_list(valid_includes) do
     case Keyword.get(valid_includes, key) do
       {view, :include} -> {view, :include}
-      _view -> false
+      view -> {view, :include}
     end
   end
   defp include_view({view, :include}, _key), do: {view, :include}
-  defp include_view(_view, _key), do: false
+  defp include_view(view, _key), do: {view, :include}
 
   def is_data_loaded?(rel_data) do
     assoc_loaded?(rel_data) && (is_map(rel_data) || (is_list(rel_data) && !Enum.empty?(rel_data)))
@@ -144,35 +151,31 @@ defmodule JSONAPI.Serializer do
     |> Enum.uniq
   end
 
-  # This makes a mapping between includes from the query parser and includes in the view.
-  defp get_includes(view, nil), do: view.relationships()
-  defp get_includes(view, []), do: view.relationships()
-  defp get_includes(view, query_includes) when is_list(query_includes) do
-    base = view.relationships()
-    Enum.reduce(query_includes, [], &(handle_include(base, &1, &2)))
-  end
-  defp get_includes(view, include) do
-    base = view.relationships()
-    Keyword.get(base, include)
+  defp get_includes(view, query_includes) do
+    get_default_includes(view) ++ get_query_includes(view, query_includes)
+    |> Enum.uniq
   end
 
-  defp handle_include(base, {parent, child}, acc) do
-    view = Keyword.get(base, parent)
-    acc = Keyword.put(acc, parent, view)
-    handle_include(view, child, acc)
-  end
-  defp handle_include({base, :include}, child, acc) do
-    handle_include(base.relationships(), child, acc)
-  end
-  defp handle_include(base, children, acc) when is_list(children) do
-    Enum.reduce(children, acc, fn child, acc ->
-      base = if is_list(base), do: base, else: base.relationships()
-      handle_include(base, child, acc)
+  defp get_default_includes(view) do
+    rels = view.relationships()
+    default_includes = rels |> Enum.filter(fn {k, v} ->
+      case v do
+        {_, :include} -> true
+        _ -> false
+      end
     end)
   end
-  defp handle_include(base, child, acc) do
-    view = if is_list(base), do: Keyword.get(base, child), else: base
-    Keyword.put(acc, child, view)
+
+  defp get_query_includes(view, query_includes) do
+    rels = view.relationships()
+    Enum.map(query_includes, fn include ->
+      include_key = case include do
+        {include, _} -> include
+        include -> include
+      end
+      Keyword.take(rels, [include_key])
+    end)
+    |> List.flatten
   end
 
   def get_view({view, :include}), do: view
