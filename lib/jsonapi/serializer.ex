@@ -103,13 +103,14 @@ defmodule JSONAPI.Serializer do
   end
 
   defp include_view(valid_includes, key) when is_list(valid_includes) do
-    case Keyword.get(valid_includes, key) do
-      {view, :include} -> {view, :include}
-      view -> {view, :include}
-    end
+    valid_includes
+    |> Keyword.get(key)
+    |> generate_view_tuple
   end
-  defp include_view({view, :include}, _key), do: {view, :include}
-  defp include_view(view, _key), do: {view, :include}
+  defp include_view(view, _key), do: generate_view_tuple(view)
+
+  defp generate_view_tuple({view, :include}), do: {view, :include}
+  defp generate_view_tuple(view) when is_atom(view), do: {view, :include}
 
   def is_data_loaded?(rel_data) do
     assoc_loaded?(rel_data) && (is_map(rel_data) || (is_list(rel_data) && !Enum.empty?(rel_data)))
