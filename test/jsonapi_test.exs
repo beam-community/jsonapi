@@ -9,7 +9,7 @@ defmodule JSONAPITest do
     def type, do: "mytype"
     def relationships do
       [author: {JSONAPITest.UserView, :include},
-       other_user: {JSONAPITest.UserView, :include}]
+       other_user: JSONAPITest.UserView]
     end
   end
 
@@ -74,7 +74,7 @@ defmodule JSONAPITest do
     assert Map.has_key?(json, "included")
     included = Map.get(json, "included")
     assert is_list(included)
-    assert Enum.count(included) == 2
+    assert Enum.count(included) == 1
 
     [author | _] = included
     assert Map.get(author, "type") == "user"
@@ -84,7 +84,7 @@ defmodule JSONAPITest do
   end
 
   test "handles includes properly" do
-    conn = conn(:get, "/posts?include=author")
+    conn = conn(:get, "/posts?include=other_user")
     |> Plug.Conn.assign(:data, [%{
       id: 1,
       text: "Hello",
@@ -115,11 +115,17 @@ defmodule JSONAPITest do
     assert Map.has_key?(json, "included")
     included = Map.get(json, "included")
     assert is_list(included)
-    assert Enum.count(included) == 1
+    assert Enum.count(included) == 2
 
-    [author] = included
-    assert Map.get(author, "type") == "user"
-    assert Map.get(author, "id") == "2"
+    assert Enum.find(included, fn include ->
+      Map.get(include, "type") == "user" &&
+      Map.get(include, "id") == "2"
+    end)
+
+    assert Enum.find(included, fn include ->
+      Map.get(include, "type") == "user" &&
+      Map.get(include, "id") == "3"
+    end)
 
     assert Map.has_key?(json, "links")
   end

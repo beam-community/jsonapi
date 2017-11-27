@@ -20,6 +20,16 @@ defmodule JSONAPISerializerTest do
 
     def fields, do: [:username, :first_name, :last_name]
     def type, do: "user"
+    def relationships do
+      [company: JSONAPISerializerTest.CompanyView]
+    end
+  end
+
+  defmodule CompanyView do
+    use JSONAPI.View
+
+    def fields, do: [:name]
+    def type, do: "company"
     def relationships, do: []
   end
 
@@ -207,6 +217,29 @@ defmodule JSONAPISerializerTest do
 
     assert encoded.data.relationships.author.links.self == "http://www.example.com/mytype/1/relationships/author"
     assert Enum.count(encoded.included) == 4
+  end
+
+  test "includes from the query when not included by default" do
+    data = %{
+      id: 1,
+      username: "jim",
+      first_name: "Jimmy",
+      last_name: "Beam",
+      company: %{ id: 2, name: "acme"}
+    }
+
+    conn = %Plug.Conn{
+      assigns: %{
+        jsonapi_query: %{
+          includes: [:company]
+        }
+      }
+    }
+
+    encoded = Serializer.serialize(UserView, data, conn)
+
+    assert encoded.data.relationships.company.links.self == "http://www.example.com/user/1/relationships/company"
+    assert Enum.count(encoded.included) == 1
   end
 
   test "serialize properly uses underscore_to_dash on both attributes and relationships" do
