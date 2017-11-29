@@ -150,28 +150,23 @@ defmodule JSONAPI.Serializer do
   end
 
   defp get_includes(view, query_includes) do
-    get_default_includes(view) ++ get_query_includes(view, query_includes)
-    |> Enum.uniq
+    includes = get_default_includes(view) ++ get_query_includes(view, query_includes)
+    Enum.uniq(includes)
   end
 
   defp get_default_includes(view) do
     rels = view.relationships()
-    default_includes = rels |> Enum.filter(fn {k, v} ->
-      case v do
-        {_, :include} -> true
-        _ -> false
-      end
+    default_includes = rels |> Enum.filter(fn
+      {_k, {_v, :include}} -> true
+      _ -> false
     end)
   end
 
   defp get_query_includes(view, query_includes) do
     rels = view.relationships()
-    Enum.map(query_includes, fn include ->
-      include_key = case include do
-        {include, _} -> include
-        include -> include
-      end
-      Keyword.take(rels, [include_key])
+    Enum.map(query_includes, fn
+      {include, _} -> Keyword.take(rels, [include])
+      include -> Keyword.take(rels, [include])
     end)
     |> List.flatten
   end
