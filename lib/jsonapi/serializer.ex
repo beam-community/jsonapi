@@ -83,13 +83,10 @@ defmodule JSONAPI.Serializer do
     if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
       rel_query_includes =
         if is_list(query_includes) do
-          Enum.map(query_includes, fn include ->
-            case include do
-              {key, value} -> value
-              _ -> nil
-            end
+          Enum.reduce(query_includes, [], fn
+            {^key, value}, acc -> acc ++ [value]
+            _, acc -> acc
           end)
-          |> Enum.reject(&is_nil/1)
           |> List.flatten
         else
           []
