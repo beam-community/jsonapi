@@ -25,7 +25,7 @@ defmodule JSONAPI.Serializer do
       data: encoded_data,
       included: flatten_included(to_include)
     }
-    merge_links(encoded_data, data, view, conn, Application.get_env(:jsonapi, :remove_links, false))
+    merge_links(encoded_data, data, view, conn, remove_links?)
   end
 
   def encode_data(view, data, conn, query_includes) when is_list(data) do
@@ -45,7 +45,7 @@ defmodule JSONAPI.Serializer do
       relationships: %{}
     }
 
-    doc = merge_links(encoded_data, data, view, conn, Application.get_env(:jsonapi, :remove_links, false))
+    doc = merge_links(encoded_data, data, view, conn, remove_links?)
 
     doc =
       case view.meta(data, conn) do
@@ -110,7 +110,7 @@ defmodule JSONAPI.Serializer do
     %{
       data: encode_rel_data(rel_view, rel_data)
     }
-    |> merge_related_links(info, Application.get_env(:jsonapi, :remove_links, false))
+    |> merge_related_links(info, remove_links?)
   end
 
   defp merge_links(doc, data, view, conn, false) do
@@ -177,4 +177,6 @@ defmodule JSONAPI.Serializer do
       data
     end
   end
+
+  defp remove_links?, do: Application.get_env(:jsonapi, :remove_links, false)
 end
