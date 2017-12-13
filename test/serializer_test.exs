@@ -273,6 +273,7 @@ defmodule JSONAPISerializerTest do
 
     refute relationships[:links]
     refute encoded[:data][:links]
+    refute encoded[:links]
 
     Application.delete_env(:jsonapi, :remove_links)
   end

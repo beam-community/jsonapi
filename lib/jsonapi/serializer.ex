@@ -21,13 +21,11 @@ defmodule JSONAPI.Serializer do
 
     {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
 
-    %{
-      links: %{
-        self: view.url_for(data, conn)
-      },
+    encoded_data = %{
       data: encoded_data,
       included: flatten_included(to_include)
     }
+    merge_links(encoded_data, data, view, conn, Application.get_env(:jsonapi, :remove_links, false))
   end
 
   def encode_data(view, data, conn, query_includes) when is_list(data) do
