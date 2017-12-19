@@ -25,7 +25,7 @@ defmodule JSONAPI.Serializer do
       data: encoded_data,
       included: flatten_included(to_include)
     }
-    merge_links(encoded_data, data, view, conn, remove_links?)
+    merge_links(encoded_data, data, view, conn, remove_links?())
   end
 
   def encode_data(view, data, conn, query_includes) when is_list(data) do
@@ -45,7 +45,7 @@ defmodule JSONAPI.Serializer do
       relationships: %{}
     }
 
-    doc = merge_links(encoded_data, data, view, conn, remove_links?)
+    doc = merge_links(encoded_data, data, view, conn, remove_links?())
 
     doc =
       case view.meta(data, conn) do
@@ -107,10 +107,10 @@ defmodule JSONAPI.Serializer do
   end
 
   def encode_relation({rel_view, rel_data, _rel_url, _conn} = info) do
-    %{
+    data = %{
       data: encode_rel_data(rel_view, rel_data)
     }
-    |> merge_related_links(info, remove_links?)
+    merge_related_links(data, info, remove_links?())
   end
 
   defp merge_links(doc, data, view, conn, false) do
