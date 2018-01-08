@@ -49,11 +49,18 @@ defmodule JSONAPI.ContentTypeNegotiation do
     {conn, content_type}
   end
 
+  defp respond({conn, @jsonapi, nil}) do
+    before_send(conn)
+  end
   defp respond({conn, @jsonapi, @jsonapi}) do
+    before_send(conn)
+  end
+  defp respond({conn, @jsonapi, _accepts}), do: send_error(conn, 406)
+  defp respond({conn, _content_type, _accepts}), do: send_error(conn, 415)
+
+  defp before_send(conn) do
     register_before_send(conn, fn conn -> update_resp_header(conn, "content-type", @jsonapi, &(&1)) end)
 
     conn
   end
-  defp respond({conn, @jsonapi, _accepts}), do: send_error(conn, 406)
-  defp respond({conn, _content_type, _accepts}), do: send_error(conn, 415)
 end
