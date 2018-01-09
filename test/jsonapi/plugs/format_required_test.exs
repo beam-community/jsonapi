@@ -32,6 +32,15 @@ defmodule JSONAPI.FormatRequiredTest do
     assert %{"source" => %{"pointer" => "/data/attributes"}, "title" => "Missing attributes in data parameter"} = error
   end
 
+  test "does not halt if only relationships member is present" do
+    conn =
+      :post
+      |> conn("/example", Poison.encode!(%{data: %{relationships: %{}}}))
+      |> call_plug
+
+    refute conn.halted
+  end
+
   test "passes request through" do
     conn =
       :post
