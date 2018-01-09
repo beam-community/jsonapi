@@ -5,11 +5,15 @@ defmodule JSONAPITest do
   defmodule PostView do
     use JSONAPI.View
 
-    def fields, do: [:text, :body]
+    def fields, do: [:text, :body, :excerpt]
     def type, do: "mytype"
     def relationships do
       [author: {JSONAPITest.UserView, :include},
        other_user: {JSONAPITest.UserView, :include}]
+    end
+    def excerpt(post, _conn) do
+      letter = String.slice(post.text, 0..1)
+      letter
     end
   end
 
@@ -60,6 +64,9 @@ defmodule JSONAPITest do
 
     assert Enum.count(data_list) == 1
     [data | _] = data_list
+    assert Map.get(data["attributes"], "body") == "Hi"
+    assert Map.get(data["attributes"], "text") == "Hello"
+    assert Map.get(data["attributes"], "excerpt") == "He"
     assert Map.get(data, "type") == "mytype"
     assert Map.get(data, "id") == "1"
 

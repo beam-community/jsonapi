@@ -91,7 +91,19 @@ defmodule JSONAPI.View do
       end
 
       def attributes(data, conn) do
-        visible_fields(data)
+        visible_fields = fields() -- hidden()
+
+        Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
+          try do
+            merge(intermediate_map, field, apply(__MODULE__, field, [data, conn]))
+          rescue
+            _e -> merge(intermediate_map, field, Map.get(data, field))
+          end
+        end)
+      end
+
+      defp merge(intermediate_map, field, value) do
+        Map.put(intermediate_map, field, value)
       end
 
       def meta(_data, _conn), do: nil
@@ -142,8 +154,6 @@ defmodule JSONAPI.View do
         def render("index.json", %{data: data, conn: conn, params: params}),
           do: index(data, conn, params)
       end
-
-      defp visible_fields(data), do: Map.take(data, fields() -- hidden())
 
       defp host(conn), do: Application.get_env(:jsonapi, :host, conn.host)
 
