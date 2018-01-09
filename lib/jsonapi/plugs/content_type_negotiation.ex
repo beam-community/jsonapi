@@ -34,7 +34,7 @@ defmodule JSONAPI.ContentTypeNegotiation do
       conn
       |> get_req_header("accept")
       |> Enum.flat_map(&(String.split(&1, ",")))
-      |> Enum.map(&String.strip/1)
+      |> Enum.map(&String.trim/1)
       |> List.first
 
     {conn, content_type, accepts}
@@ -49,16 +49,14 @@ defmodule JSONAPI.ContentTypeNegotiation do
     {conn, content_type}
   end
 
-  defp respond({conn, @jsonapi, nil}) do
-    before_send(conn)
-  end
-  defp respond({conn, @jsonapi, @jsonapi}) do
-    before_send(conn)
-  end
+  defp respond({conn, nil, nil}), do: add_header_to_resp(conn)
+  defp respond({conn, @jsonapi, nil}), do: add_header_to_resp(conn)
+  defp respond({conn, nil, @jsonapi}), do: add_header_to_resp(conn)
+  defp respond({conn, @jsonapi, @jsonapi}), do: add_header_to_resp(conn)
   defp respond({conn, @jsonapi, _accepts}), do: send_error(conn, 406)
   defp respond({conn, _content_type, _accepts}), do: send_error(conn, 415)
 
-  defp before_send(conn) do
+  defp add_header_to_resp(conn) do
     register_before_send(conn, fn conn -> update_resp_header(conn, "content-type", @jsonapi, &(&1)) end)
 
     conn

@@ -4,10 +4,61 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
 
   alias JSONAPI.ContentTypeNegotiation
 
-  test "halts and returns an error if content-type header is incorrect" do
+  test "passes request through" do
     conn =
       :post
       |> conn("/example", "")
+      |> Plug.Conn.put_req_header("content-type", "application/vnd.api+json")
+      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json")
+      |> ContentTypeNegotiation.call([])
+
+    refute conn.halted
+  end
+
+  test "halts and returns an error if no content-type or accept header" do
+    conn =
+      :post
+      |> conn("/example", "")
+      |> ContentTypeNegotiation.call([])
+
+    refute conn.halted
+  end
+
+  test "passes request through if only content-type header" do
+    conn =
+      :post
+      |> conn("/example", "")
+      |> Plug.Conn.put_req_header("content-type", "application/vnd.api+json")
+      |> ContentTypeNegotiation.call([])
+
+    refute conn.halted
+  end
+
+  test "passes request through if only accept header" do
+    conn =
+      :post
+      |> conn("/example", "")
+      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json")
+      |> ContentTypeNegotiation.call([])
+
+    refute conn.halted
+  end
+
+  test "passes request through if multiple accept header" do
+    conn =
+      :post
+      |> conn("/example", "")
+      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json, application/vnd.api+json; version=1.0")
+      |> ContentTypeNegotiation.call([])
+
+    refute conn.halted
+  end
+
+  test "halts and returns an error if content-type header contains other media type" do
+    conn =
+      :post
+      |> conn("/example", "")
+      |> Plug.Conn.put_req_header("content-type", "text/html")
       |> ContentTypeNegotiation.call([])
 
     assert conn.halted
@@ -17,7 +68,9 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
   test "halts and returns an error if content-type header contains other media type params" do
     conn =
       :post
-      |> conn("/example", "application/vnd.api+json; charset=utf-8")
+      |> conn("/example", "")
+      |> Plug.Conn.put_req_header("content-type", "application/vnd.api+json; version=1.0")
+      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json")
       |> ContentTypeNegotiation.call([])
 
     assert conn.halted
@@ -29,32 +82,23 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
       :post
       |> conn("/example", "")
       |> Plug.Conn.put_req_header("content-type", "application/vnd.api+json")
-      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json; charset=utf-8")
+      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json charset=utf-8")
       |> ContentTypeNegotiation.call([])
 
     assert conn.halted
     assert 406 == conn.status
   end
 
-
-  test "passes request through if no accept header" do
+  test "halts and returns an error if all accept header media types contain media type params" do
     conn =
       :post
       |> conn("/example", "")
       |> Plug.Conn.put_req_header("content-type", "application/vnd.api+json")
+      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json; version=1.0, application/vnd.api+json; version=1.0")
       |> ContentTypeNegotiation.call([])
 
-    refute conn.halted
+    assert conn.halted
+    assert 406 == conn.status
   end
 
-  test "passes request through" do
-    conn =
-      :post
-      |> conn("/example", "")
-      |> Plug.Conn.put_req_header("content-type", "application/vnd.api+json")
-      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json")
-      |> ContentTypeNegotiation.call([])
-
-    refute conn.halted
-  end
 end
