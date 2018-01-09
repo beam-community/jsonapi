@@ -94,16 +94,14 @@ defmodule JSONAPI.View do
         visible_fields = fields() -- hidden()
 
         Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
-          try do
-            merge(intermediate_map, field, apply(__MODULE__, field, [data, conn]))
-          rescue
-            _e -> merge(intermediate_map, field, Map.get(data, field))
-          end
+          value =
+            try do
+              apply(__MODULE__, field, [data, conn])
+            rescue
+              _e -> Map.get(data, field)
+            end
+          Map.put(intermediate_map, field, value)
         end)
-      end
-
-      defp merge(intermediate_map, field, value) do
-        Map.put(intermediate_map, field, value)
       end
 
       def meta(_data, _conn), do: nil
