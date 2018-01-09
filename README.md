@@ -26,7 +26,11 @@ defmodule MyApp.PostView do
   use JSONAPI.View, type: "posts"
 
   def fields do
-    [:text, :body]
+    [:text, :body, :excerpt]
+  end
+
+  def excerpt(post, _conn) do
+    String.slice(post.body, 0..5)
   end
 
   def relationships do
