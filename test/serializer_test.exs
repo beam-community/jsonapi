@@ -20,6 +20,36 @@ defmodule JSONAPISerializerTest do
 
     def fields, do: [:username, :first_name, :last_name]
     def type, do: "user"
+    def relationships do
+      [company: JSONAPISerializerTest.CompanyView]
+    end
+  end
+
+  defmodule CompanyView do
+    use JSONAPI.View
+
+    def fields, do: [:name]
+    def type, do: "company"
+    def relationships do
+      [industry: JSONAPISerializerTest.IndustryView]
+    end
+  end
+
+  defmodule IndustryView do
+    use JSONAPI.View
+
+    def fields, do: [:name]
+    def type, do: "industry"
+    def relationships do
+      [tags: JSONAPISerializerTest.TagView]
+    end
+  end
+
+  defmodule TagView do
+    use JSONAPI.View
+
+    def fields, do: [:name]
+    def type, do: "tag"
     def relationships, do: []
   end
 
@@ -208,6 +238,86 @@ defmodule JSONAPISerializerTest do
     encoded = Serializer.serialize(PostView, data, conn)
 
     assert encoded.data.relationships.author.links.self == "http://www.example.com/mytype/1/relationships/author"
+    assert Enum.count(encoded.included) == 4
+  end
+
+  test "includes from the query when not included by default" do
+    data = %{
+      id: 1,
+      username: "jim",
+      first_name: "Jimmy",
+      last_name: "Beam",
+      company: %{ id: 2, name: "acme"}
+    }
+
+    conn = %Plug.Conn{
+      assigns: %{
+        jsonapi_query: %{
+          includes: [:company]
+        }
+      }
+    }
+
+    encoded = Serializer.serialize(UserView, data, conn)
+
+    assert encoded.data.relationships.company.links.self == "http://www.example.com/user/1/relationships/company"
+    assert Enum.count(encoded.included) == 1
+  end
+
+  test "includes nested items from the query when not included by default" do
+    data = %{
+      id: 1,
+      username: "jim",
+      first_name: "Jimmy",
+      last_name: "Beam",
+      company: %{id: 2, name: "acme", industry: %{id: 4, name: "stuff"}}
+    }
+
+    conn = %Plug.Conn{
+      assigns: %{
+        jsonapi_query: %{
+          includes: [company: :industry]
+        }
+      }
+    }
+
+    encoded = Serializer.serialize(UserView, data, conn)
+
+    assert encoded.data.relationships.company.links.self == "http://www.example.com/user/1/relationships/company"
+    assert Enum.count(encoded.included) == 2
+  end
+
+  test "includes items nested 2 layers deep from the query when not included by default" do
+    data = %{
+      id: 1,
+      username: "jim",
+      first_name: "Jimmy",
+      last_name: "Beam",
+      company: %{
+        id: 2,
+        name: "acme",
+        industry: %{
+          id: 4,
+          name: "stuff",
+          tags: [
+            %{id: 3, name: "a tag"},
+            %{id: 4, name: "another tag"}
+          ]
+        }
+      }
+    }
+
+    conn = %Plug.Conn{
+      assigns: %{
+        jsonapi_query: %{
+          includes: [company: [industry: :tags]]
+        }
+      }
+    }
+
+    encoded = Serializer.serialize(UserView, data, conn)
+
+    assert encoded.data.relationships.company.links.self == "http://www.example.com/user/1/relationships/company"
     assert Enum.count(encoded.included) == 4
   end
 
