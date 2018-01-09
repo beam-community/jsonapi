@@ -96,9 +96,11 @@ defmodule JSONAPISerializerTest do
     }
 
     encoded = Serializer.serialize(PostView, data, nil)
+    assert encoded[:links][:self] == PostView.url_for(data, nil)
     encoded_data = encoded[:data]
     assert encoded_data[:id] == PostView.id(data)
     assert encoded_data[:type] == PostView.type()
+    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
 
     assert %{meta_text: "meta_Hello"} = encoded_data[:meta]
 
@@ -383,6 +385,7 @@ defmodule JSONAPISerializerTest do
 
     refute relationships[:links]
     refute encoded[:data][:links]
+    refute encoded[:links]
 
     Application.delete_env(:jsonapi, :remove_links)
   end
