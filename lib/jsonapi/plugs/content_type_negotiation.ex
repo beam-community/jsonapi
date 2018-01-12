@@ -64,10 +64,10 @@ defmodule JSONAPI.ContentTypeNegotiation do
     end
   end
   defp respond({conn, content_type, accepts}) do
-    cond do 
-      validate_header(content_type) and validate_header(accepts) == true -> 
+    cond do
+      validate_header(content_type) and validate_header(accepts) == true ->
         add_header_to_resp(conn)
-      validate_header(content_type) == false -> 
+      validate_header(content_type) == false ->
         send_error(conn, 415)
       validate_header(accepts) == false ->
         send_error(conn, 406)
