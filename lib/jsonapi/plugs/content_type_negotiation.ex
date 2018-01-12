@@ -63,8 +63,16 @@ defmodule JSONAPI.ContentTypeNegotiation do
       false -> send_error(conn, 406)
     end
   end
-  defp respond({conn, @jsonapi, _accepts}), do: send_error(conn, 406)
-  defp respond({conn, _content_type, _accepts}), do: send_error(conn, 415)
+  defp respond({conn, content_type, accepts}) do
+    cond do 
+      validate_header(content_type) and validate_header(accepts) == true -> 
+        add_header_to_resp(conn)
+      validate_header(content_type) == false -> 
+        send_error(conn, 415)
+      validate_header(accepts) == false ->
+        send_error(conn, 406)
+    end
+  end
 
   defp validate_header(string) do
     string |> String.split(",") |> Enum.map(&String.trim/1) |> Enum.member?(@jsonapi)
