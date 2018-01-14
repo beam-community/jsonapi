@@ -51,18 +51,6 @@ defmodule JSONAPI.ContentTypeNegotiation do
   defp respond({conn, @jsonapi, nil}), do: add_header_to_resp(conn)
   defp respond({conn, nil, @jsonapi}), do: add_header_to_resp(conn)
   defp respond({conn, @jsonapi, @jsonapi}), do: add_header_to_resp(conn)
-  defp respond({conn, content_type, nil}) do
-    case validate_header(content_type) do
-      true -> add_header_to_resp(conn)
-      false -> send_error(conn, 415)
-    end
-  end
-  defp respond({conn, nil, accepts}) do
-    case validate_header(accepts) do
-      true -> add_header_to_resp(conn)
-      false -> send_error(conn, 406)
-    end
-  end
   defp respond({conn, content_type, accepts}) do
     cond do
       validate_header(content_type) and validate_header(accepts) == true ->
@@ -74,8 +62,11 @@ defmodule JSONAPI.ContentTypeNegotiation do
     end
   end
 
-  defp validate_header(string) do
+  defp validate_header(string) when is_binary(string) do
     string |> String.split(",") |> Enum.map(&String.trim/1) |> Enum.member?(@jsonapi)
+  end
+  defp validate_header(nil) do
+    true
   end
 
   defp add_header_to_resp(conn) do
