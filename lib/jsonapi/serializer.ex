@@ -81,7 +81,8 @@ defmodule JSONAPI.Serializer do
     if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
       rel_query_includes =
         if is_list(query_includes) do
-          Enum.reduce(query_includes, [], fn
+          query_includes
+          |> Enum.reduce([], fn
             {^key, value}, acc -> acc ++ [value]
             _, acc -> acc
           end)
@@ -89,7 +90,6 @@ defmodule JSONAPI.Serializer do
         else
           []
         end
-      #TODO Possibly only return a list of data + view, and encode it after the fact once instead of N times.
       {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn, rel_query_includes)
       {rel_included ++ [encoded_rel], acc}
     else
@@ -154,7 +154,7 @@ defmodule JSONAPI.Serializer do
 
   defp get_default_includes(view) do
     rels = view.relationships()
-    default_includes = rels |> Enum.filter(fn
+    Enum.filter(rels, fn
       {_k, {_v, :include}} -> true
       _ -> false
     end)
@@ -162,7 +162,8 @@ defmodule JSONAPI.Serializer do
 
   defp get_query_includes(view, query_includes) do
     rels = view.relationships()
-    Enum.map(query_includes, fn
+    query_includes
+    |> Enum.map(fn
       {include, _} -> Keyword.take(rels, [include])
       include -> Keyword.take(rels, [include])
     end)

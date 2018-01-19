@@ -3,6 +3,7 @@ defmodule JSONAPI.QueryParser do
   alias JSONAPI.Config
   alias JSONAPI.Page
   alias JSONAPI.Exceptions.InvalidQuery
+  alias Plug.Conn
   import JSONAPI.Utils.IncludeTree
 
   @moduledoc """
@@ -65,7 +66,7 @@ defmodule JSONAPI.QueryParser do
 
   def call(conn, opts) do
     query_params_config_struct = conn
-      |> Plug.Conn.fetch_query_params()
+      |> Conn.fetch_query_params()
       |> Map.get(:query_params)
       |> struct_from_map(%Config{})
 
@@ -76,7 +77,7 @@ defmodule JSONAPI.QueryParser do
     |> parse_sort(query_params_config_struct.sort)
     |> parse_pagination(query_params_config_struct.page)
 
-    Plug.Conn.assign(conn, :jsonapi_query, config)
+    Conn.assign(conn, :jsonapi_query, config)
   end
 
   def parse_pagination(config, map) when map_size(map) == 0, do: config
