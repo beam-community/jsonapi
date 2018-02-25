@@ -62,7 +62,7 @@ defmodule JSONAPI.View do
 
   ## Options
     * `:host` (binary) - Allows the `host` to be overrided for generated URLs.  Defaults to `host` of the supplied `conn`.
-    
+
     * `:scheme` (atom) - Enables configuration of the HTTP scheme for generated URLS.  Defaults to `scheme` from the provided `conn`.
 
     * `:underscore_to_dash` (boolean) - Use dash (`-`) as the word separated for JSON in place of underscore (`_`) per the JSONAPI spec [recommendations](http://jsonapi.org/recommendations/).  Defaults to `false`.
@@ -75,7 +75,7 @@ defmodule JSONAPI.View do
     {namespace, _opts} = Keyword.pop(opts, :namespace, "")
 
     quote do
-      import JSONAPI.Serializer, only: [serialize: 3]
+      import JSONAPI.Serializer, only: [serialize: 4]
 
       @resource_type unquote(type)
       @namespace unquote(namespace)
@@ -113,8 +113,8 @@ defmodule JSONAPI.View do
 
       def hidden, do: []
 
-      def show(model, conn, _params), do: serialize(__MODULE__, model, conn)
-      def index(models, conn, _params), do: serialize(__MODULE__, models, conn)
+      def show(model, conn, _params, meta \\ nil), do: serialize(__MODULE__, model, conn, meta)
+      def index(models, conn, _params, meta \\ nil), do: serialize(__MODULE__, models, conn, meta)
 
       def url_for(nil, nil) do
         "#{@namespace}/#{type()}"
@@ -141,15 +141,21 @@ defmodule JSONAPI.View do
       end
 
       if Code.ensure_loaded?(Phoenix) do
+        def render("show.json", %{data: data, conn: conn, params: params, meta: meta}),
+          do: show(data, conn, params, meta: meta)
+
+        def render("show.json", %{data: data, conn: conn, meta: meta}),
+          do: show(data, conn, conn.params, meta: meta)
+
         def render("show.json", %{data: data, conn: conn}), do: show(data, conn, conn.params)
 
-        def render("show.json", %{data: data, conn: conn, params: params}),
-          do: show(data, conn, params)
+        def render("index.json", %{data: data, conn: conn, params: params, meta: meta}),
+          do: index(data, conn, params, meta)
+
+        def render("index.json", %{data: data, conn: conn, meta: meta}),
+          do: index(data, conn, conn.params, meta)
 
         def render("index.json", %{data: data, conn: conn}), do: index(data, conn, conn.params)
-
-        def render("index.json", %{data: data, conn: conn, params: params}),
-          do: index(data, conn, params)
       end
 
       defp host(conn), do: Application.get_env(:jsonapi, :host, conn.host)

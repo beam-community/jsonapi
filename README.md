@@ -15,6 +15,7 @@ A project that will render your data models into [JSONAPI Documents](http://json
 - [X] Handling of sparse fieldsets
 - [X] Handling of includes
 - [X] Handling of pagination
+- [X] Handling of meta
 
 ## How to use with Phoenix
 
@@ -33,6 +34,12 @@ defmodule MyApp.PostView do
     String.slice(post.body, 0..5)
   end
 
+  def meta(data, _conn) do
+    # this will add meta to each record
+    # To add meta as a top level property, pass as argument to render function (shown below)
+    %{meta_text: "meta_#{data[:text]}"}
+  end
+
   def relationships do
     # The post's author will be included by default
     [author: {MyApp.UserView, :include},
@@ -40,9 +47,9 @@ defmodule MyApp.PostView do
   end
 end
 ```
-is an example of a basic view. You can now call `render(conn, MyApp.PostView, "show.json", %{data: my_data})` or `'index.json` normally.
+is an example of a basic view. You can now call `render(conn, MyApp.PostView, "show.json", %{data: my_data, meta: meta})` or `'index.json` normally.
 
-If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serializer.serialize(MyApp.PostView, data, conn)`.
+If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serializer.serialize(MyApp.PostView, data, conn, meta)`.
 
 ## Parsing and validating a JSONAPI Request
 
