@@ -10,6 +10,9 @@ defmodule JSONAPI.FormatRequired do
   def call(%{method: method} = conn, _opts) when method in ["DELETE", "GET", "HEAD"], do: conn
   def call(%{params: %{"data" => %{"relationships" => _}}} = conn, _), do: conn
   def call(%{params: %{"data" => %{"attributes" => _}}} = conn, _), do: conn
-  def call(%{params: %{"data" => _}} = conn, _), do: send_error(conn, missing_data_attributes_param())
+
+  def call(%{params: %{"data" => _}} = conn, _),
+    do: send_error(conn, missing_data_attributes_param())
+
   def call(conn, _), do: send_error(conn, missing_data_param())
 end

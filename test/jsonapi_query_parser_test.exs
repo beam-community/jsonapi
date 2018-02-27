@@ -9,9 +9,9 @@ defmodule JSONAPI.QueryParserTest do
 
     def fields, do: [:id, :text, :body]
     def type, do: "mytype"
+
     def relationships do
-      [author: JSONAPI.QueryParserTest.UserView,
-       comments: JSONAPI.QueryParserTest.CommentView]
+      [author: JSONAPI.QueryParserTest.UserView, comments: JSONAPI.QueryParserTest.CommentView]
     end
   end
 
@@ -41,6 +41,7 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_sort/2 raises on invalid sorts" do
     config = struct(Config, opts: [], view: MyView)
+
     assert_raise InvalidQuery, "invalid sort, name for type mytype", fn ->
       parse_sort(config, "name")
     end
@@ -54,6 +55,7 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_filter/2 raises on invalid filters" do
     config = struct(Config, opts: [], view: MyView)
+
     assert_raise InvalidQuery, "invalid filter, noop for type mytype", fn ->
       parse_filter(config, %{"noop" => "jason"})
     end
@@ -69,15 +71,16 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_include/2 returns a map with duplicate values for include and includes for compatibility" do
     include_list =
-    Config
-    |> struct(view: MyView)
-    |> parse_include("comments.user")
+      Config
+      |> struct(view: MyView)
+      |> parse_include("comments.user")
 
     assert include_list.includes == include_list.include
   end
 
   test "parse_include/2 errors with invalid includes" do
     config = struct(Config, view: MyView)
+
     assert_raise InvalidQuery, "invalid include, user for type mytype", fn ->
       parse_include(config, "user,comments.author")
     end
@@ -98,6 +101,7 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_fields/2 raises on invalid parsing" do
     config = struct(Config, view: MyView)
+
     assert_raise InvalidQuery, "invalid fields, blag for type mytype", fn ->
       parse_fields(config, %{"mytype" => "blag"})
     end

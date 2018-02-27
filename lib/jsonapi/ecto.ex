@@ -14,5 +14,4 @@ defmodule JSONAPI.Ecto do
       _ -> true
     end
   end
-
 end

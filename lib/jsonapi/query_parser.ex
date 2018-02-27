@@ -65,29 +65,34 @@ defmodule JSONAPI.QueryParser do
   end
 
   def call(conn, opts) do
-    query_params_config_struct = conn
+    query_params_config_struct =
+      conn
       |> Conn.fetch_query_params()
       |> Map.get(:query_params)
       |> struct_from_map(%Config{})
 
-    config = opts
-    |> parse_fields(query_params_config_struct.fields)
-    |> parse_include(query_params_config_struct.include)
-    |> parse_filter(query_params_config_struct.filter)
-    |> parse_sort(query_params_config_struct.sort)
-    |> parse_pagination(query_params_config_struct.page)
+    config =
+      opts
+      |> parse_fields(query_params_config_struct.fields)
+      |> parse_include(query_params_config_struct.include)
+      |> parse_filter(query_params_config_struct.filter)
+      |> parse_sort(query_params_config_struct.sort)
+      |> parse_pagination(query_params_config_struct.page)
 
     Conn.assign(conn, :jsonapi_query, config)
   end
 
   def parse_pagination(config, map) when map_size(map) == 0, do: config
-  def parse_pagination(%Config{} = config, page), do: Map.put(config, :page, struct_from_map(page, %Page{}))
+
+  def parse_pagination(%Config{} = config, page),
+    do: Map.put(config, :page, struct_from_map(page, %Page{}))
 
   def parse_filter(config, map) when map_size(map) == 0, do: config
+
   def parse_filter(%Config{opts: opts} = config, filter) do
     opts_filter = Keyword.get(opts, :filter, [])
 
-    Enum.reduce(filter, config, fn({key, val}, acc) ->
+    Enum.reduce(filter, config, fn {key, val}, acc ->
       check_filter_validity!(opts_filter, key, config)
       %{acc | filter: Keyword.put(acc.filter, String.to_atom(key), val)}
     end)
@@ -100,18 +105,19 @@ defmodule JSONAPI.QueryParser do
   end
 
   def parse_fields(config, map) when map_size(map) == 0, do: config
+
   def parse_fields(%Config{} = config, fields) do
-    Enum.reduce(fields, config, fn ({type, value}, acc) ->
+    Enum.reduce(fields, config, fn {type, value}, acc ->
       valid_fields =
         config
         |> get_valid_fields_for_type(type)
-        |> Enum.into(MapSet.new)
+        |> Enum.into(MapSet.new())
 
       requested_fields =
         value
         |> String.split(",")
         |> Enum.map(&String.to_atom/1)
-        |> Enum.into(MapSet.new)
+        |> Enum.into(MapSet.new())
 
       unless MapSet.subset?(requested_fields, valid_fields) do
         bad_fields =
@@ -120,9 +126,10 @@ defmodule JSONAPI.QueryParser do
           |> MapSet.to_list()
           |> Enum.join(",")
 
-        raise InvalidQuery, resource: config.view.type(),
-                            param: bad_fields,
-                            param_type: :fields
+        raise InvalidQuery,
+          resource: config.view.type(),
+          param: bad_fields,
+          param_type: :fields
       end
 
       %{acc | fields: Map.put(acc.fields, type, MapSet.to_list(requested_fields))}
@@ -130,6 +137,7 @@ defmodule JSONAPI.QueryParser do
   end
 
   def parse_sort(config, nil), do: config
+
   def parse_sort(%Config{opts: opts} = config, sort_fields) do
     sorts =
       sort_fields
@@ -153,6 +161,7 @@ defmodule JSONAPI.QueryParser do
   def build_sort("-", field), do: [desc: field]
 
   def parse_include(config, []), do: config
+
   def parse_include(%Config{} = config, include_str) do
     includes = handle_include(include_str, config)
 
@@ -167,15 +176,16 @@ defmodule JSONAPI.QueryParser do
     valid_includes = get_base_relationships(config.view)
     includes = String.split(str, ",")
 
-    Enum.reduce(includes, [], fn(inc, acc) ->
+    Enum.reduce(includes, [], fn inc, acc ->
       if inc =~ ~r/\w+\.\w+/ do
         acc ++ handle_nested_include(inc, valid_includes, config)
       else
         inc = String.to_atom(inc)
-        if Enum.any?(valid_includes, fn ({key, _val}) -> key == inc end) do
+
+        if Enum.any?(valid_includes, fn {key, _val} -> key == inc end) do
           acc ++ [inc]
         else
-          raise InvalidQuery, resource: config.view.type(), param: inc , param_type: :include
+          raise InvalidQuery, resource: config.view.type(), param: inc, param_type: :include
         end
       end
     end)
@@ -190,7 +200,7 @@ defmodule JSONAPI.QueryParser do
     if member_of_tree?(keys, valid_include) do
       put_as_tree([], path, last)
     else
-      raise InvalidQuery, resource: config.view.type() , param: key, param_type: :include
+      raise InvalidQuery, resource: config.view.type(), param: key, param_type: :include
     end
   end
 
@@ -198,7 +208,7 @@ defmodule JSONAPI.QueryParser do
     if type == view.type do
       view.fields
     else
-     get_view_for_type(view, type).fields
+      get_view_for_type(view, type).fields
     end
   end
 
@@ -215,12 +225,14 @@ defmodule JSONAPI.QueryParser do
   end
 
   defp struct_from_map(params, struct) do
-    processed_map = for {struct_key, _} <- Map.from_struct(struct), into: %{} do
+    processed_map =
+      for {struct_key, _} <- Map.from_struct(struct), into: %{} do
         case Map.get(params, to_string(struct_key)) do
           nil -> {false, false}
           value -> {struct_key, value}
         end
       end
+
     struct(struct, processed_map)
   end
 end

@@ -38,7 +38,7 @@ defmodule JSONAPI.ViewTest do
   alias JSONAPI.ViewTest.CommentView
 
   test "type/0 when specified via using macro" do
-    assert PostView.type == "posts"
+    assert PostView.type() == "posts"
   end
 
   test "url_for/2" do
@@ -47,20 +47,32 @@ defmodule JSONAPI.ViewTest do
     assert PostView.url_for(%{id: 1}, nil) == "/api/posts/1"
     assert PostView.url_for([], %Plug.Conn{}) == "http://www.example.com/api/posts"
     assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.example.com/api/posts/1"
-    assert PostView.url_for_rel([], "comments", %Plug.Conn{}) == "http://www.example.com/api/posts/relationships/comments"
-    assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) == "http://www.example.com/api/posts/1/relationships/comments"
+
+    assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
+             "http://www.example.com/api/posts/relationships/comments"
+
+    assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
+             "http://www.example.com/api/posts/1/relationships/comments"
 
     Application.put_env(:jsonapi, :host, "www.otherhost.com")
     assert PostView.url_for([], %Plug.Conn{}) == "http://www.otherhost.com/api/posts"
     assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.otherhost.com/api/posts/1"
-    assert PostView.url_for_rel([], "comments", %Plug.Conn{}) == "http://www.otherhost.com/api/posts/relationships/comments"
-    assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) == "http://www.otherhost.com/api/posts/1/relationships/comments"
+
+    assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
+             "http://www.otherhost.com/api/posts/relationships/comments"
+
+    assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
+             "http://www.otherhost.com/api/posts/1/relationships/comments"
 
     Application.put_env(:jsonapi, :scheme, "ftp")
     assert PostView.url_for([], %Plug.Conn{}) == "ftp://www.otherhost.com/api/posts"
     assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "ftp://www.otherhost.com/api/posts/1"
-    assert PostView.url_for_rel([], "comments", %Plug.Conn{}) == "ftp://www.otherhost.com/api/posts/relationships/comments"
-    assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) == "ftp://www.otherhost.com/api/posts/1/relationships/comments"
+
+    assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
+             "ftp://www.otherhost.com/api/posts/relationships/comments"
+
+    assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
+             "ftp://www.otherhost.com/api/posts/1/relationships/comments"
   end
 
   @tag :compile_phoenix
@@ -74,6 +86,11 @@ defmodule JSONAPI.ViewTest do
 
   test "attributes/2 does not display hidden fields" do
     expected_map = %{age: 100, first_name: "Jason", last_name: "S", full_name: "Jason S"}
-    assert expected_map == UserView.attributes(%{age: 100, first_name: "Jason", last_name: "S", password: "securepw"}, nil)
+
+    assert expected_map ==
+             UserView.attributes(
+               %{age: 100, first_name: "Jason", last_name: "S", password: "securepw"},
+               nil
+             )
   end
 end

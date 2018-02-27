@@ -48,7 +48,10 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
     conn =
       :post
       |> conn("/example", "")
-      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json, application/vnd.api+json; version=1.0")
+      |> Plug.Conn.put_req_header(
+        "accept",
+        "application/vnd.api+json, application/vnd.api+json; version=1.0"
+      )
       |> ContentTypeNegotiation.call([])
 
     refute conn.halted
@@ -58,7 +61,10 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
     conn =
       :post
       |> conn("/example", "")
-      |> Plug.Conn.put_req_header("content-type", "application/vnd.api+json; version=1.0, application/vnd.api+json")
+      |> Plug.Conn.put_req_header(
+        "content-type",
+        "application/vnd.api+json; version=1.0, application/vnd.api+json"
+      )
       |> ContentTypeNegotiation.call([])
 
     refute conn.halted
@@ -68,7 +74,10 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
     conn =
       :post
       |> conn("/example", "")
-      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json; version=1.0, application/vnd.api+json")
+      |> Plug.Conn.put_req_header(
+        "accept",
+        "application/vnd.api+json; version=1.0, application/vnd.api+json"
+      )
       |> ContentTypeNegotiation.call([])
 
     refute conn.halted
@@ -100,7 +109,10 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
     conn =
       :post
       |> conn("/example", "")
-      |> Plug.Conn.put_req_header("content-type", "application/vnd.api+json; version=1.0, application/vnd.api+json; version=1.0")
+      |> Plug.Conn.put_req_header(
+        "content-type",
+        "application/vnd.api+json; version=1.0, application/vnd.api+json; version=1.0"
+      )
       |> ContentTypeNegotiation.call([])
 
     assert conn.halted
@@ -135,7 +147,10 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
     conn =
       :post
       |> conn("/example", "")
-      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json; version=1.0, application/vnd.api+json; version=1.0")
+      |> Plug.Conn.put_req_header(
+        "accept",
+        "application/vnd.api+json; version=1.0, application/vnd.api+json; version=1.0"
+      )
       |> ContentTypeNegotiation.call([])
 
     assert conn.halted
@@ -147,11 +162,13 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
       :post
       |> conn("/example", "")
       |> Plug.Conn.put_req_header("content-type", "application/vnd.api+json")
-      |> Plug.Conn.put_req_header("accept", "application/vnd.api+json; version=1.0, application/vnd.api+json; version=1.0")
+      |> Plug.Conn.put_req_header(
+        "accept",
+        "application/vnd.api+json; version=1.0, application/vnd.api+json; version=1.0"
+      )
       |> ContentTypeNegotiation.call([])
 
     assert conn.halted
     assert 406 == conn.status
   end
-
 end

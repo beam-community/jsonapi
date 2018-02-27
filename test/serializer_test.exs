@@ -8,9 +8,11 @@ defmodule JSONAPISerializerTest do
     def fields, do: [:text, :body, :full_description, :inserted_at]
     def meta(data, _conn), do: %{meta_text: "meta_#{data[:text]}"}
     def type, do: "mytype"
+
     def relationships do
-      [author: {JSONAPISerializerTest.UserView, :include},
-       best_comments: {JSONAPISerializerTest.CommentView, :include}
+      [
+        author: {JSONAPISerializerTest.UserView, :include},
+        best_comments: {JSONAPISerializerTest.CommentView, :include}
       ]
     end
   end
@@ -20,6 +22,7 @@ defmodule JSONAPISerializerTest do
 
     def fields, do: [:username, :first_name, :last_name]
     def type, do: "user"
+
     def relationships do
       [company: JSONAPISerializerTest.CompanyView]
     end
@@ -30,6 +33,7 @@ defmodule JSONAPISerializerTest do
 
     def fields, do: [:name]
     def type, do: "company"
+
     def relationships do
       [industry: JSONAPISerializerTest.IndustryView]
     end
@@ -40,6 +44,7 @@ defmodule JSONAPISerializerTest do
 
     def fields, do: [:name]
     def type, do: "industry"
+
     def relationships do
       [tags: JSONAPISerializerTest.TagView]
     end
@@ -58,6 +63,7 @@ defmodule JSONAPISerializerTest do
 
     def fields, do: [:text]
     def type, do: "comment"
+
     def relationships do
       [user: {JSONAPISerializerTest.UserView, :include}]
     end
@@ -68,10 +74,9 @@ defmodule JSONAPISerializerTest do
 
     def fields, do: [:foo]
     def type, do: "not-included"
+
     def relationships do
-      [author: JSONAPISerializerTest.UserView,
-       best_comments: JSONAPISerializerTest.CommentView
-      ]
+      [author: JSONAPISerializerTest.UserView, best_comments: JSONAPISerializerTest.CommentView]
     end
   end
 
@@ -88,10 +93,10 @@ defmodule JSONAPISerializerTest do
       id: 1,
       text: "Hello",
       body: "Hello world",
-      author: %{ id: 2, username: "jason"},
+      author: %{id: 2, username: "jason"},
       best_comments: [
-        %{ id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
-        %{ id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
+        %{id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
+        %{id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
       ]
     }
 
@@ -119,18 +124,20 @@ defmodule JSONAPISerializerTest do
       id: 1,
       text: "Hello",
       body: "Hello world",
-      author: %{ id: 2, username: "jason"},
+      author: %{id: 2, username: "jason"},
       best_comments: [
-        %{ id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
-        %{ id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
+        %{id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
+        %{id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
       ]
     }
+
     data_list = [data, data, data]
 
     encoded = Serializer.serialize(PostView, data_list, nil)
 
     assert Enum.count(encoded[:data]) == 3
-    Enum.each(encoded[:data], fn(enc) ->
+
+    Enum.each(encoded[:data], fn enc ->
       assert enc[:id] == PostView.id(data)
       assert enc[:type] == PostView.type()
 
@@ -141,6 +148,7 @@ defmodule JSONAPISerializerTest do
       assert enc[:links][:self] == PostView.url_for(data, nil)
       assert map_size(enc[:relationships]) == 2
     end)
+
     assert Enum.count(encoded[:included]) == 4
   end
 
@@ -149,7 +157,7 @@ defmodule JSONAPISerializerTest do
       id: 1,
       text: "Hello",
       body: "Hello world",
-      author: %{ id: 2, username: "jason"},
+      author: %{id: 2, username: "jason"},
       best_comments: []
     }
 
@@ -174,7 +182,7 @@ defmodule JSONAPISerializerTest do
       id: 1,
       text: "Hello",
       body: "Hello world",
-      author: %{ id: 2, username: "jason"},
+      author: %{id: 2, username: "jason"},
       best_comments: nil
     }
 
@@ -199,14 +207,16 @@ defmodule JSONAPISerializerTest do
       id: 1,
       text: "Hello",
       body: "Hello world",
-      author: %{ id: 2, username: "jason"},
+      author: %{id: 2, username: "jason"},
       best_comments: []
     }
 
     encoded = Serializer.serialize(PostView, data, nil)
 
     encoded_data = encoded[:data]
-    assert encoded_data[:relationships][:author][:links][:self] == "/mytype/1/relationships/author"
+
+    assert encoded_data[:relationships][:author][:links][:self] ==
+             "/mytype/1/relationships/author"
   end
 
   test "serialize handles a relationship self link on an index request" do
@@ -220,7 +230,7 @@ defmodule JSONAPISerializerTest do
       id: 1,
       text: "Hello",
       body: "Hello world",
-      author: %{ id: 2, username: "jason"},
+      author: %{id: 2, username: "jason"},
       best_comments: [
         %{id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
         %{id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
@@ -237,7 +247,9 @@ defmodule JSONAPISerializerTest do
 
     encoded = Serializer.serialize(PostView, data, conn)
 
-    assert encoded.data.relationships.author.links.self == "http://www.example.com/mytype/1/relationships/author"
+    assert encoded.data.relationships.author.links.self ==
+             "http://www.example.com/mytype/1/relationships/author"
+
     assert Enum.count(encoded.included) == 4
   end
 
@@ -247,7 +259,7 @@ defmodule JSONAPISerializerTest do
       username: "jim",
       first_name: "Jimmy",
       last_name: "Beam",
-      company: %{ id: 2, name: "acme"}
+      company: %{id: 2, name: "acme"}
     }
 
     conn = %Plug.Conn{
@@ -260,7 +272,9 @@ defmodule JSONAPISerializerTest do
 
     encoded = Serializer.serialize(UserView, data, conn)
 
-    assert encoded.data.relationships.company.links.self == "http://www.example.com/user/1/relationships/company"
+    assert encoded.data.relationships.company.links.self ==
+             "http://www.example.com/user/1/relationships/company"
+
     assert Enum.count(encoded.included) == 1
   end
 
@@ -283,7 +297,9 @@ defmodule JSONAPISerializerTest do
 
     encoded = Serializer.serialize(UserView, data, conn)
 
-    assert encoded.data.relationships.company.links.self == "http://www.example.com/user/1/relationships/company"
+    assert encoded.data.relationships.company.links.self ==
+             "http://www.example.com/user/1/relationships/company"
+
     assert Enum.count(encoded.included) == 2
   end
 
@@ -317,7 +333,9 @@ defmodule JSONAPISerializerTest do
 
     encoded = Serializer.serialize(UserView, data, conn)
 
-    assert encoded.data.relationships.company.links.self == "http://www.example.com/user/1/relationships/company"
+    assert encoded.data.relationships.company.links.self ==
+             "http://www.example.com/user/1/relationships/company"
+
     assert Enum.count(encoded.included) == 4
   end
 
@@ -325,12 +343,16 @@ defmodule JSONAPISerializerTest do
     data = %{
       id: 1,
       text: "Hello",
-      inserted_at: NaiveDateTime.utc_now,
+      inserted_at: NaiveDateTime.utc_now(),
       body: "Hello world",
       full_description: "This_is_my_description",
-      author: %{ id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+      author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
       best_comments: [
-        %{id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack", last_name: "bronds"}},
+        %{
+          id: 5,
+          text: "greatest comment ever",
+          user: %{id: 4, username: "jack", last_name: "bronds"}
+        }
       ]
     }
 
@@ -344,8 +366,15 @@ defmodule JSONAPISerializerTest do
 
     assert attributes["full-description"] == data[:full_description]
     assert attributes["inserted-at"] == data[:inserted_at]
-    assert Enum.find(included, fn(i) -> i[:type] == "user" && i[:id] == "2" end)[:attributes]["last-name"] == "bonds"
-    assert Enum.find(included, fn(i) -> i[:type] == "user" && i[:id] == "4" end)[:attributes]["last-name"] == "bronds"
+
+    assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "2" end)[:attributes][
+             "last-name"
+           ] == "bonds"
+
+    assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "4" end)[:attributes][
+             "last-name"
+           ] == "bronds"
+
     assert List.first(relationships["best-comments"][:data])[:id] == "5"
 
     Application.delete_env(:jsonapi, :underscore_to_dash)
@@ -355,7 +384,7 @@ defmodule JSONAPISerializerTest do
     data = %{
       id: 1,
       foo: "Hello",
-      author: %{ id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"}
+      author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"}
     }
 
     encoded = Serializer.serialize(NotIncludedView, data, nil)
@@ -371,9 +400,13 @@ defmodule JSONAPISerializerTest do
       text: "Hello",
       body: "Hello world",
       full_description: "This_is_my_description",
-      author: %{ id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+      author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
       best_comments: [
-        %{id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack", last_name: "bronds"}},
+        %{
+          id: 5,
+          text: "greatest comment ever",
+          user: %{id: 4, username: "jack", last_name: "bronds"}
+        }
       ]
     }
 
