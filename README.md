@@ -40,7 +40,7 @@ defmodule MyApp.PostView do
   end
 end
 ```
-is an example of a basic view. You can now call `render(conn, MyApp.PostView, "show.json", %{data: my_data})` or `'list.json` normally.
+is an example of a basic view. You can now call `render(conn, MyApp.PostView, "show.json", %{data: my_data})` or `'index.json` normally.
 
 If you'd like to use this without phoenix simply use the `JSONAPI.View` and call `JSONAPI.Serializer.serialize(MyApp.PostView, data, conn)`.
 
