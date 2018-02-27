@@ -7,10 +7,11 @@ defmodule JSONAPITest do
 
     def fields, do: [:text, :body, :excerpt]
     def type, do: "mytype"
+
     def relationships do
-      [author: {JSONAPITest.UserView, :include},
-       other_user: JSONAPITest.UserView]
+      [author: {JSONAPITest.UserView, :include}, other_user: JSONAPITest.UserView]
     end
+
     def excerpt(post, _conn) do
       letter = String.slice(post.text, 0..1)
       letter
@@ -22,6 +23,7 @@ defmodule JSONAPITest do
 
     def fields, do: [:username]
     def type, do: "user"
+
     def relationships do
       [company: JSONAPITest.CompanyView]
     end
@@ -32,6 +34,7 @@ defmodule JSONAPITest do
 
     def fields, do: [:name]
     def type, do: "company"
+
     def relationships do
       [industry: JSONAPITest.IndustryView]
     end
@@ -42,6 +45,7 @@ defmodule JSONAPITest do
 
     def fields, do: [:name]
     def type, do: "industry"
+
     def relationships do
       [tags: JSONAPITest.TagView]
     end
@@ -69,7 +73,7 @@ defmodule JSONAPITest do
       resp =
         PostView
         |> JSONAPI.Serializer.serialize(conn.assigns[:data], conn)
-        |> Poison.encode!
+        |> Poison.encode!()
 
       Plug.Conn.send_resp(conn, 200, resp)
     end
@@ -79,15 +83,18 @@ defmodule JSONAPITest do
     conn =
       :get
       |> conn("/posts")
-      |> Plug.Conn.assign(:data, [%{
-        id: 1,
-        text: "Hello",
-        body: "Hi",
-        author: %{username: "jason", id: 2},
-        other_user: %{username: "josh", id: 3}}])
+      |> Plug.Conn.assign(:data, [
+        %{
+          id: 1,
+          text: "Hello",
+          body: "Hi",
+          author: %{username: "jason", id: 2},
+          other_user: %{username: "josh", id: 3}
+        }
+      ])
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Poison.decode!
+    json = conn.resp_body |> Poison.decode!()
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
@@ -121,17 +128,21 @@ defmodule JSONAPITest do
   end
 
   test "handles includes properly" do
-    conn = conn(:get, "/posts?include=other_user")
-    |> Plug.Conn.assign(:data, [%{
-      id: 1,
-      text: "Hello",
-      body: "Hi",
-      author: %{username: "jason", id: 2},
-      other_user: %{username: "josh", id: 3}}])
-    |> Plug.Conn.fetch_query_params()
-    |> MyPostPlug.call([])
+    conn =
+      conn(:get, "/posts?include=other_user")
+      |> Plug.Conn.assign(:data, [
+        %{
+          id: 1,
+          text: "Hello",
+          body: "Hi",
+          author: %{username: "jason", id: 2},
+          other_user: %{username: "josh", id: 3}
+        }
+      ])
+      |> Plug.Conn.fetch_query_params()
+      |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Poison.decode!
+    json = conn.resp_body |> Poison.decode!()
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
@@ -160,50 +171,51 @@ defmodule JSONAPITest do
     assert Enum.count(included) == 2
 
     assert Enum.find(included, fn include ->
-      Map.get(include, "type") == "user" &&
-      Map.get(include, "id") == "2"
-    end)
+             Map.get(include, "type") == "user" && Map.get(include, "id") == "2"
+           end)
 
     assert Enum.find(included, fn include ->
-      Map.get(include, "type") == "user" &&
-      Map.get(include, "id") == "3"
-    end)
+             Map.get(include, "type") == "user" && Map.get(include, "id") == "3"
+           end)
 
     assert Map.has_key?(json, "links")
   end
 
   test "handles deep nested includes properly" do
-    data = [%{
-      id: 1,
-      text: "Hello",
-      body: "Hi",
-      author: %{username: "jason", id: 2},
-      other_user: %{
+    data = [
+      %{
         id: 1,
-        username: "jim",
-        first_name: "Jimmy",
-        last_name: "Beam",
-        company: %{
-          id: 2,
-          name: "acme",
-          industry: %{
-            id: 4,
-            name: "stuff",
-            tags: [
-              %{id: 3, name: "a tag"},
-              %{id: 4, name: "another tag"}
-            ]
+        text: "Hello",
+        body: "Hi",
+        author: %{username: "jason", id: 2},
+        other_user: %{
+          id: 1,
+          username: "jim",
+          first_name: "Jimmy",
+          last_name: "Beam",
+          company: %{
+            id: 2,
+            name: "acme",
+            industry: %{
+              id: 4,
+              name: "stuff",
+              tags: [
+                %{id: 3, name: "a tag"},
+                %{id: 4, name: "another tag"}
+              ]
+            }
           }
         }
       }
-    }]
+    ]
 
-    conn = conn(:get, "/posts?include=other_user.company.industry.tags")
-    |> Plug.Conn.assign(:data, data)
-    |> Plug.Conn.fetch_query_params()
-    |> MyPostPlug.call([])
+    conn =
+      conn(:get, "/posts?include=other_user.company.industry.tags")
+      |> Plug.Conn.assign(:data, data)
+      |> Plug.Conn.fetch_query_params()
+      |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Poison.decode!
+    json = conn.resp_body |> Poison.decode!()
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
@@ -232,34 +244,28 @@ defmodule JSONAPITest do
     assert Enum.count(included) == 6
 
     assert Enum.find(included, fn include ->
-      Map.get(include, "type") == "user" &&
-      Map.get(include, "id") == "2"
-    end)
+             Map.get(include, "type") == "user" && Map.get(include, "id") == "2"
+           end)
 
     assert Enum.find(included, fn include ->
-      Map.get(include, "type") == "user" &&
-      Map.get(include, "id") == "1"
-    end)
+             Map.get(include, "type") == "user" && Map.get(include, "id") == "1"
+           end)
 
     assert Enum.find(included, fn include ->
-      Map.get(include, "type") == "company" &&
-      Map.get(include, "id") == "2"
-    end)
+             Map.get(include, "type") == "company" && Map.get(include, "id") == "2"
+           end)
 
     assert Enum.find(included, fn include ->
-      Map.get(include, "type") == "industry" &&
-      Map.get(include, "id") == "4"
-    end)
+             Map.get(include, "type") == "industry" && Map.get(include, "id") == "4"
+           end)
 
     assert Enum.find(included, fn include ->
-      Map.get(include, "type") == "tag" &&
-      Map.get(include, "id") == "3"
-    end)
+             Map.get(include, "type") == "tag" && Map.get(include, "id") == "3"
+           end)
 
     assert Enum.find(included, fn include ->
-      Map.get(include, "type") == "tag" &&
-      Map.get(include, "id") == "4"
-    end)
+             Map.get(include, "type") == "tag" && Map.get(include, "id") == "4"
+           end)
 
     assert Map.has_key?(json, "links")
   end

@@ -15,7 +15,8 @@ defmodule JSONAPI.IdRequiredTest do
 
     %{"errors" => [error]} = Poison.decode!(conn.resp_body)
 
-    assert %{"source" => %{"pointer" => "/data/id"}, "title" => "Missing id in data parameter"} = error
+    assert %{"source" => %{"pointer" => "/data/id"}, "title" => "Missing id in data parameter"} =
+             error
   end
 
   test "halts and returns an error if id attribute is not a string" do
@@ -29,7 +30,8 @@ defmodule JSONAPI.IdRequiredTest do
 
     %{"errors" => [error]} = Poison.decode!(conn.resp_body)
 
-    assert %{"source" => %{"pointer" => "/data/id"}, "title" => "Malformed id in data parameter"} = error
+    assert %{"source" => %{"pointer" => "/data/id"}, "title" => "Malformed id in data parameter"} =
+             error
   end
 
   test "halts and returns an error if id attribute and url id are mismatched" do

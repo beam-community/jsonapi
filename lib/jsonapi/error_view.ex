@@ -26,13 +26,17 @@ defmodule JSONAPI.ErrorView do
 
   def mismatched_id do
     "Mismatched id parameter"
-    |> build_error(409, "The id in the url must match the id at '/data/id'.  #{@crud_message}", "/data/id")
+    |> build_error(
+      409,
+      "The id in the url must match the id at '/data/id'.  #{@crud_message}",
+      "/data/id"
+    )
     |> serialize_error
   end
 
   def missing_data_attributes_param do
     "Missing attributes in data parameter"
-    |> build_error(400, @crud_message,  "/data/attributes")
+    |> build_error(400, @crud_message, "/data/attributes")
     |> serialize_error
   end
 
@@ -48,13 +52,16 @@ defmodule JSONAPI.ErrorView do
     |> serialize_error
   end
 
-  def send_error(conn, %{errors: [%{status: status}]} = error), do: send_error(conn, status, error)
+  def send_error(conn, %{errors: [%{status: status}]} = error),
+    do: send_error(conn, status, error)
+
   def send_error(conn, %{errors: errors} = error) when is_list(errors) do
-    status = Enum.max_by(errors, &(Map.get(&1, :status)))
+    status = Enum.max_by(errors, &Map.get(&1, :status))
     send_error(conn, status, error)
   end
 
   def send_error(conn, status, error \\ "")
+
   def send_error(conn, status, error) when is_map(error) do
     json = Poison.encode!(error)
     send_error(conn, status, json)

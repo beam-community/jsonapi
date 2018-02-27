@@ -87,7 +87,7 @@ defmodule JSONAPI.View do
       if @resource_type do
         def type, do: @resource_type
       else
-        def type, do: raise "Need to implement type/0"
+        def type, do: raise("Need to implement type/0")
       end
 
       def attributes(data, conn) do
@@ -100,6 +100,7 @@ defmodule JSONAPI.View do
             rescue
               _e -> Map.get(data, field)
             end
+
           Map.put(intermediate_map, field, value)
         end)
       end
@@ -108,14 +109,12 @@ defmodule JSONAPI.View do
 
       def relationships, do: []
 
-      def fields, do: raise "Need to implement fields/0"
+      def fields, do: raise("Need to implement fields/0")
 
       def hidden, do: []
 
-      def show(model, conn, _params),
-        do: serialize(__MODULE__, model, conn)
-      def index(models, conn, _params),
-        do: serialize(__MODULE__, models, conn)
+      def show(model, conn, _params), do: serialize(__MODULE__, model, conn)
+      def index(models, conn, _params), do: serialize(__MODULE__, models, conn)
 
       def url_for(nil, nil) do
         "#{@namespace}/#{type()}"
@@ -142,13 +141,13 @@ defmodule JSONAPI.View do
       end
 
       if Code.ensure_loaded?(Phoenix) do
-        def render("show.json", %{data: data, conn: conn}),
-          do: show(data, conn, conn.params)
+        def render("show.json", %{data: data, conn: conn}), do: show(data, conn, conn.params)
+
         def render("show.json", %{data: data, conn: conn, params: params}),
           do: show(data, conn, params)
 
-        def render("index.json", %{data: data, conn: conn}),
-          do: index(data, conn, conn.params)
+        def render("index.json", %{data: data, conn: conn}), do: index(data, conn, conn.params)
+
         def render("index.json", %{data: data, conn: conn, params: params}),
           do: index(data, conn, params)
       end
