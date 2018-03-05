@@ -10,6 +10,11 @@ otp_release:
   - 19.3
   - 18.3
 
+matrix:
+  exclude:
+    - elixir: 1.6
+      otp_release: 18.3
+
 env:
   global:
     - MIX_ENV=test
