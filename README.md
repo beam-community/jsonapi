@@ -15,7 +15,7 @@ A project that will render your data models into [JSONAPI Documents](http://json
 - [X] Handling of sparse fieldsets
 - [X] Handling of includes
 - [X] Handling of pagination
-- [X] Handling of meta
+- [X] Handling of top level meta data
 
 ## How to use with Phoenix
 
