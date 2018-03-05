@@ -80,6 +80,15 @@ defmodule JSONAPISerializerTest do
     end
   end
 
+  test "serialize includes meta as top level member" do
+    meta = %{total_pages: 10}
+    encoded = Serializer.serialize(PostView, %{id: 1, text: "Hello"}, nil, meta)
+    assert %{total_pages: 10} = encoded[:meta]
+
+    encoded = Serializer.serialize(CommentView, %{id: 1}, nil, nil)
+    assert encoded[:meta] == nil
+  end
+
   test "serialize only includes meta if provided" do
     encoded = Serializer.serialize(PostView, %{id: 1, text: "Hello"}, nil)
     assert %{meta_text: "meta_Hello"} = encoded[:data][:meta]

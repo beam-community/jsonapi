@@ -72,7 +72,7 @@ defmodule JSONAPITest do
     defp passthrough(conn, _) do
       resp =
         PostView
-        |> JSONAPI.Serializer.serialize(conn.assigns[:data], conn)
+        |> JSONAPI.Serializer.serialize(conn.assigns[:data], conn, conn.assigns[:meta])
         |> Poison.encode!()
 
       Plug.Conn.send_resp(conn, 200, resp)
@@ -92,12 +92,15 @@ defmodule JSONAPITest do
           other_user: %{username: "josh", id: 3}
         }
       ])
+      |> Plug.Conn.assign(:meta, %{total_pages: 1})
       |> MyPostPlug.call([])
 
     json = conn.resp_body |> Poison.decode!()
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
+    meta = Map.get(json, "meta")
+    assert meta["total_pages"] == 1
 
     assert Enum.count(data_list) == 1
     [data | _] = data_list

@@ -13,7 +13,7 @@ defmodule JSONAPI.Serializer do
   Please refer to `JSONAPI.View` for more information. If you are in interested in relationships
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
-  def serialize(view, data, conn \\ nil) do
+  def serialize(view, data, conn \\ nil, meta \\ nil) do
     query_includes =
       case conn do
         %Plug.Conn{assigns: %{jsonapi_query: %{includes: includes}}} -> includes
@@ -24,7 +24,8 @@ defmodule JSONAPI.Serializer do
 
     encoded_data = %{
       data: encoded_data,
-      included: flatten_included(to_include)
+      included: flatten_included(to_include),
+      meta: meta
     }
 
     merge_links(encoded_data, data, view, conn, remove_links?())
