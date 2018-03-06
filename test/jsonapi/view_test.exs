@@ -109,7 +109,13 @@ defmodule JSONAPI.ViewTest do
 
   @tag :compile_phoenix
   test "show renders with data, conn, meta" do
-    data = CommentView.render("show.json", %{data: %{id: 1, body: "hi"}, conn: %Plug.Conn{}, meta: %{total_pages: 100}})
+    data =
+      CommentView.render("show.json", %{
+        data: %{id: 1, body: "hi"},
+        conn: %Plug.Conn{},
+        meta: %{total_pages: 100}
+      })
+
     assert data.meta.total_pages == 100
   end
 
@@ -122,7 +128,13 @@ defmodule JSONAPI.ViewTest do
 
   @tag :compile_phoenix
   test "index renders with data, conn, meta" do
-    data = CommentView.render("index.json", %{data: [%{id: 1, body: "hi"}], conn: %Plug.Conn{}, meta: %{total_pages: 100}})
+    data =
+      CommentView.render("index.json", %{
+        data: [%{id: 1, body: "hi"}],
+        conn: %Plug.Conn{},
+        meta: %{total_pages: 100}
+      })
+
     assert data.meta.total_pages == 100
   end
 
