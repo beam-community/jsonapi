@@ -7,6 +7,10 @@ defmodule JSONAPI.ViewTest do
 
       defmodule CommentView do
         use JSONAPI.View, type: "comments"
+
+        def fields do
+          [:body]
+        end
       end
     end
 
@@ -95,6 +99,31 @@ defmodule JSONAPI.ViewTest do
   @tag :compile_phoenix
   test "render/2 is defined when 'Phoenix' is loaded" do
     assert {:render, 2} in CommentView.__info__(:functions)
+  end
+
+  @tag :compile_phoenix
+  test "show renders with data, conn" do
+    data = CommentView.render("show.json", %{data: %{id: 1, body: "hi"}, conn: %Plug.Conn{}})
+    assert data.data.attributes.body == "hi"
+  end
+
+  @tag :compile_phoenix
+  test "show renders with data, conn, meta" do
+    data = CommentView.render("show.json", %{data: %{id: 1, body: "hi"}, conn: %Plug.Conn{}, meta: %{total_pages: 100}})
+    assert data.meta.total_pages == 100
+  end
+
+  @tag :compile_phoenix
+  test "index renders with data, conn" do
+    data = CommentView.render("index.json", %{data: [%{id: 1, body: "hi"}], conn: %Plug.Conn{}})
+    data = Enum.at(data.data, 0)
+    assert data.attributes.body == "hi"
+  end
+
+  @tag :compile_phoenix
+  test "index renders with data, conn, meta" do
+    data = CommentView.render("index.json", %{data: [%{id: 1, body: "hi"}], conn: %Plug.Conn{}, meta: %{total_pages: 100}})
+    assert data.meta.total_pages == 100
   end
 
   test "render/2 is not defined when 'Phoenix' is not loaded" do
