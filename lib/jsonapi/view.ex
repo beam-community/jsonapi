@@ -182,10 +182,10 @@ defmodule JSONAPI.View do
 
       if Code.ensure_loaded?(Phoenix) do
         def render("show.json", %{data: data, conn: conn, params: params, meta: meta}),
-          do: show(data, conn, params, meta: meta)
+          do: show(data, conn, params, meta)
 
         def render("show.json", %{data: data, conn: conn, meta: meta}),
-          do: show(data, conn, conn.params, meta: meta)
+          do: show(data, conn, conn.params, meta)
 
         def render("show.json", %{data: data, conn: conn}), do: show(data, conn, conn.params)
 
