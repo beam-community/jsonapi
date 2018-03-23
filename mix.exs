@@ -6,10 +6,10 @@ defmodule JSONAPI.Mixfile do
       app: :jsonapi,
       version: "0.8.0",
       package: package(),
-      compilers: compilers(Mix.env),
+      compilers: compilers(Mix.env()),
       description: description(),
       elixir: "~> 1.0",
-      elixirc_paths: elixirc_paths(Mix.env),
+      elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       source_url: "https://github.com/jeregrine/jsonapi",
@@ -23,7 +23,7 @@ defmodule JSONAPI.Mixfile do
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_),     do: ["lib"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
     [

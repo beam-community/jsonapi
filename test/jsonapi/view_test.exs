@@ -125,15 +125,7 @@ defmodule JSONAPI.ViewTest do
     assert data.meta.total_pages == 100
   end
 
-<<<<<<< HEAD
-  test "render/2 is not defined when 'Phoenix' is not loaded" do
-    refute {:render, 2} in PostView.__info__(:functions)
-  end
-
   test "attributes/2 does not display hidden fields with deprecated hidden/0" do
-=======
-  test "attributes/2 does not display hidden fields" do
->>>>>>> 209852f... add phx to test env and assertion if Phoenix not installed
     expected_map = %{age: 100, first_name: "Jason", last_name: "S", full_name: "Jason S"}
 
     assert expected_map ==
