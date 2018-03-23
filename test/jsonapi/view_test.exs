@@ -1,21 +1,11 @@
 defmodule JSONAPI.ViewTest do
   use ExUnit.Case
 
-  setup tags do
-    if tags[:compile_phoenix] do
-      Module.create(Phoenix, [], __ENV__)
-
-      defmodule CommentView do
-        use JSONAPI.View, type: "comments"
-
-        def fields do
-          [:body]
-        end
-      end
-    end
-
-    :ok
+  defmodule PostView do
+    use JSONAPI.View, type: "posts", namespace: "/api"
   end
+
+  Module.create(Phoenix, [], __ENV__)
 
   defmodule PostView do
     use JSONAPI.View, type: "posts", namespace: "/api"
@@ -29,6 +19,14 @@ defmodule JSONAPI.ViewTest do
     end
 
     def hidden(_), do: []
+  end
+
+  defmodule CommentView do
+    use JSONAPI.View, type: "comments"
+
+    def fields do
+      [:body]
+    end
   end
 
   defmodule UserView do
@@ -101,13 +99,11 @@ defmodule JSONAPI.ViewTest do
     assert {:render, 2} in CommentView.__info__(:functions)
   end
 
-  @tag :compile_phoenix
   test "show renders with data, conn" do
     data = CommentView.render("show.json", %{data: %{id: 1, body: "hi"}, conn: %Plug.Conn{}})
     assert data.data.attributes.body == "hi"
   end
 
-  @tag :compile_phoenix
   test "show renders with data, conn, meta" do
     data =
       CommentView.render("show.json", %{
@@ -119,14 +115,12 @@ defmodule JSONAPI.ViewTest do
     assert data.meta.total_pages == 100
   end
 
-  @tag :compile_phoenix
   test "index renders with data, conn" do
     data = CommentView.render("index.json", %{data: [%{id: 1, body: "hi"}], conn: %Plug.Conn{}})
     data = Enum.at(data.data, 0)
     assert data.attributes.body == "hi"
   end
 
-  @tag :compile_phoenix
   test "index renders with data, conn, meta" do
     data =
       CommentView.render("index.json", %{
