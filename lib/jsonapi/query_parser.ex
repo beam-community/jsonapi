@@ -4,6 +4,7 @@ defmodule JSONAPI.QueryParser do
   alias JSONAPI.Page
   alias JSONAPI.Exceptions.InvalidQuery
   alias Plug.Conn
+  alias JSONAPI.Utils.Dash
   import JSONAPI.Utils.IncludeTree
 
   @moduledoc """
@@ -195,7 +196,7 @@ defmodule JSONAPI.QueryParser do
     keys =
       key
       |> String.split(".")
-      |> Enum.map(&JSONAPI.Serializer.underscore/1)
+      |> Enum.map(&dash/1)
       |> Enum.map(&String.to_existing_atom/1)
 
     last = List.last(keys)
@@ -205,6 +206,14 @@ defmodule JSONAPI.QueryParser do
       put_as_tree([], path, last)
     else
       raise InvalidQuery, resource: config.view.type(), param: key, param_type: :include
+    end
+  end
+
+  def dash(data) do
+    if Dash.dash?() do
+      Dash.dash(data)
+    else
+      data
     end
   end
 
