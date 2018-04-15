@@ -61,7 +61,7 @@ defmodule JSONAPI.Serializer do
 
   def encode_relationships(conn, doc, {view, data, _, _} = view_info) do
     view.relationships()
-    |> Enum.filter(&(is_data_loaded?(Map.get(data, elem(&1, 0)))))
+    |> Enum.filter(&is_data_loaded?(Map.get(data, elem(&1, 0))))
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2))
   end
 
