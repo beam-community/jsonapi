@@ -4,7 +4,7 @@ defmodule JSONAPI.QueryParser do
   alias JSONAPI.Page
   alias JSONAPI.Exceptions.InvalidQuery
   alias Plug.Conn
-  alias JSONAPI.Utils.Dash
+  alias JSONAPI.Utils.Underscore
   import JSONAPI.Utils.IncludeTree
 
   @moduledoc """
@@ -210,8 +210,8 @@ defmodule JSONAPI.QueryParser do
   end
 
   def dash(data) do
-    if Dash.dash?() do
-      Dash.dash(data)
+    if Underscore.underscore?() do
+      Underscore.dash(data)
     else
       data
     end

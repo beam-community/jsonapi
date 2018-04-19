@@ -5,6 +5,10 @@ defmodule JSONAPI.Utils.Underscore do
 
   def underscore?, do: Application.get_env(:jsonapi, :underscore_to_dash, false)
 
+  def dash(value) when is_binary(value) do
+    String.replace(value, "-", "_")
+  end
+
   def underscore(value) when is_atom(value) do
     value
     |> to_string
