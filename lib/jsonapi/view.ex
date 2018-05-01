@@ -35,6 +35,22 @@ defmodule JSONAPI.View do
   You can now call `UserView.show(user, conn, conn.params)` and it will render
   a valid jsonapi doc.
 
+  ## Fields
+
+  By default, the resulting JSON document consists of fields, defined in fields/0
+  function. You can define custom fields or override current fields by defining
+  inside the view function `field_name/2` that takes data and conn as arguments.
+
+      defmodule UserView do
+        use JSONAPI.View
+
+        def fullname(data, conn), do: "fullname"
+
+        def fields, do: [:id, :username, :fullname]
+        def type, do: "user"
+        def relationships, do: []
+      end
+
   ## Relationships
 
   Currently the relationships callback expects that a map is returned
@@ -95,10 +111,9 @@ defmodule JSONAPI.View do
 
         Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
           value =
-            try do
-              apply(__MODULE__, field, [data, conn])
-            rescue
-              _e -> Map.get(data, field)
+            case function_exported?(__MODULE__, field, 2) do
+              true -> apply(__MODULE__, field, [data, conn])
+              false -> Map.get(data, field)
             end
 
           Map.put(intermediate_map, field, value)

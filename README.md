@@ -17,6 +17,10 @@ A project that will render your data models into [JSONAPI Documents](http://json
 - [X] Handling of pagination
 - [X] Handling of top level meta data
 
+## Documentation
+
+[Full docs here](https://hexdocs.pm/jsonapi/api-reference.html)
+
 ## How to use with Phoenix
 
 Simply add `use JSONAPI.View` either to the top of your view, or to the web.ex view section and add the
