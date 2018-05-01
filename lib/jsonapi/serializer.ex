@@ -81,12 +81,13 @@ defmodule JSONAPI.Serializer do
 
     only_rel_view = get_view(rel_view)
     # Build the relationship url
-    rel_url = view.url_for_rel(data, key, conn)
+    rel_key = underscore(key)
+    rel_url = view.url_for_rel(data, rel_key, conn)
     # Build the relationship
     acc =
       put_in(
         acc,
-        [:relationships, underscore(key)],
+        [:relationships, rel_key],
         encode_relation({only_rel_view, rel_data, rel_url, conn})
       )
 
