@@ -4,6 +4,7 @@ defmodule JSONAPI.QueryParser do
   alias JSONAPI.Page
   alias JSONAPI.Exceptions.InvalidQuery
   alias Plug.Conn
+  alias JSONAPI.Utils.Underscore
   import JSONAPI.Utils.IncludeTree
 
   @moduledoc """
@@ -192,7 +193,11 @@ defmodule JSONAPI.QueryParser do
   end
 
   def handle_nested_include(key, valid_include, config) do
-    keys = key |> String.split(".") |> Enum.map(&String.to_existing_atom/1)
+    keys =
+      key
+      |> String.split(".")
+      |> Enum.map(&dash/1)
+      |> Enum.map(&String.to_existing_atom/1)
 
     last = List.last(keys)
     path = Enum.slice(keys, 0, Enum.count(keys) - 1)
@@ -201,6 +206,14 @@ defmodule JSONAPI.QueryParser do
       put_as_tree([], path, last)
     else
       raise InvalidQuery, resource: config.view.type(), param: key, param_type: :include
+    end
+  end
+
+  def dash(data) do
+    if Underscore.underscore?() do
+      Underscore.dash(data)
+    else
+      data
     end
   end
 

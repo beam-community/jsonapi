@@ -20,7 +20,7 @@ defmodule JSONAPI.QueryParserTest do
 
     def fields, do: [:id, :username]
     def type, do: "user"
-    def relationships, do: []
+    def relationships, do: [top_posts: MyView]
   end
 
   defmodule CommentView do
@@ -67,6 +67,16 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_include(config, "author").includes == [:author]
     assert parse_include(config, "comments,author").includes == [:comments, :author]
     assert parse_include(config, "comments.user").includes == [comments: :user]
+
+    assert_raise ArgumentError, "argument error", fn ->
+      assert parse_include(config, "author.top-posts")
+    end
+
+    Application.put_env(:jsonapi, :underscore_to_dash, true)
+
+    assert parse_include(config, "author.top-posts").includes == [author: :top_posts]
+
+    Application.delete_env(:jsonapi, :underscore_to_dash)
   end
 
   test "parse_include/2 returns a map with duplicate values for include and includes for compatibility" do
