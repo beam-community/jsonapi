@@ -386,6 +386,9 @@ defmodule JSONAPISerializerTest do
 
     assert List.first(relationships["best-comments"][:data])[:id] == "5"
 
+    assert relationships["best-comments"][:links][:self] ==
+             "/mytype/1/relationships/best-comments"
+
     Application.delete_env(:jsonapi, :underscore_to_dash)
   end
 
