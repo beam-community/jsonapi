@@ -75,6 +75,13 @@ defmodule JSONAPI.ViewTest do
              "ftp://www.otherhost.com/api/posts/1/relationships/comments"
   end
 
+  test "url_for_pagination/3" do
+    assert PostView.url_for_pagination(nil, nil, %{}) == "/api/posts"
+
+    assert PostView.url_for_pagination(nil, nil, %{number: 1, size: 10}) ==
+             "/api/posts?page%5Bnumber%5D=1&page%5Bsize%5D=10"
+  end
+
   @tag :compile_phoenix
   test "render/2 is defined when 'Phoenix' is loaded" do
     assert {:render, 2} in CommentView.__info__(:functions)

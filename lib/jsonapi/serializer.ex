@@ -28,7 +28,7 @@ defmodule JSONAPI.Serializer do
       meta: meta
     }
 
-    merge_links(encoded_data, data, view, conn, remove_links?())
+    merge_links(encoded_data, data, view, conn, remove_links?(), true)
   end
 
   def encode_data(view, data, conn, query_includes) when is_list(data) do
@@ -48,7 +48,7 @@ defmodule JSONAPI.Serializer do
       relationships: %{}
     }
 
-    doc = merge_links(encoded_data, data, view, conn, remove_links?())
+    doc = merge_links(encoded_data, data, view, conn, remove_links?(), false)
 
     doc =
       case view.meta(data, conn) do
@@ -135,11 +135,19 @@ defmodule JSONAPI.Serializer do
     merge_related_links(data, info, remove_links?())
   end
 
-  defp merge_links(doc, data, view, conn, false) do
+  defp merge_links(doc, data, view, conn, false, true) do
+    links =
+      %{self: view.url_for(data, conn)}
+      |> Map.merge(view.links(data, conn))
+
+    Map.merge(doc, %{links: links})
+  end
+
+  defp merge_links(doc, data, view, conn, false, false) do
     Map.merge(doc, %{links: %{self: view.url_for(data, conn)}})
   end
 
-  defp merge_links(doc, _data, _view, _conn, _remove_links), do: doc
+  defp merge_links(doc, _data, _view, _conn, _remove_links, _with_pagination), do: doc
 
   defp merge_related_links(
          encoded_data,

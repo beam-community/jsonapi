@@ -15,6 +15,12 @@ defmodule JSONAPISerializerTest do
         best_comments: {JSONAPISerializerTest.CommentView, :include}
       ]
     end
+
+    def links(data, conn) do
+      %{
+        next: url_for_pagination(data, conn, %{cursor: "some-string"})
+      }
+    end
   end
 
   defmodule UserView do
@@ -111,6 +117,10 @@ defmodule JSONAPISerializerTest do
 
     encoded = Serializer.serialize(PostView, data, nil)
     assert encoded[:links][:self] == PostView.url_for(data, nil)
+
+    assert encoded[:links][:next] ==
+             PostView.url_for_pagination(data, nil, %{cursor: "some-string"})
+
     encoded_data = encoded[:data]
     assert encoded_data[:id] == PostView.id(data)
     assert encoded_data[:type] == PostView.type()
@@ -155,10 +165,12 @@ defmodule JSONAPISerializerTest do
       assert attributes[:body] == data[:body]
 
       assert enc[:links][:self] == PostView.url_for(data, nil)
+      refute Map.has_key?(enc[:links], :next)
       assert map_size(enc[:relationships]) == 2
     end)
 
     assert Enum.count(encoded[:included]) == 4
+    assert Map.has_key?(encoded[:links], :next)
   end
 
   test "serialize handles an empty relationship" do
