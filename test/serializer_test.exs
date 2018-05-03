@@ -119,9 +119,7 @@ defmodule JSONAPISerializerTest do
 
     encoded = Serializer.serialize(PostView, data, nil)
     assert encoded[:links][:self] == PostView.url_for(data, nil)
-
-    assert encoded[:links][:next] ==
-             PostView.url_for_pagination(data, nil, %{cursor: "some-string"})
+    assert encoded[:links][:next]
 
     encoded_data = encoded[:data]
     assert encoded_data[:id] == PostView.id(data)
