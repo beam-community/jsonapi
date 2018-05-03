@@ -129,7 +129,7 @@ defmodule JSONAPI.View do
         end)
       end
 
-      def links(_data, _conn), do: %{}
+      def links(_data, _conn, _meta), do: %{}
 
       def meta(_data, _conn), do: nil
 
@@ -208,7 +208,7 @@ defmodule JSONAPI.View do
       defp scheme(conn), do: Application.get_env(:jsonapi, :scheme, to_string(conn.scheme))
 
       defoverridable attributes: 2,
-                     links: 2,
+                     links: 3,
                      fields: 0,
                      hidden: 1,
                      id: 1,
