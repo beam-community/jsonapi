@@ -117,9 +117,7 @@ defmodule JSONAPISerializerTest do
 
     encoded = Serializer.serialize(PostView, data, nil)
     assert encoded[:links][:self] == PostView.url_for(data, nil)
-
-    assert encoded[:links][:next] ==
-             PostView.url_for_pagination(data, nil, %{cursor: "some-string"})
+    assert encoded[:links][:next]
 
     encoded_data = encoded[:data]
     assert encoded_data[:id] == PostView.id(data)
@@ -442,5 +440,22 @@ defmodule JSONAPISerializerTest do
     refute encoded[:links]
 
     Application.delete_env(:jsonapi, :remove_links)
+  end
+
+  test "serialize includes pagination links if they are defined" do
+    data = %{id: 1}
+
+    encoded = Serializer.serialize(PostView, data, nil)
+
+    assert encoded[:links][:next] ==
+             PostView.url_for_pagination(data, nil, %{cursor: "some-string"})
+  end
+
+  test "serialize does not include pagination links if they are not defined" do
+    data = %{id: 1}
+
+    encoded = Serializer.serialize(UserView, data, nil)
+
+    refute encoded[:links][:next]
   end
 end
