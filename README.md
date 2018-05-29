@@ -57,6 +57,8 @@ If you'd like to use this without phoenix simply use the `JSONAPI.View` and call
 
 ## Parsing and validating a JSONAPI Request
 
+In your controller you may add
+
 ```elixir
 plug JSONAPI.QueryParser,
   filter: ~w(name),
