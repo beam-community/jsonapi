@@ -28,7 +28,7 @@ defmodule JSONAPI.Serializer do
       meta: meta
     }
 
-    merge_links(encoded_data, data, view, conn, remove_links?(), true)
+    merge_links(encoded_data, data, view, conn, remove_links?(), with_pagination?())
   end
 
   def encode_data(view, data, conn, query_includes) when is_list(data) do
@@ -136,6 +136,14 @@ defmodule JSONAPI.Serializer do
   end
 
   defp merge_links(doc, data, view, conn, false, true) do
+    pagination_links = view.links(data, conn)
+
+    if Enum.empty?(pagination_links) do
+      IO.warn(
+        "You've set with_pagination but have not defined any pagination links, thus no pagination links will be returned"
+      )
+    end
+
     links =
       %{self: view.url_for(data, conn)}
       |> Map.merge(view.links(data, conn))
@@ -217,4 +225,5 @@ defmodule JSONAPI.Serializer do
   end
 
   defp remove_links?, do: Application.get_env(:jsonapi, :remove_links, false)
+  defp with_pagination?, do: Application.get_env(:jsonapi, :with_pagination, false)
 end
