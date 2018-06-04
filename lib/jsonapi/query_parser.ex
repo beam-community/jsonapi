@@ -181,7 +181,7 @@ defmodule JSONAPI.QueryParser do
       if inc =~ ~r/\w+\.\w+/ do
         acc ++ handle_nested_include(inc, valid_includes, config)
       else
-        inc = String.to_atom(inc)
+        inc = inc |> dash() |> String.to_existing_atom()
 
         if Enum.any?(valid_includes, fn {key, _val} -> key == inc end) do
           acc ++ [inc]
