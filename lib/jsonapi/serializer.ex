@@ -125,7 +125,7 @@ defmodule JSONAPI.Serializer do
   defp generate_view_tuple(view) when is_atom(view), do: {view, :include}
 
   def is_data_loaded?(rel_data) do
-    assoc_loaded?(rel_data) && (is_map(rel_data) || (is_list(rel_data) && !Enum.empty?(rel_data)))
+    assoc_loaded?(rel_data) && (is_map(rel_data) || is_list(rel_data))
   end
 
   def encode_relation({rel_view, rel_data, _rel_url, _conn} = info) do
