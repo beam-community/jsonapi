@@ -11,7 +11,11 @@ defmodule JSONAPI.QueryParserTest do
     def type, do: "mytype"
 
     def relationships do
-      [author: JSONAPI.QueryParserTest.UserView, comments: JSONAPI.QueryParserTest.CommentView]
+      [
+        author: JSONAPI.QueryParserTest.UserView,
+        comments: JSONAPI.QueryParserTest.CommentView,
+        best_friends: JSONAPI.QueryParsertTest.UserView
+      ]
     end
   end
 
@@ -67,6 +71,7 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_include(config, "author").includes == [:author]
     assert parse_include(config, "comments,author").includes == [:comments, :author]
     assert parse_include(config, "comments.user").includes == [comments: :user]
+    assert parse_include(config, "best_friends").includes == [:best_friends]
 
     assert_raise ArgumentError, "argument error", fn ->
       assert parse_include(config, "author.top-posts")
@@ -75,6 +80,7 @@ defmodule JSONAPI.QueryParserTest do
     Application.put_env(:jsonapi, :underscore_to_dash, true)
 
     assert parse_include(config, "author.top-posts").includes == [author: :top_posts]
+    assert parse_include(config, "best-friends").includes == [:best_friends]
 
     Application.delete_env(:jsonapi, :underscore_to_dash)
   end
