@@ -5,6 +5,7 @@ defmodule JSONAPI.Serializer do
 
   import JSONAPI.Ecto, only: [assoc_loaded?: 1]
   alias JSONAPI.Utils.Underscore
+  require Logger
 
   @doc """
   Takes a view, data and a optional plug connection and returns a fully JSONAPI Serialized document.
@@ -139,7 +140,7 @@ defmodule JSONAPI.Serializer do
     pagination_links = view.links(data, conn)
 
     if Enum.empty?(pagination_links) do
-      IO.warn(
+      Logger.info(
         "You've set with_pagination but have not defined any pagination links, thus no pagination links will be returned"
       )
     end

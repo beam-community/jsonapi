@@ -2,7 +2,7 @@ defmodule JSONAPISerializerTest do
   use ExUnit.Case, async: false
   alias JSONAPI.Serializer
 
-  import ExUnit.CaptureIO
+  import ExUnit.CaptureLog
 
   defmodule PostView do
     use JSONAPI.View
@@ -458,13 +458,13 @@ defmodule JSONAPISerializerTest do
     Application.put_env(:jsonapi, :with_pagination, true)
 
     output =
-      capture_io(:stderr, fn ->
+      capture_log(fn ->
         encoded = Serializer.serialize(UserView, data, nil)
 
         refute encoded[:links][:next]
       end)
 
-    assert Regex.match?(~r/warning:.*with_pagination/, output)
+    assert Regex.match?(~r/info.*with_pagination/, output)
     Application.delete_env(:jsonapi, :with_pagination)
   end
 
