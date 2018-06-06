@@ -29,6 +29,7 @@ proper functions to your view like so.
 ```elixir
 defmodule MyApp.PostView do
   use JSONAPI.View, type: "posts"
+  alias MyApp.PostView
 
   def fields do
     [:text, :body, :excerpt]
@@ -49,6 +50,14 @@ defmodule MyApp.PostView do
     [author: {MyApp.UserView, :include},
      comments: MyApp.CommentView]
   end
+  
+  def render("index.json", %{posts: posts, conn: conn}) do
+    PostView.index(posts, conn, conn.params)
+  end
+
+  def render("show.json", %{post: post, conn: conn}) do
+    PostView.show(post, conn, conn.params)
+  end  
 end
 ```
 is an example of a basic view. You can now call `render(conn, MyApp.PostView, "show.json", %{data: my_data, meta: meta})` or `'index.json` normally.
