@@ -35,6 +35,31 @@ defmodule JSONAPI.ViewTest do
     end
   end
 
+  defmodule UserViewWithConditionalHidden do
+    use JSONAPI.View,
+      type: "users",
+      namespace: "/api"
+
+    def fields do
+      [:age, :first_name, :last_name, :full_name, :password]
+    end
+
+    def full_name(user, _conn) do
+      "#{user.first_name} #{user.last_name}"
+    end
+
+    def hidden(data) do
+      [:password] |> hide_if_nil(data, :age)
+    end
+
+    def hide_if_nil(hidden, data, field) do
+      case Map.get(data, field) do
+        nil -> [field | hidden]
+        _ -> hidden
+      end
+    end
+  end
+
   alias JSONAPI.ViewTest.CommentView
 
   test "type/0 when specified via using macro" do
@@ -90,6 +115,16 @@ defmodule JSONAPI.ViewTest do
     assert expected_map ==
              UserView.attributes(
                %{age: 100, first_name: "Jason", last_name: "S", password: "securepw"},
+               nil
+             )
+  end
+
+  test "attributes/2 does not display conditionally hidden fields" do
+    expected_map = %{first_name: "Jason", last_name: "S", full_name: "Jason S"}
+
+    assert expected_map ==
+             UserViewWithConditionalHidden.attributes(
+               %{age: nil, first_name: "Jason", last_name: "S", password: "securepw"},
                nil
              )
   end
