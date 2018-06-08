@@ -128,7 +128,7 @@ defmodule JSONAPI.View do
 
       def hidden(), do: []
 
-      def hidden(data \\ %{}), do: hidden()
+      def hidden(data), do: hidden()
 
       def show(model, conn, _params, meta \\ nil), do: serialize(__MODULE__, model, conn, meta)
       def index(models, conn, _params, meta \\ nil), do: serialize(__MODULE__, models, conn, meta)
