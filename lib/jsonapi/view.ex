@@ -120,6 +120,8 @@ defmodule JSONAPI.View do
         end)
       end
 
+      def links(_data, _conn), do: %{}
+
       def meta(_data, _conn), do: nil
 
       def relationships, do: []
@@ -155,6 +157,21 @@ defmodule JSONAPI.View do
         "#{url_for(data, conn)}/relationships/#{rel_type}"
       end
 
+      def url_for_pagination(data, conn, pagination_attrs) do
+        pagination_attrs
+        |> Enum.reduce(%{}, fn {key, value}, acc ->
+          Map.put(acc, "page[#{key}]", value)
+        end)
+        |> URI.encode_query()
+        |> prepare_url(data, conn)
+      end
+
+      defp prepare_url("", data, conn), do: url_for(data, conn)
+
+      defp prepare_url(query, data, conn) do
+        "#{url_for(data, conn)}?#{query}"
+      end
+
       if Code.ensure_loaded?(Phoenix) do
         def render("show.json", %{data: data, conn: conn, params: params, meta: meta}),
           do: show(data, conn, params, meta: meta)
@@ -178,6 +195,7 @@ defmodule JSONAPI.View do
       defp scheme(conn), do: Application.get_env(:jsonapi, :scheme, to_string(conn.scheme))
 
       defoverridable attributes: 2,
+                     links: 2,
                      fields: 0,
                      hidden: 0,
                      id: 1,

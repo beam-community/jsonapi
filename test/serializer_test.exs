@@ -2,6 +2,8 @@ defmodule JSONAPISerializerTest do
   use ExUnit.Case, async: false
   alias JSONAPI.Serializer
 
+  import ExUnit.CaptureLog
+
   defmodule PostView do
     use JSONAPI.View
 
@@ -14,6 +16,12 @@ defmodule JSONAPISerializerTest do
         author: {JSONAPISerializerTest.UserView, :include},
         best_comments: {JSONAPISerializerTest.CommentView, :include}
       ]
+    end
+
+    def links(data, conn) do
+      %{
+        next: url_for_pagination(data, conn, %{cursor: "some-string"})
+      }
     end
   end
 
@@ -111,6 +119,7 @@ defmodule JSONAPISerializerTest do
 
     encoded = Serializer.serialize(PostView, data, nil)
     assert encoded[:links][:self] == PostView.url_for(data, nil)
+
     encoded_data = encoded[:data]
     assert encoded_data[:id] == PostView.id(data)
     assert encoded_data[:type] == PostView.type()
@@ -434,5 +443,40 @@ defmodule JSONAPISerializerTest do
     refute encoded[:links]
 
     Application.delete_env(:jsonapi, :remove_links)
+  end
+
+  test "serialize includes pagination links if they are defined and with_pagination is configured" do
+    data = %{id: 1}
+    Application.put_env(:jsonapi, :with_pagination, true)
+
+    encoded = Serializer.serialize(PostView, data, nil)
+
+    assert encoded[:links][:next] ==
+             PostView.url_for_pagination(data, nil, %{cursor: "some-string"})
+
+    Application.delete_env(:jsonapi, :with_pagination)
+  end
+
+  test "serialize does not include pagination links if they are not defined even with with_pagination is configured" do
+    data = %{id: 1}
+    Application.put_env(:jsonapi, :with_pagination, true)
+
+    output =
+      capture_log(fn ->
+        encoded = Serializer.serialize(UserView, data, nil)
+
+        refute encoded[:links][:next]
+      end)
+
+    assert Regex.match?(~r/info.*with_pagination/, output)
+    Application.delete_env(:jsonapi, :with_pagination)
+  end
+
+  test "serialize does not include pagination links if with_pagination is not configure" do
+    data = %{id: 1}
+
+    encoded = Serializer.serialize(UserView, data, nil)
+
+    refute encoded[:links][:next]
   end
 end

@@ -5,6 +5,7 @@ defmodule JSONAPI.Serializer do
 
   import JSONAPI.Ecto, only: [assoc_loaded?: 1]
   alias JSONAPI.Utils.Underscore
+  require Logger
 
   @doc """
   Takes a view, data and a optional plug connection and returns a fully JSONAPI Serialized document.
@@ -28,7 +29,7 @@ defmodule JSONAPI.Serializer do
       meta: meta
     }
 
-    merge_links(encoded_data, data, view, conn, remove_links?())
+    merge_links(encoded_data, data, view, conn, remove_links?(), with_pagination?())
   end
 
   def encode_data(view, data, conn, query_includes) when is_list(data) do
@@ -48,7 +49,7 @@ defmodule JSONAPI.Serializer do
       relationships: %{}
     }
 
-    doc = merge_links(encoded_data, data, view, conn, remove_links?())
+    doc = merge_links(encoded_data, data, view, conn, remove_links?(), false)
 
     doc =
       case view.meta(data, conn) do
@@ -136,11 +137,27 @@ defmodule JSONAPI.Serializer do
     merge_related_links(data, info, remove_links?())
   end
 
-  defp merge_links(doc, data, view, conn, false) do
+  defp merge_links(doc, data, view, conn, false, true) do
+    pagination_links = view.links(data, conn)
+
+    if Enum.empty?(pagination_links) do
+      Logger.info(
+        "You've set with_pagination but have not defined any pagination links, thus no pagination links will be returned"
+      )
+    end
+
+    links =
+      %{self: view.url_for(data, conn)}
+      |> Map.merge(view.links(data, conn))
+
+    Map.merge(doc, %{links: links})
+  end
+
+  defp merge_links(doc, data, view, conn, false, false) do
     Map.merge(doc, %{links: %{self: view.url_for(data, conn)}})
   end
 
-  defp merge_links(doc, _data, _view, _conn, _remove_links), do: doc
+  defp merge_links(doc, _data, _view, _conn, _remove_links, _with_pagination), do: doc
 
   defp merge_related_links(
          encoded_data,
@@ -210,4 +227,5 @@ defmodule JSONAPI.Serializer do
   end
 
   defp remove_links?, do: Application.get_env(:jsonapi, :remove_links, false)
+  defp with_pagination?, do: Application.get_env(:jsonapi, :with_pagination, false)
 end
