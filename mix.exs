@@ -4,7 +4,7 @@ defmodule JSONAPI.Mixfile do
   def project do
     [
       app: :jsonapi,
-      version: "0.7.0",
+      version: "0.8.0",
       package: package(),
       description: description(),
       elixir: "~> 1.0",
@@ -18,7 +18,7 @@ defmodule JSONAPI.Mixfile do
   defp deps do
     [
       {:plug, "~> 1.0"},
-      {:poison, "~> 3.0"},
+      {:jason, "~> 1.0", optional: true},
       {:ex_doc, "~> 0.7", only: :dev},
       {:earmark, ">= 0.0.0", only: :dev},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false}

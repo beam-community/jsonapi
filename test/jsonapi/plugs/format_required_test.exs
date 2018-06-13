@@ -7,13 +7,13 @@ defmodule JSONAPI.FormatRequiredTest do
   test "halts and returns an error for missing data param" do
     conn =
       :post
-      |> conn("/example", Poison.encode!(%{}))
+      |> conn("/example", Jason.encode!(%{}))
       |> call_plug
 
     assert conn.halted
     assert 400 == conn.status
 
-    %{"errors" => [error]} = Poison.decode!(conn.resp_body)
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
 
     assert %{"source" => %{"pointer" => "/data"}, "title" => "Missing data parameter"} = error
   end
@@ -21,13 +21,13 @@ defmodule JSONAPI.FormatRequiredTest do
   test "halts and returns an error for missing attributes in data param" do
     conn =
       :post
-      |> conn("/example", Poison.encode!(%{data: %{}}))
+      |> conn("/example", Jason.encode!(%{data: %{}}))
       |> call_plug
 
     assert conn.halted
     assert 400 == conn.status
 
-    %{"errors" => [error]} = Poison.decode!(conn.resp_body)
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
 
     assert %{
              "source" => %{"pointer" => "/data/attributes"},
@@ -38,7 +38,7 @@ defmodule JSONAPI.FormatRequiredTest do
   test "does not halt if only relationships member is present" do
     conn =
       :post
-      |> conn("/example", Poison.encode!(%{data: %{relationships: %{}}}))
+      |> conn("/example", Jason.encode!(%{data: %{relationships: %{}}}))
       |> call_plug
 
     refute conn.halted
@@ -47,14 +47,14 @@ defmodule JSONAPI.FormatRequiredTest do
   test "passes request through" do
     conn =
       :post
-      |> conn("/example", Poison.encode!(%{data: %{attributes: %{}}}))
+      |> conn("/example", Jason.encode!(%{data: %{attributes: %{}}}))
       |> call_plug
 
     refute conn.halted
   end
 
   defp call_plug(conn) do
-    parser_opts = Plug.Parsers.init(parsers: [:json], pass: ["text/*"], json_decoder: Poison)
+    parser_opts = Plug.Parsers.init(parsers: [:json], pass: ["text/*"], json_decoder: Jason)
 
     conn
     |> Plug.Conn.put_req_header("content-type", "application/json")

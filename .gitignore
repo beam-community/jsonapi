@@ -6,3 +6,4 @@ mix.lock
 /doc
 
 .DS_Store
+.elixir_ls
