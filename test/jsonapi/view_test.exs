@@ -49,7 +49,7 @@ defmodule JSONAPI.ViewTest do
     end
 
     def hidden(data) do
-      [:password] |> hide_if_nil(data, :age)
+      hide_if_nil([:password], data, :age)
     end
 
     def hide_if_nil(hidden, data, field) do
