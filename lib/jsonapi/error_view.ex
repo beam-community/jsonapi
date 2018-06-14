@@ -63,7 +63,7 @@ defmodule JSONAPI.ErrorView do
   def send_error(conn, status, error \\ "")
 
   def send_error(conn, status, error) when is_map(error) do
-    json = Poison.encode!(error)
+    json = JSONAPI.json_library().encode!(error)
     send_error(conn, status, json)
   end
 

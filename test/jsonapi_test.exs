@@ -73,7 +73,7 @@ defmodule JSONAPITest do
       resp =
         PostView
         |> JSONAPI.Serializer.serialize(conn.assigns[:data], conn, conn.assigns[:meta])
-        |> Poison.encode!()
+        |> Jason.encode!()
 
       Plug.Conn.send_resp(conn, 200, resp)
     end
@@ -95,7 +95,7 @@ defmodule JSONAPITest do
       |> Plug.Conn.assign(:meta, %{total_pages: 1})
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Poison.decode!()
+    json = conn.resp_body |> Jason.decode!()
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
@@ -145,7 +145,7 @@ defmodule JSONAPITest do
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Poison.decode!()
+    json = conn.resp_body |> Jason.decode!()
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
@@ -218,7 +218,7 @@ defmodule JSONAPITest do
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Poison.decode!()
+    json = conn.resp_body |> Jason.decode!()
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")

@@ -40,7 +40,7 @@ defmodule JSONAPI.QueryParser do
         opts: [view: MyView, sort: ["created_at", "title"], filter: ["title"]],
         sort: [desc: :created_at] # Easily insertable into an ecto order_by,
         filter: [title: "my title"] # Easily reduceable into ecto where clauses
-        includes: [comments: :user] # Easily insertable into a Repo.preload,
+        include: [comments: :user] # Easily insertable into a Repo.preload,
         fields: %{"myview" => [:id, :text], "comment" => [:id, :body],
         page: %JSONAPI.Page{
           limit: limit,
