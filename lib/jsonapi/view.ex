@@ -98,6 +98,7 @@ defmodule JSONAPI.View do
 
       def id(nil), do: nil
       def id(%{__struct__: Ecto.Association.NotLoaded}), do: nil
+      def id(%{_key: id}), do: to_string(id)
       def id(%{id: id}), do: to_string(id)
 
       if @resource_type do
