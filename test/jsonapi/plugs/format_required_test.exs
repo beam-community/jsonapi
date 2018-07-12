@@ -35,10 +35,28 @@ defmodule JSONAPI.FormatRequiredTest do
            } = error
   end
 
-  test "does not halt if only relationships member is present" do
+  test "does not halt if only type member is present on a post" do
     conn =
       :post
-      |> conn("/example", Jason.encode!(%{data: %{relationships: %{}}}))
+      |> conn("/example", Jason.encode!(%{data: %{type: "something"}}))
+      |> call_plug
+
+    refute conn.halted
+  end
+
+  test "halts if only type member is present on a patch" do
+    conn =
+      :patch
+      |> conn("/example", Jason.encode!(%{data: %{type: "something"}}))
+      |> call_plug
+
+    assert conn.halted
+  end
+
+  test "does not halt if type and id members are present on a patch" do
+    conn =
+      :patch
+      |> conn("/example", Jason.encode!(%{data: %{type: "something", id: "some-identifier"}}))
       |> call_plug
 
     refute conn.halted
@@ -47,7 +65,7 @@ defmodule JSONAPI.FormatRequiredTest do
   test "passes request through" do
     conn =
       :post
-      |> conn("/example", Jason.encode!(%{data: %{attributes: %{}}}))
+      |> conn("/example", Jason.encode!(%{data: %{type: "something"}}))
       |> call_plug
 
     refute conn.halted
