@@ -25,9 +25,14 @@ defmodule JSONAPI.Serializer do
 
     encoded_data = %{
       data: encoded_data,
-      included: flatten_included(to_include),
-      meta: meta
+      included: flatten_included(to_include)
     }
+
+    encoded_data =
+      case meta do
+        nil -> encoded_data
+        ^meta -> Map.put(encoded_data, :meta, meta)
+      end
 
     merge_links(encoded_data, data, view, conn, remove_links?(), with_pagination?())
   end
