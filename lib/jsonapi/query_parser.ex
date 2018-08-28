@@ -117,8 +117,7 @@ defmodule JSONAPI.QueryParser do
       requested_fields =
         value
         |> String.split(",")
-        |> Enum.map(&String.to_atom/1)
-        |> Enum.into(MapSet.new())
+        |> Enum.into(MapSet.new(), &String.to_atom/1)
 
       unless MapSet.subset?(requested_fields, valid_fields) do
         bad_fields =

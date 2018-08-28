@@ -24,9 +24,7 @@ defmodule JSONAPI.Utils.Underscore do
   end
 
   def underscore(value) when is_map(value) do
-    value
-    |> Enum.map(&underscore/1)
-    |> Enum.into(%{})
+    Enum.into(value, %{}, &underscore/1)
   end
 
   def underscore({key, value}) do

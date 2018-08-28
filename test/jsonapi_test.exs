@@ -2,6 +2,14 @@ defmodule JSONAPITest do
   use ExUnit.Case
   use Plug.Test
 
+  @default_data %{
+    id: 1,
+    text: "Hello",
+    body: "Hi",
+    author: %{username: "jason", id: 2},
+    other_user: %{username: "josh", id: 3}
+  }
+
   defmodule PostView do
     use JSONAPI.View
 
@@ -83,15 +91,7 @@ defmodule JSONAPITest do
     conn =
       :get
       |> conn("/posts")
-      |> Plug.Conn.assign(:data, [
-        %{
-          id: 1,
-          text: "Hello",
-          body: "Hi",
-          author: %{username: "jason", id: 2},
-          other_user: %{username: "josh", id: 3}
-        }
-      ])
+      |> Plug.Conn.assign(:data, [@default_data])
       |> Plug.Conn.assign(:meta, %{total_pages: 1})
       |> MyPostPlug.call([])
 
@@ -133,15 +133,7 @@ defmodule JSONAPITest do
   test "handles includes properly" do
     conn =
       conn(:get, "/posts?include=other_user")
-      |> Plug.Conn.assign(:data, [
-        %{
-          id: 1,
-          text: "Hello",
-          body: "Hi",
-          author: %{username: "jason", id: 2},
-          other_user: %{username: "josh", id: 3}
-        }
-      ])
+      |> Plug.Conn.assign(:data, [@default_data])
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
 
@@ -271,5 +263,30 @@ defmodule JSONAPITest do
            end)
 
     assert Map.has_key?(json, "links")
+  end
+
+  test "omits explicit nil meta values as per http://jsonapi.org/format/#document-meta" do
+    conn =
+      :get
+      |> conn("/posts")
+      |> Plug.Conn.assign(:data, [@default_data])
+      |> Plug.Conn.assign(:meta, nil)
+      |> MyPostPlug.call([])
+
+    json = conn.resp_body |> Jason.decode!()
+
+    refute Map.has_key?(json, "meta")
+  end
+
+  test "omits implicit nil meta values as per http://jsonapi.org/format/#document-meta" do
+    conn =
+      :get
+      |> conn("/posts")
+      |> Plug.Conn.assign(:data, [@default_data])
+      |> MyPostPlug.call([])
+
+    json = conn.resp_body |> Jason.decode!()
+
+    refute Map.has_key?(json, "meta")
   end
 end
