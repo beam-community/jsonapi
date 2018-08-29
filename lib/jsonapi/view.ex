@@ -108,7 +108,7 @@ defmodule JSONAPI.View do
 
       def attributes(data, conn) do
         hidden =
-          if __MODULE__.__info__(:functions) |> Enum.member?({:hidden, 0}) do
+          if Enum.member?(__MODULE__.__info__(:functions), {:hidden, 0}) do
             Deprecation.warn(:hidden)
             __MODULE__.hidden()
           else
