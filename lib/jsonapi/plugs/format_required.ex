@@ -9,9 +9,7 @@ defmodule JSONAPI.FormatRequired do
 
   def call(%{method: method} = conn, _opts) when method in ["DELETE", "GET", "HEAD"], do: conn
 
-  def call(%{method: method, params: %{"data" => %{"type" => _}}} = conn, _)
-      when method == "POST",
-      do: conn
+  def call(%{method: "POST", params: %{"data" => %{"type" => _}}} = conn, _), do: conn
 
   def call(%{params: %{"data" => %{"type" => _, "id" => _}}} = conn, _), do: conn
 
