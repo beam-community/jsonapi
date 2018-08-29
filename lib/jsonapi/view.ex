@@ -107,7 +107,15 @@ defmodule JSONAPI.View do
       end
 
       def attributes(data, conn) do
-        visible_fields = fields() -- hidden()
+        hidden =
+          if __MODULE__.__info__(:functions) |> Enum.member?({:hidden, 0}) do
+            Deprecation.warn(:hidden)
+            __MODULE__.hidden()
+          else
+            hidden(data)
+          end
+
+        visible_fields = fields() -- hidden
 
         Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
           value =
@@ -128,7 +136,7 @@ defmodule JSONAPI.View do
 
       def fields, do: raise("Need to implement fields/0")
 
-      def hidden, do: []
+      def hidden(data), do: []
 
       def show(model, conn, _params, meta \\ nil), do: serialize(__MODULE__, model, conn, meta)
       def index(models, conn, _params, meta \\ nil), do: serialize(__MODULE__, models, conn, meta)
@@ -197,7 +205,7 @@ defmodule JSONAPI.View do
       defoverridable attributes: 2,
                      links: 2,
                      fields: 0,
-                     hidden: 0,
+                     hidden: 1,
                      id: 1,
                      meta: 2,
                      relationships: 0,
