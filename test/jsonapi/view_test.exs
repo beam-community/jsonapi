@@ -15,6 +15,16 @@ defmodule JSONAPI.ViewTest do
 
   defmodule PostView do
     use JSONAPI.View, type: "posts", namespace: "/api"
+
+    def fields do
+      [:title, :body]
+    end
+
+    def hidden(%{title: "Hidden body"}) do
+      [:body]
+    end
+
+    def hidden(_), do: []
   end
 
   defmodule UserView do
@@ -91,12 +101,29 @@ defmodule JSONAPI.ViewTest do
     refute {:render, 2} in PostView.__info__(:functions)
   end
 
-  test "attributes/2 does not display hidden fields" do
+  test "attributes/2 does not display hidden fields with deprecated hidden/0" do
     expected_map = %{age: 100, first_name: "Jason", last_name: "S", full_name: "Jason S"}
 
     assert expected_map ==
              UserView.attributes(
                %{age: 100, first_name: "Jason", last_name: "S", password: "securepw"},
+               nil
+             )
+  end
+
+  test "attributes/2 does not display hidden fields based on a condition" do
+    hidden_expected_map = %{title: "Hidden body"}
+    normal_expected_map = %{title: "Other title", body: "Something"}
+
+    assert hidden_expected_map ==
+             PostView.attributes(
+               %{title: "Hidden body", body: "Something"},
+               nil
+             )
+
+    assert normal_expected_map ==
+             PostView.attributes(
+               %{title: "Other title", body: "Something"},
                nil
              )
   end

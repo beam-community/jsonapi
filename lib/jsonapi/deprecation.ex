@@ -13,4 +13,11 @@ defmodule Deprecation do
       Macro.Env.stacktrace(__ENV__)
     )
   end
+
+  def warn(:hidden) do
+    IO.warn(
+      "`JSONAPI.View.hidden/0` is deprecated; use `JSONAPI.View.hidden/1` instead.",
+      Macro.Env.stacktrace(__ENV__)
+    )
+  end
 end
