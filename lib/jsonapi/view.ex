@@ -180,7 +180,7 @@ defmodule JSONAPI.View do
         "#{url_for(data, conn)}?#{query}"
       end
 
-      with true <- Code.ensure_loaded?(Phoenix) do
+      if Code.ensure_loaded?(Phoenix) do
         def render("show.json", %{data: data, conn: conn, params: params, meta: meta}),
           do: show(data, conn, params, meta)
 
@@ -197,10 +197,9 @@ defmodule JSONAPI.View do
 
         def render("index.json", %{data: data, conn: conn}), do: index(data, conn, conn.params)
       else
-        false ->
-          raise ArgumentError,
-                "Attempted to call function that depends on Phoenix. " <>
-                  "Make sure Phoenix is part of your dependencies"
+        raise ArgumentError,
+              "Attempted to call function that depends on Phoenix. " <>
+                "Make sure Phoenix is part of your dependencies"
       end
 
       defp host(conn), do: Application.get_env(:jsonapi, :host, conn.host)
