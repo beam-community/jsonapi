@@ -16,7 +16,7 @@ defmodule JSONAPI.ViewTest do
   end
 
   defmodule CommentView do
-    use JSONAPI.View, type: "comments"
+    use JSONAPI.View, type: "comments", namespace: "/api"
 
     def fields do
       [:body]
