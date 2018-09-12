@@ -18,7 +18,7 @@ defmodule JSONAPISerializerTest do
       ]
     end
 
-    def links(data, conn) do
+    def links(data, conn, _meta) do
       %{
         next: url_for_pagination(data, conn, %{cursor: "some-string"})
       }
@@ -119,7 +119,6 @@ defmodule JSONAPISerializerTest do
 
     encoded = Serializer.serialize(PostView, data, nil)
     assert encoded[:links][:self] == PostView.url_for(data, nil)
-    assert encoded[:links][:next]
 
     encoded_data = encoded[:data]
     assert encoded_data[:id] == PostView.id(data)
@@ -170,7 +169,6 @@ defmodule JSONAPISerializerTest do
     end)
 
     assert Enum.count(encoded[:included]) == 4
-    assert Map.has_key?(encoded[:links], :next)
   end
 
   test "serialize handles an empty relationship" do
