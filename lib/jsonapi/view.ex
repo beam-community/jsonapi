@@ -88,7 +88,8 @@ defmodule JSONAPI.View do
   """
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)
-    {namespace, _opts} = Keyword.pop(opts, :namespace, "")
+    {module_namespace, _opts} = Keyword.pop(opts, :namespace)
+    namespace = module_namespace || Application.get_env(:jsonapi, :namespace, "")
 
     quote do
       import JSONAPI.Serializer, only: [serialize: 4]

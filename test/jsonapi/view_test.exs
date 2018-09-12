@@ -1,6 +1,8 @@
 defmodule JSONAPI.ViewTest do
   use ExUnit.Case
 
+  Application.put_env(:jsonapi, :namespace, "/other-api")
+
   setup tags do
     if tags[:compile_phoenix] do
       Module.create(Phoenix, [], __ENV__)
@@ -28,9 +30,7 @@ defmodule JSONAPI.ViewTest do
   end
 
   defmodule UserView do
-    use JSONAPI.View,
-      type: "users",
-      namespace: "/api"
+    use JSONAPI.View, type: "users"
 
     def fields do
       [:age, :first_name, :last_name, :full_name, :password]
@@ -63,6 +63,12 @@ defmodule JSONAPI.ViewTest do
 
     assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
              "http://www.example.com/api/posts/1/relationships/comments"
+
+    assert UserView.url_for(nil, nil) == "/other-api/users"
+    assert UserView.url_for([], nil) == "/other-api/users"
+    assert UserView.url_for(%{id: 1}, nil) == "/other-api/users/1"
+    assert UserView.url_for([], %Plug.Conn{}) == "http://www.example.com/other-api/users"
+    assert UserView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.example.com/other-api/users/1"
 
     Application.put_env(:jsonapi, :host, "www.otherhost.com")
     assert PostView.url_for([], %Plug.Conn{}) == "http://www.otherhost.com/api/posts"
