@@ -32,6 +32,10 @@ defmodule JSONAPI.View do
         end
       end
 
+      defmodule DogView do
+        use JSONAPI.View, namespace: "/pupperz-api"
+      end
+
   You can now call `UserView.show(user, conn, conn.params)` and it will render
   a valid jsonapi doc.
 
@@ -77,16 +81,21 @@ defmodule JSONAPI.View do
   the serializer to *always* include if its loaded.
 
   ## Options
-    * `:host` (binary) - Allows the `host` to be overrided for generated URLs.  Defaults to `host` of the supplied `conn`.
+    * `:host` (binary) - Allows the `host` to be overrided for generated URLs. Defaults to `host` of the supplied `conn`.
 
     * `:scheme` (atom) - Enables configuration of the HTTP scheme for generated URLS.  Defaults to `scheme` from the provided `conn`.
+
+    * `:namespace` (binary) - Allows the namespace of a given resource. This may be
+      configured globally or overridden on the View itself. Note that if you have
+      a globally defined namespace and need to *remove* the namespace for a
+      resource, set the namespace to a blank String.
 
   The default behaviour for `host` and `scheme` is to derive it from the `conn` provided, while the
   default style for presentation in names is to be underscored and not dashed.
   """
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)
-    {namespace, _opts} = Keyword.pop(opts, :namespace, "")
+    {namespace, _opts} = Keyword.pop(opts, :namespace)
 
     quote do
       import JSONAPI.Serializer, only: [serialize: 4]
@@ -102,6 +111,12 @@ defmodule JSONAPI.View do
         def type, do: @resource_type
       else
         def type, do: raise("Need to implement type/0")
+      end
+
+      if @namespace do
+        def namespace, do: @namespace
+      else
+        def namespace, do: Application.get_env(:jsonapi, :namespace, "")
       end
 
       def attributes(data, conn) do
@@ -134,23 +149,23 @@ defmodule JSONAPI.View do
       def index(models, conn, _params, meta \\ nil), do: serialize(__MODULE__, models, conn, meta)
 
       def url_for(nil, nil) do
-        "#{@namespace}/#{type()}"
+        "#{namespace()}/#{type()}"
       end
 
       def url_for(data, nil) when is_list(data) do
-        "#{@namespace}/#{type()}"
+        "#{namespace()}/#{type()}"
       end
 
       def url_for(data, nil) do
-        "#{@namespace}/#{type()}/#{id(data)}"
+        "#{namespace()}/#{type()}/#{id(data)}"
       end
 
       def url_for(data, %Plug.Conn{} = conn) when is_list(data) do
-        "#{scheme(conn)}://#{host(conn)}#{@namespace}/#{type()}"
+        "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}"
       end
 
       def url_for(data, %Plug.Conn{} = conn) do
-        "#{scheme(conn)}://#{host(conn)}#{@namespace}/#{type()}/#{id(data)}"
+        "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}/#{id(data)}"
       end
 
       def url_for_rel(data, rel_type, conn) do
