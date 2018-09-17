@@ -62,7 +62,7 @@ defmodule JSONAPI.ContentTypeNegotiation do
   end
 
   defp validate_header(string) when is_binary(string) do
-    string |> String.split(";") |> Enum.map(&String.trim/1) |> Enum.member?(@jsonapi)
+    string |> String.split(",") |> Enum.map(&String.trim/1) |> Enum.member?(@jsonapi)
   end
 
   defp validate_header(nil), do: true
