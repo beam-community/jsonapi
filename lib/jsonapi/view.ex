@@ -106,29 +106,28 @@ defmodule JSONAPI.View do
         def type, do: raise("Need to implement type/0")
       end
 
-      def attributes(data, %{assigns: %{jsonapi_query: %{fields: query_fields}}}=conn) do
-        attributes(data, conn, query_fields[type()])
+      def attributes(data, conn) do
+        attributes(data, conn, fields() -- hidden(data))
       end
 
-      def attributes(data, conn, sparse_fields \\ nil) do
-        hidden =
-          if Enum.member?(__MODULE__.__info__(:functions), {:hidden, 0}) do
-            Deprecation.warn(:hidden)
-            __MODULE__.hidden()
-          else
-            hidden(data)
-          end
+      def attributes(data, %{assigns: %{jsonapi_query: %{fields: query_fields}}}=conn, visible_fields) do
+        attributes(data, conn, visible_fields, query_fields[type()])
+      end
 
-        visible_fields = fields() -- hidden
+      def attributes(data, conn, visible_fields) do
+        attributes(data, conn, visible_fields, nil)
+      end
 
-        visible_fields =
-          if sparse_fields do
-            visible_fields -- (visible_fields -- sparse_fields)
-          else
-            visible_fields
-          end
+      def attributes(data, conn, visible_fields, nil) do
+        do_attributes(data, conn, visible_fields)
+      end
 
-        Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
+      def attributes(data, conn, visible_fields, sparse_fields) do
+        do_attributes(data, conn, visible_fields -- (visible_fields -- sparse_fields))
+      end
+
+      def do_attributes(data, conn, selected_fields) do
+        Enum.reduce(selected_fields, %{}, fn field, intermediate_map ->
           value =
             case function_exported?(__MODULE__, field, 2) do
               true -> apply(__MODULE__, field, [data, conn])
