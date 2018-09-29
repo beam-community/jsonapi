@@ -106,7 +106,11 @@ defmodule JSONAPI.View do
         def type, do: raise("Need to implement type/0")
       end
 
-      def attributes(data, conn) do
+      def attributes(data, %{assigns: %{jsonapi_query: %{fields: query_fields}}}=conn) do
+        attributes(data, conn, query_fields[type()])
+      end
+
+      def attributes(data, conn, sparse_fields \\ nil) do
         hidden =
           if Enum.member?(__MODULE__.__info__(:functions), {:hidden, 0}) do
             Deprecation.warn(:hidden)
@@ -116,6 +120,13 @@ defmodule JSONAPI.View do
           end
 
         visible_fields = fields() -- hidden
+
+        visible_fields =
+          if sparse_fields do
+            visible_fields -- (visible_fields -- sparse_fields)
+          else
+            visible_fields
+          end
 
         Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
           value =
