@@ -110,7 +110,7 @@ defmodule JSONAPI.View do
         attributes(data, conn, fields(action) -- hidden(data))
       end
 
-      def attributes(data, %{assigns: %{jsonapi_query: %{fields: query_fields}}}=conn, visible_fields) do
+      def attributes(data, %Plug.Conn{assigns: %{jsonapi_query: %{fields: query_fields}}}=conn, visible_fields) do
         attributes(data, conn, visible_fields, query_fields[type()])
       end
 
