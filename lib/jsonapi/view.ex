@@ -106,8 +106,8 @@ defmodule JSONAPI.View do
         def type, do: raise("Need to implement type/0")
       end
 
-      def attributes(data, %Plug.Conn{private: %{phoenix_action: action}} = conn) do
-        attributes(data, conn, fields(action) -- hidden(data))
+      def attributes(data, %Plug.Conn{private: %{phoenix_template: template}} = conn) do
+        attributes(data, conn, fields(template) -- hidden(data))
       end
 
       def attributes(data, %Plug.Conn{assigns: %{jsonapi_query: %{fields: query_fields}}}=conn, visible_fields) do
@@ -145,7 +145,7 @@ defmodule JSONAPI.View do
       def relationships, do: []
 
       def fields, do: raise("Need to implement fields/0 or fields/1")
-      def fields(_action), do: fields()
+      def fields(_template), do: fields()
 
       def hidden(data), do: []
 
