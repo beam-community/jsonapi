@@ -110,7 +110,8 @@ defmodule JSONAPI.View do
         hidden =
           if Enum.member?(__MODULE__.__info__(:functions), {:hidden, 0}) do
             Deprecation.warn(:hidden)
-            __MODULE__.hidden()
+            this = __MODULE__
+            this.hidden()
           else
             hidden(data)
           end
