@@ -68,7 +68,7 @@ defmodule JSONAPI.Serializer do
 
   def encode_relationships(conn, doc, {view, data, _, _} = view_info) do
     view.relationships()
-    |> Enum.filter(&is_data_loaded?(Map.get(data, elem(&1, 0))))
+    |> Enum.filter(&data_loaded?(Map.get(data, elem(&1, 0))))
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2))
   end
 
@@ -100,7 +100,7 @@ defmodule JSONAPI.Serializer do
 
     valid_include_view = include_view(valid_includes, key)
 
-    if {rel_view, :include} == valid_include_view && is_data_loaded?(rel_data) do
+    if {rel_view, :include} == valid_include_view && data_loaded?(rel_data) do
       rel_query_includes =
         if is_list(query_includes) do
           query_includes
@@ -131,7 +131,7 @@ defmodule JSONAPI.Serializer do
   defp generate_view_tuple({view, :include}), do: {view, :include}
   defp generate_view_tuple(view) when is_atom(view), do: {view, :include}
 
-  def is_data_loaded?(rel_data) do
+  def data_loaded?(rel_data) do
     assoc_loaded?(rel_data) && (is_map(rel_data) || is_list(rel_data))
   end
 
