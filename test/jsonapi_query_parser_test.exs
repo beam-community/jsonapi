@@ -76,13 +76,24 @@ defmodule JSONAPI.QueryParserTest do
     assert_raise ArgumentError, "argument error", fn ->
       assert parse_include(config, "author.top-posts")
     end
+  end
 
-    Application.put_env(:jsonapi, :underscore_to_dash, true)
+  describe "when underscore_to_dash == true" do
+    setup do
+      Application.put_env(:jsonapi, :underscore_to_dash, true)
 
-    assert parse_include(config, "author.top-posts").includes == [author: :top_posts]
-    assert parse_include(config, "best-friends").includes == [:best_friends]
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :underscore_to_dash)
+      end)
 
-    Application.delete_env(:jsonapi, :underscore_to_dash)
+      {:ok, []}
+    end
+
+    test "parse_include/2 turns an include string into a keyword list" do
+      config = struct(Config, view: MyView)
+      assert parse_include(config, "author.top-posts").includes == [author: :top_posts]
+      assert parse_include(config, "best-friends").includes == [:best_friends]
+    end
   end
 
   test "parse_include/2 returns a map with duplicate values for include and includes for compatibility" do

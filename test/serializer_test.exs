@@ -358,48 +358,56 @@ defmodule JSONAPISerializerTest do
     assert Enum.count(encoded.included) == 4
   end
 
-  test "serialize properly uses underscore_to_dash on both attributes and relationships" do
-    data = %{
-      id: 1,
-      text: "Hello",
-      inserted_at: NaiveDateTime.utc_now(),
-      body: "Hello world",
-      full_description: "This_is_my_description",
-      author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
-      best_comments: [
-        %{
-          id: 5,
-          text: "greatest comment ever",
-          user: %{id: 4, username: "jack", last_name: "bronds"}
-        }
-      ]
-    }
+  describe "when underscore_to_dash == true" do
+    setup do
+      Application.put_env(:jsonapi, :underscore_to_dash, true)
 
-    Application.put_env(:jsonapi, :underscore_to_dash, true)
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :underscore_to_dash)
+      end)
 
-    encoded = Serializer.serialize(PostView, data, nil)
+      {:ok, []}
+    end
 
-    attributes = encoded[:data][:attributes]
-    relationships = encoded[:data][:relationships]
-    included = encoded[:included]
+    test "serialize properly uses underscore_to_dash on both attributes and relationships" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        inserted_at: NaiveDateTime.utc_now(),
+        body: "Hello world",
+        full_description: "This_is_my_description",
+        author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+        best_comments: [
+          %{
+            id: 5,
+            text: "greatest comment ever",
+            user: %{id: 4, username: "jack", last_name: "bronds"}
+          }
+        ]
+      }
 
-    assert attributes["full-description"] == data[:full_description]
-    assert attributes["inserted-at"] == data[:inserted_at]
+      encoded = Serializer.serialize(PostView, data, nil)
 
-    assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "2" end)[:attributes][
-             "last-name"
-           ] == "bonds"
+      attributes = encoded[:data][:attributes]
+      relationships = encoded[:data][:relationships]
+      included = encoded[:included]
 
-    assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "4" end)[:attributes][
-             "last-name"
-           ] == "bronds"
+      assert attributes["full-description"] == data[:full_description]
+      assert attributes["inserted-at"] == data[:inserted_at]
 
-    assert List.first(relationships["best-comments"][:data])[:id] == "5"
+      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "2" end)[:attributes][
+               "last-name"
+             ] == "bonds"
 
-    assert relationships["best-comments"][:links][:self] ==
-             "/mytype/1/relationships/best-comments"
+      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "4" end)[:attributes][
+               "last-name"
+             ] == "bronds"
 
-    Application.delete_env(:jsonapi, :underscore_to_dash)
+      assert List.first(relationships["best-comments"][:data])[:id] == "5"
+
+      assert relationships["best-comments"][:links][:self] ==
+               "/mytype/1/relationships/best-comments"
+    end
   end
 
   test "serialize does not merge `included` if not configured" do
