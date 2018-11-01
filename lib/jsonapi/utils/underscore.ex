@@ -6,7 +6,7 @@ defmodule JSONAPI.Utils.Underscore do
   def underscore?, do: Application.get_env(:jsonapi, :underscore_to_dash, false)
 
   def dash(value) when is_binary(value) do
-    String.replace(value, "-", "_")
+    String.replace(value, ~r/([a-zA-Z0-9])-([a-zA-Z0-9])/, "\\1_\\2")
   end
 
   def underscore(value) when is_atom(value) do
@@ -16,7 +16,7 @@ defmodule JSONAPI.Utils.Underscore do
   end
 
   def underscore(value) when is_binary(value) do
-    String.replace(value, "_", "-")
+    String.replace(value, ~r/([a-zA-Z0-9])_([a-zA-Z0-9])/, "\\1-\\2")
   end
 
   def underscore(%{__struct__: _} = value) when is_map(value) do
