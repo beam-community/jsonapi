@@ -14,7 +14,9 @@ defmodule JSONAPI.QueryParserTest do
       [
         author: JSONAPI.QueryParserTest.UserView,
         comments: JSONAPI.QueryParserTest.CommentView,
-        best_friends: JSONAPI.QueryParsertTest.UserView
+        best_friends: JSONAPI.QueryParsertTest.UserView,
+        _private_friend: JSONAPI.QueryParserTest.UserView,
+        nonstandard__friend: JSONAPI.QueryParserTest.UserView
       ]
     end
   end
@@ -93,6 +95,8 @@ defmodule JSONAPI.QueryParserTest do
       config = struct(Config, view: MyView)
       assert parse_include(config, "author.top-posts").includes == [author: :top_posts]
       assert parse_include(config, "best-friends").includes == [:best_friends]
+      assert parse_include(config, "_private-friend").includes == [:_private_friend]
+      assert parse_include(config, "nonstandard__friend").includes == [:nonstandard__friend]
     end
   end
 

@@ -25,6 +25,38 @@ defmodule JSONAPISerializerTest do
     end
   end
 
+  # The `metadata` field may contain arbitrary key-value data, such as user-supplied JSON.
+  defmodule PostWithMetadataView do
+    use JSONAPI.View
+
+    def fields,
+      do: [
+        :text,
+        :body,
+        :full_description,
+        :inserted_at,
+        :metadata,
+        :_private_attribute,
+        :nonstandard__attribute
+      ]
+
+    def meta(data, _conn), do: %{meta_text: "meta_#{data[:text]}"}
+    def type, do: "mytype"
+
+    def relationships do
+      [
+        author: {JSONAPISerializerTest.UserView, :include},
+        best_comments: {JSONAPISerializerTest.CommentView, :include}
+      ]
+    end
+
+    def links(data, conn) do
+      %{
+        next: url_for_pagination(data, conn, %{cursor: "some-string"})
+      }
+    end
+  end
+
   defmodule UserView do
     use JSONAPI.View
 
@@ -358,7 +390,7 @@ defmodule JSONAPISerializerTest do
     assert Enum.count(encoded.included) == 4
   end
 
-  describe "when underscore_to_dash == true" do
+  describe "when underscore_to_dash: true" do
     setup do
       Application.put_env(:jsonapi, :underscore_to_dash, true)
 
@@ -374,6 +406,9 @@ defmodule JSONAPISerializerTest do
         id: 1,
         text: "Hello",
         inserted_at: NaiveDateTime.utc_now(),
+        metadata: %{series_title: "Beginnings", __private_code: 123, double__underscore: true},
+        _private_attribute: "please do not touch",
+        nonstandard__attribute: "no rules apply",
         body: "Hello world",
         full_description: "This_is_my_description",
         author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
@@ -386,7 +421,7 @@ defmodule JSONAPISerializerTest do
         ]
       }
 
-      encoded = Serializer.serialize(PostView, data, nil)
+      encoded = Serializer.serialize(PostWithMetadataView, data, nil)
 
       attributes = encoded[:data][:attributes]
       relationships = encoded[:data][:relationships]
@@ -394,6 +429,14 @@ defmodule JSONAPISerializerTest do
 
       assert attributes["full-description"] == data[:full_description]
       assert attributes["inserted-at"] == data[:inserted_at]
+
+      # Maps are affected
+      assert attributes["metadata"]["series-title"] == data[:metadata][:series_title]
+      assert attributes["metadata"]["__private-code"] == data[:metadata][:__private_code]
+      assert attributes["metadata"]["double__underscore"] == data[:metadata][:double__underscore]
+
+      assert attributes["_private-attribute"] == data[:_private_attribute]
+      assert attributes["nonstandard__attribute"] == data[:nonstandard__attribute]
 
       assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "2" end)[:attributes][
                "last-name"
@@ -407,6 +450,133 @@ defmodule JSONAPISerializerTest do
 
       assert relationships["best-comments"][:links][:self] ==
                "/mytype/1/relationships/best-comments"
+    end
+  end
+
+  describe "when underscore_to_dash: except" do
+    setup do
+      Application.put_env(:jsonapi, :underscore_to_dash,
+        except: [:full_description, :_private_attribute, :metadata]
+      )
+
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :underscore_to_dash)
+      end)
+
+      {:ok, []}
+    end
+
+    test "serialize properly uses underscore_to_dash on both attributes and relationships" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        inserted_at: NaiveDateTime.utc_now(),
+        metadata: %{series_title: "Beginnings", __private_code: 123, double__underscore: true},
+        _private_attribute: "please do not touch",
+        nonstandard__attribute: "no rules apply",
+        body: "Hello world",
+        full_description: "This_is_my_description",
+        author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+        best_comments: [
+          %{
+            id: 5,
+            text: "greatest comment ever",
+            user: %{id: 4, username: "jack", last_name: "bronds"}
+          }
+        ]
+      }
+
+      encoded = Serializer.serialize(PostWithMetadataView, data, nil)
+
+      attributes = encoded[:data][:attributes]
+      relationships = encoded[:data][:relationships]
+      included = encoded[:included]
+
+      assert attributes["inserted-at"] == data[:inserted_at]
+      assert attributes["nonstandard__attribute"] == data[:nonstandard__attribute]
+
+      # Not modified
+      assert attributes["full_description"] == data[:full_description]
+      assert attributes["metadata"] == data[:metadata]
+      assert attributes["_private_attribute"] == data[:_private_attribute]
+
+      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "2" end)[:attributes][
+               "last-name"
+             ] == "bonds"
+
+      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "4" end)[:attributes][
+               "last-name"
+             ] == "bronds"
+
+      assert List.first(relationships["best-comments"][:data])[:id] == "5"
+
+      assert relationships["best-comments"][:links][:self] ==
+               "/mytype/1/relationships/best-comments"
+    end
+  end
+
+  describe "when underscore_to_dash: only" do
+    setup do
+      Application.put_env(:jsonapi, :underscore_to_dash,
+        only: [:full_description, :inserted_at, :last_name]
+      )
+
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :underscore_to_dash)
+      end)
+
+      {:ok, []}
+    end
+
+    test "serialize properly uses underscore_to_dash on both attributes and relationships" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        inserted_at: NaiveDateTime.utc_now(),
+        metadata: %{series_title: "Beginnings", __private_code: 123, double__underscore: true},
+        _private_attribute: "please do not touch",
+        nonstandard__attribute: "no rules apply",
+        body: "Hello world",
+        full_description: "This_is_my_description",
+        author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+        best_comments: [
+          %{
+            id: 5,
+            text: "greatest comment ever",
+            user: %{id: 4, username: "jack", last_name: "bronds"}
+          }
+        ]
+      }
+
+      encoded = Serializer.serialize(PostWithMetadataView, data, nil)
+
+      attributes = encoded[:data][:attributes]
+      relationships = encoded[:data][:relationships]
+      included = encoded[:included]
+
+      # Modified
+      assert attributes["full-description"] == data[:full_description]
+      assert attributes["inserted-at"] == data[:inserted_at]
+
+      # Not modified
+      assert attributes["metadata"] == data[:metadata]
+      assert attributes["nonstandard__attribute"] == data[:nonstandard__attribute]
+      assert attributes["_private_attribute"] == data[:_private_attribute]
+
+      # Modified
+      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "2" end)[:attributes][
+               "last-name"
+             ] == "bonds"
+
+      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "4" end)[:attributes][
+               "last-name"
+             ] == "bronds"
+
+      # Not modified
+      assert List.first(relationships["best_comments"][:data])[:id] == "5"
+
+      assert relationships["best_comments"][:links][:self] ==
+               "/mytype/1/relationships/best_comments"
     end
   end
 

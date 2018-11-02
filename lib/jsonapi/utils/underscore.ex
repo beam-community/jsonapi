@@ -3,7 +3,7 @@ defmodule JSONAPI.Utils.Underscore do
   Helpers for replacing underscores with dashes.
   """
 
-  def underscore?, do: Application.get_env(:jsonapi, :underscore_to_dash, false)
+  def underscore?, do: Application.get_env(:jsonapi, :underscore_to_dash, false) != false
 
   @doc """
   Replace dashes between words in `value` with underscores
@@ -42,9 +42,13 @@ defmodule JSONAPI.Utils.Underscore do
       "_top__posts_"
   """
   def underscore(value) when is_atom(value) do
-    value
-    |> to_string
-    |> underscore
+    if underscore?(value) do
+      value
+      |> to_string
+      |> underscore()
+    else
+      to_string(value)
+    end
   end
 
   def underscore(value) when is_binary(value) do
@@ -56,14 +60,44 @@ defmodule JSONAPI.Utils.Underscore do
   end
 
   def underscore(value) when is_map(value) do
-    Enum.into(value, %{}, &underscore/1)
+    Enum.into(value, %{}, &underscore(&1))
   end
 
   def underscore({key, value}) do
-    if is_map(value) do
-      {underscore(key), underscore(value)}
+    if underscore?(key) do
+      if is_map(value) do
+        {underscore(key), underscore(value)}
+      else
+        {underscore(key), value}
+      end
     else
       {underscore(key), value}
+    end
+  end
+
+  defp underscore?(key) do
+    config = Application.get_env(:jsonapi, :underscore_to_dash)
+    config_specifies_underscore?(config, key)
+  end
+
+  defp config_specifies_underscore?(true, _), do: true
+  defp config_specifies_underscore?(false, _), do: false
+
+  defp config_specifies_underscore?(config, key) when is_list(config) do
+    if Keyword.has_key?(config, :only) do
+      config_specifies?(config, :only, key)
+    else
+      !config_specifies?(config, :except, key)
+    end
+  end
+
+  defp config_specifies?(config, only_or_except, key) when is_list(config) do
+    case Keyword.get(config, only_or_except) do
+      list when is_list(list) ->
+        Enum.member?(list, key)
+
+      _ ->
+        false
     end
   end
 end
