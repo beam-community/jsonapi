@@ -41,6 +41,7 @@ defmodule JSONAPISerializerTest do
       ]
 
     def meta(data, _conn), do: %{meta_text: "meta_#{data[:text]}"}
+
     def type, do: "mytype"
 
     def relationships do

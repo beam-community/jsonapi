@@ -44,7 +44,7 @@ defmodule JSONAPI.Utils.Underscore do
   def underscore(value) when is_atom(value) do
     if underscore?(value) do
       value
-      |> to_string
+      |> to_string()
       |> underscore()
     else
       to_string(value)
@@ -60,16 +60,12 @@ defmodule JSONAPI.Utils.Underscore do
   end
 
   def underscore(value) when is_map(value) do
-    Enum.into(value, %{}, &underscore(&1))
+    Enum.into(value, %{}, &underscore/1)
   end
 
   def underscore({key, value}) do
-    if underscore?(key) do
-      if is_map(value) do
-        {underscore(key), underscore(value)}
-      else
-        {underscore(key), value}
-      end
+    if underscore?(key) and is_map(value) do
+      {underscore(key), underscore(value)}
     else
       {underscore(key), value}
     end
@@ -91,13 +87,7 @@ defmodule JSONAPI.Utils.Underscore do
     end
   end
 
-  defp config_specifies?(config, only_or_except, key) when is_list(config) do
-    case Keyword.get(config, only_or_except) do
-      list when is_list(list) ->
-        Enum.member?(list, key)
-
-      _ ->
-        false
-    end
+  defp config_specifies?(config, only_or_except, key) do
+    key in Keyword.get(config, only_or_except, [])
   end
 end
