@@ -456,7 +456,9 @@ defmodule JSONAPISerializerTest do
 
   describe "when underscore_to_dash: except" do
     setup do
-      Application.put_env(:jsonapi, :underscore_to_dash,
+      Application.put_env(
+        :jsonapi,
+        :underscore_to_dash,
         except: [:full_description, :_private_attribute, :metadata]
       )
 
@@ -518,7 +520,9 @@ defmodule JSONAPISerializerTest do
 
   describe "when underscore_to_dash: only" do
     setup do
-      Application.put_env(:jsonapi, :underscore_to_dash,
+      Application.put_env(
+        :jsonapi,
+        :underscore_to_dash,
         only: [:full_description, :inserted_at, :last_name]
       )
 
