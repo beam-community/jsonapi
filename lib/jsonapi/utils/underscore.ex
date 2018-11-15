@@ -80,14 +80,11 @@ defmodule JSONAPI.Utils.Underscore do
   defp config_specifies_underscore?(false, _), do: false
 
   defp config_specifies_underscore?(config, key) when is_list(config) do
-    if Keyword.has_key?(config, :only) do
-      config_specifies?(config, :only, key)
-    else
-      !config_specifies?(config, :except, key)
+    cond do
+      Keyword.has_key?(config, :only) -> key in Keyword.get(config, :only, [])
+      Keyword.has_key?(config, :except) -> key not in Keyword.get(config, :except, [])
+      true -> false
     end
   end
 
-  defp config_specifies?(config, only_or_except, key) do
-    key in Keyword.get(config, only_or_except, [])
-  end
 end
