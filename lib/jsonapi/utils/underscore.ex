@@ -3,7 +3,7 @@ defmodule JSONAPI.Utils.Underscore do
   Helpers for replacing underscores with dashes.
   """
 
-  def underscore?, do: Application.get_env(:jsonapi, :underscore_to_dash, false) != false
+  def underscore?, do: config() != false
 
   @doc """
   Replace dashes between words in `value` with underscores
@@ -72,8 +72,7 @@ defmodule JSONAPI.Utils.Underscore do
   end
 
   defp underscore?(key) do
-    config = Application.get_env(:jsonapi, :underscore_to_dash)
-    config_specifies_underscore?(config, key)
+    config_specifies_underscore?(config(), key)
   end
 
   defp config_specifies_underscore?(true, _), do: true
@@ -87,4 +86,5 @@ defmodule JSONAPI.Utils.Underscore do
     end
   end
 
+  defp config, do: Application.get_env(:jsonapi, :underscore_to_dash, false)
 end
