@@ -20,9 +20,50 @@ defmodule JSONAPI.Utils.Underscore do
 
       iex> dash("-top--posts-")
       "-top--posts-"
+
+      iex> dash(%{"foo-bar" => "baz"})
+      %{"foo_bar" => "baz"}
+
+      iex> dash({"foo-bar", "dollar-sol"})
+      {"foo_bar", "dollar-sol"}
+
+      iex> dash({"foo-bar", %{"a-d" => "z-8"}})
+      {"foo_bar", %{"a_d" => "z-8"}}
+
+      iex> dash(%{"f-b" => %{"a-d" => "z"}, "c-d" => "e"})
+      %{"f_b" => %{"a_d" => "z"}, "c_d" => "e"}
+
+      iex> dash(:"foo-bar")
+      :foo_bar
+
+      iex> dash(%{"f-b" => "a-d"})
+      %{"f_b" => "a-d"}
   """
   def dash(value) when is_binary(value) do
     String.replace(value, ~r/([a-zA-Z0-9])-([a-zA-Z0-9])/, "\\1_\\2")
+  end
+
+  def dash(map) when is_map(map) do
+    Enum.into(map, %{}, &dash/1)
+  end
+
+  def dash({key, value}) when is_map(value) do
+    {dash(key), dash(value)}
+  end
+
+  def dash({key, value}) do
+    {dash(key), value}
+  end
+
+  def dash(value) when is_atom(value) do
+    value
+    |> to_string()
+    |> dash()
+    |> String.to_atom()
+  end
+
+  def dash(value) do
+    value
   end
 
   @doc """
