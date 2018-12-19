@@ -2,7 +2,7 @@ defmodule JSONAPI.ErrorView do
   @moduledoc """
   """
 
-  import Plug.Conn, only: [send_resp: 3, halt: 1]
+  import Plug.Conn, only: [send_resp: 3, halt: 1, put_resp_content_type: 2]
 
   @crud_message "Check out http://jsonapi.org/format/#crud for more info."
 
@@ -69,6 +69,7 @@ defmodule JSONAPI.ErrorView do
 
   def send_error(conn, status, error) do
     conn
+    |> put_resp_content_type("application/vnd.api+json")
     |> send_resp(status, error)
     |> halt
   end

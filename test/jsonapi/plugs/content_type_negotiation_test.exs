@@ -171,4 +171,21 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
     assert conn.halted
     assert 406 == conn.status
   end
+
+  test "returned error has correct content type" do
+    conn =
+      :post
+      |> conn("/example", "")
+      |> Plug.Conn.put_req_header(
+        "accept",
+        "application/vnd.api+json; version=1.0, application/vnd.api+json; version=1.0"
+      )
+      |> ContentTypeNegotiation.call([])
+
+    assert conn.halted
+
+    assert Plug.Conn.get_resp_header(conn, "content-type") == [
+             "application/vnd.api+json; charset=utf-8"
+           ]
+  end
 end
