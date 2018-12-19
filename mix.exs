@@ -37,7 +37,7 @@ defmodule JSONAPI.Mixfile do
       {:jason, "~> 1.0", optional: true},
       {:ex_doc, "~> 0.7", only: :dev},
       {:earmark, ">= 0.0.0", only: :dev},
-      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:phoenix, "~> 1.3", only: :test}
     ]
   end
