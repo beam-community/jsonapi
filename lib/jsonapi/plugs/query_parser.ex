@@ -1,7 +1,6 @@
 defmodule JSONAPI.QueryParser do
   @behaviour Plug
-  alias JSONAPI.Config
-  alias JSONAPI.Page
+  alias JSONAPI.{Config, Deprecation, Page}
   alias JSONAPI.Exceptions.InvalidQuery
   alias Plug.Conn
   alias JSONAPI.Utils.Underscore

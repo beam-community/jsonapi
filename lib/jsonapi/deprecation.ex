@@ -1,4 +1,4 @@
-defmodule Deprecation do
+defmodule JSONAPI.Deprecation do
   @moduledoc """
     Generate warnings in places where we want to deprecate functions or struct parameters
   """
