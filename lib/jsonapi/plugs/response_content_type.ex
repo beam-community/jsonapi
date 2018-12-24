@@ -1,4 +1,4 @@
-defmodule JSONAPI.PlugResponseContentType do
+defmodule JSONAPI.ResponseContentType do
   @moduledoc """
   Simply add this plug to your endpoint or your router :api pipeline and it will
   ensure you return the correct response type.
