@@ -69,7 +69,7 @@ defmodule JSONAPI.ErrorView do
 
   def send_error(conn, status, error) do
     conn
-    |> put_resp_content_type("application/vnd.api+json")
+    |> put_resp_content_type(JSONAPI.mime_type())
     |> send_resp(status, error)
     |> halt
   end

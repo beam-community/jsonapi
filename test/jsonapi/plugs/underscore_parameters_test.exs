@@ -24,7 +24,7 @@ defmodule JSONAPI.UnderscoreParametersTest do
     conn =
       :get
       |> conn("/hello", params)
-      |> put_req_header("content-type", "application/vnd.api+json")
+      |> put_req_header("content-type", JSONAPI.mime_type())
 
     assert %Plug.Conn{
              params: %{

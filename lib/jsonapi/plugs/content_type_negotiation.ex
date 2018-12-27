@@ -17,8 +17,6 @@ defmodule JSONAPI.ContentTypeNegotiation do
 
   import Plug.Conn
 
-  @jsonapi "application/vnd.api+json"
-
   def init(opts), do: opts
 
   def call(%{method: method} = conn, _opts) when method in ["DELETE", "GET", "HEAD"], do: conn
@@ -62,14 +60,22 @@ defmodule JSONAPI.ContentTypeNegotiation do
   end
 
   defp validate_header(string) when is_binary(string) do
-    string |> String.split(",") |> Enum.map(&String.trim/1) |> Enum.member?(@jsonapi)
+    string
+    |> String.split(",")
+    |> Enum.map(&String.trim/1)
+    |> Enum.member?(JSONAPI.mime_type())
   end
 
   defp validate_header(nil), do: true
 
   defp add_header_to_resp(conn) do
     register_before_send(conn, fn conn ->
-      update_resp_header(conn, "content-type", @jsonapi, & &1)
+      update_resp_header(
+        conn,
+        "content-type",
+        JSONAPI.mime_type(),
+        & &1
+      )
     end)
 
     conn

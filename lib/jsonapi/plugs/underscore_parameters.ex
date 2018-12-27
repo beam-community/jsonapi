@@ -30,7 +30,7 @@ defmodule JSONAPI.UnderscoreParameters do
   def call(%Plug.Conn{params: params} = conn, _opts) do
     content_type = get_req_header(conn, "content-type")
 
-    if @json_api_content_type in content_type do
+    if JSONAPI.mime_type() in content_type do
       new_params = dash(params)
 
       Map.put(conn, :params, new_params)
