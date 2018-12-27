@@ -3,19 +3,32 @@ defmodule JSONAPI.UnderscoreParameters do
   Takes dasherized JSON:API params and turns them into underscored params. Add
   this to your API's pipeline to aid in dealing with incoming parameters.
 
+  Note that this Plug will only underscore parameters when the request's content
+  type is for a JSON:API request (i.e. "application/vnd.api+json"). All other
+  content types will be ignored.
+
   ## Example
 
   Given a request like:
 
       GET /example?filters[dog-breed]=Corgi
 
-  You could implement your corresponding `index` method like:
+  **Without** this Plug your index action would look like:
+
+      def index(conn, %{"filters" => %{"dog-breed" => "Corgi"}})
+
+  And **with** this Plug:
 
       def index(conn, %{"filters" => %{"dog_breed" => "Corgi"}})
 
-  Without this Plug your index action would look like:
+  Your API's pipeline might look something like this:
 
-      def index(conn, %{"filters" => %{"dog-breed" => "Corgi"}})
+      # e.g. a Phoenix app
+
+      pipeline :api do
+        plug(JSONAPI.EnforceSpec)
+        plug(JSONAPI.UnderscoreParameters)
+      end
   """
 
   import Plug.Conn
