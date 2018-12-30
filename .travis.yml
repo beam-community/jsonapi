@@ -1,12 +1,13 @@
 language: elixir
 
 elixir:
+  - 1.7
   - 1.6
   - 1.5
-  - 1.4
 
 otp_release:
-  - 20.1
+  - 21.1
+  - 20.3
   - 19.3
   - 18.3
 
@@ -14,6 +15,8 @@ matrix:
   exclude:
     - elixir: 1.6
       otp_release: 18.3
+    - elixir: 1.5
+      otp_release: 21.1
 
 env:
   global:
@@ -22,9 +25,7 @@ env:
 notifications:
   email: false
 
-sudo: false
-
 script:
   - mix test
   - mix credo
-  - if [[ `elixir -v` = *"1.6"* ]]; then mix format --check-formatted; fi
+  - if ! [[ `elixir -v` = *"1.5"* ]]; then mix format --check-formatted; fi
