@@ -217,6 +217,7 @@ defmodule JSONAPI.QueryParser do
 
   def dash(data) do
     if Underscore.underscore?() do
+      Deprecation.warn(:query_parser_dash)
       Underscore.dash(data)
     else
       data
