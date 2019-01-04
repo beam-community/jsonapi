@@ -24,4 +24,13 @@ defmodule JSONAPI do
       """)
     end
   end
+
+  @mime_type "application/vnd.api+json"
+
+  @doc """
+  This returns the MIME type for JSONAPIs
+  """
+  def mime_type() do
+    @mime_type
+  end
 end

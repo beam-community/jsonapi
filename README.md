@@ -6,6 +6,9 @@ A project that will render your data models into [JSONAPI Documents](http://json
 
 ## JSONAPI Support
 
+This library implements [version 1.0](https://jsonapi.org/format/1.0/)
+of the JSON:API spec.
+
 - [x] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding
 - [x] Basic support for [compound documents](http://jsonapi.org/format/#document-compound-documents)
 - [x] [Links](http://jsonapi.org/format/#document-links)
@@ -19,7 +22,8 @@ A project that will render your data models into [JSONAPI Documents](http://json
 
 ## Documentation
 
-[Full docs here](https://hexdocs.pm/jsonapi/api-reference.html)
+* [Full docs here](https://hexdocs.pm/jsonapi)
+* [JSON API Spec (v1.0)](https://jsonapi.org/format/1.0/)
 
 ## How to use with Phoenix
 
@@ -80,6 +84,30 @@ when Ecto gets more complex field selection support we will go further to only q
 
 You will need to handle filtering yourself, the filter is just a map with key=value.
 
+## Dasherized Fields
+
+JSONAPI now recommends the use of dashes (`-`) in place of underscore (`_`) as a
+word separator. Handling these fields requires two steps:
+
+1. Dasherizing *outgoing* fields requires you to set the `underscore_to_dash`
+   configuration option. This is not enabled by default. Example:
+
+    ```elixir
+    config :jsonapi,
+      underscore_to_dash: true,
+    ```
+
+2. Underscoring *incoming* params (both query and body) requires you add the
+   `JSONAPI.UnderscoreParameters` Plug to your API's pipeline. Your pipeline in a
+   Phoenix app might look something like this:
+
+   ```elixir
+   pipeline :api do
+     plug(JSONAPI.EnsureSpec)
+     plug(JSONAPI.UnderscoreParameters)
+   end
+   ```
+
 ## Spec Enforcement
 
 We include a set of Plugs to make enforcing the JSONAPI spec for requests easy. To add spec enforcement to your application, add `JSONAPI.EnsureSpec` to your pipeline:
@@ -98,8 +126,6 @@ Under-the-hood `JSONAPI.EnsureSpec` relies on three individual plugs:
 
 ## Configuration
 
-By default host and scheme are pulled from the provided conn but can be overridden via configuration like so:
-
 ```elixir
 config :jsonapi,
   host: "www.someotherhost.com",
@@ -109,13 +135,12 @@ config :jsonapi,
   json_library: Jason
 ```
 
-- **underscore_to_dash**
-
-Additionally, JSONAPI now recommends the use of dashes (`-`) in place of underscore (`_`) as a word separator. Enabling this change is easy with the `underscore_to_dash` option, which handles the conversion for you. Defaults to `false`.
-
-- **remove_links**
-
-`links` data can optionally be removed from the payload via setting the configuration above to `true`. Defaults to `false`.
+- **host**, **scheme**. By default these are pulled from the `conn`, but may be
+  overridden.
+- **remove_links**. `links` data can optionally be removed from the payload via
+  setting the configuration above to `true`. Defaults to `false`.
+- **json_library**. Defaults to [Jason](https://hex.pm/packages/jason).
+- **underscore_to_dash**. See "Dasherizing Fields".
 
 ## Other
 

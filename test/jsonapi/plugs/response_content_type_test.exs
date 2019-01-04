@@ -11,7 +11,7 @@ defmodule JSONAPI.ResponseContentTypeTest do
       |> ResponseContentType.call([])
       |> send_resp(200, "done")
 
-    assert get_resp_header(conn, "content-type") == ["application/vnd.api+json; charset=utf-8"]
+    assert get_resp_header(conn, "content-type") == ["#{JSONAPI.mime_type()}; charset=utf-8"]
   end
 
   test "can be overridden when in play" do
@@ -22,6 +22,6 @@ defmodule JSONAPI.ResponseContentTypeTest do
       |> ResponseContentType.call([])
       |> send_resp(200, "done")
 
-    refute get_resp_header(conn, "content-type") == ["application/vnd.api+json; charset=utf-8"]
+    refute get_resp_header(conn, "content-type") == ["#{JSONAPI.mime_type()}; charset=utf-8"]
   end
 end

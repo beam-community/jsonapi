@@ -58,6 +58,14 @@ defmodule JSONAPI.QueryParser do
     * `:view` - The JSONAPI View which is the basis for this plug.
     * `:sort` - List of atoms which define which fields can be sorted on.
     * `:filter` - List of atoms which define which fields can be filtered on.
+
+  ## Dasherized Fields
+
+  Note that if your API is returning dasherized params (e.g. `"dog-breed": "Corgi"`)
+  we recommend that you include the `JSONAPI.UnderscoreParameters` Plug in your
+  API's pipeline. This will underscore fields for easier operations in your code.
+
+  For more details please see `JSONAPI.UnderscoreParameters`.
   """
 
   def init(opts) do
@@ -209,6 +217,7 @@ defmodule JSONAPI.QueryParser do
 
   def dash(data) do
     if Underscore.underscore?() do
+      Deprecation.warn(:query_parser_dash)
       Underscore.dash(data)
     else
       data

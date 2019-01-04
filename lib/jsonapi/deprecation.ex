@@ -20,4 +20,11 @@ defmodule JSONAPI.Deprecation do
       Macro.Env.stacktrace(__ENV__)
     )
   end
+
+  def warn(:query_parser_dash) do
+    IO.warn(
+      "`JSONAPI.QueryParser` will no longer automatically dasherize incoming parameters. Please include `JSONAPI.UnderscoreParameters` in your pipeline. See https://github.com/jeregrine/jsonapi/pull/149",
+      Macro.Env.stacktrace(__ENV__)
+    )
+  end
 end

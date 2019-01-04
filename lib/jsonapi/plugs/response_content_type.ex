@@ -17,7 +17,7 @@ defmodule JSONAPI.ResponseContentType do
       if conn.assigns[:override_jsonapi] do
         conn
       else
-        put_resp_content_type(conn, "application/vnd.api+json")
+        put_resp_content_type(conn, JSONAPI.mime_type())
       end
     end)
   end
