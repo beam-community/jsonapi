@@ -35,6 +35,16 @@ defmodule JSONAPI.QueryParserTest do
     def relationships, do: [user: JSONAPI.QueryParserTest.UserView]
   end
 
+  setup do
+    Application.put_env(:jsonapi, :field_transformation, :underscore)
+
+    on_exit(fn ->
+      Application.delete_env(:jsonapi, :field_transformation)
+    end)
+
+    {:ok, []}
+  end
+
   test "parse_sort/2 turns sorts into valid ecto sorts" do
     config = struct(Config, opts: [sort: ~w(name title)], view: MyView)
     assert parse_sort(config, "name,title").sort == [asc: :name, asc: :title]
@@ -78,12 +88,12 @@ defmodule JSONAPI.QueryParserTest do
     end
   end
 
-  describe "when underscore_to_dash == true" do
+  describe "when API configured for dashed fields" do
     setup do
-      Application.put_env(:jsonapi, :underscore_to_dash, true)
+      Application.put_env(:jsonapi, :field_transformation, :dasherize)
 
       on_exit(fn ->
-        Application.delete_env(:jsonapi, :underscore_to_dash)
+        Application.delete_env(:jsonapi, :field_transformation)
       end)
 
       {:ok, []}

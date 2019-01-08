@@ -87,6 +87,16 @@ defmodule JSONAPITest do
     end
   end
 
+  setup do
+    Application.put_env(:jsonapi, :field_transformation, :underscore)
+
+    on_exit(fn ->
+      Application.delete_env(:jsonapi, :field_transformation)
+    end)
+
+    {:ok, []}
+  end
+
   test "handles simple requests" do
     conn =
       :get

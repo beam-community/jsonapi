@@ -88,6 +88,16 @@ defmodule JSONAPISerializerTest do
     end
   end
 
+  setup do
+    Application.put_env(:jsonapi, :field_transformation, :underscore)
+
+    on_exit(fn ->
+      Application.delete_env(:jsonapi, :field_transformation)
+    end)
+
+    {:ok, []}
+  end
+
   test "serialize includes meta as top level member" do
     meta = %{total_pages: 10}
     encoded = Serializer.serialize(PostView, %{id: 1, text: "Hello"}, nil, meta)
@@ -358,18 +368,18 @@ defmodule JSONAPISerializerTest do
     assert Enum.count(encoded.included) == 4
   end
 
-  describe "when underscore_to_dash == true" do
+  describe "when configured to dasherize fields" do
     setup do
-      Application.put_env(:jsonapi, :underscore_to_dash, true)
+      Application.put_env(:jsonapi, :field_transformation, :dasherize)
 
       on_exit(fn ->
-        Application.delete_env(:jsonapi, :underscore_to_dash)
+        Application.delete_env(:jsonapi, :field_transformation)
       end)
 
       {:ok, []}
     end
 
-    test "serialize properly uses underscore_to_dash on both attributes and relationships" do
+    test "serialize properly dasherizes both attributes and relationships" do
       data = %{
         id: 1,
         text: "Hello",

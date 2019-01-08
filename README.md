@@ -89,13 +89,13 @@ You will need to handle filtering yourself, the filter is just a map with key=va
 JSONAPI now recommends the use of dashes (`-`) in place of underscore (`_`) as a
 word separator. Handling these fields requires two steps:
 
-1. Dasherizing *outgoing* fields requires you to set the `underscore_to_dash`
-   configuration option. This is not enabled by default. Example:
+1. Dasherizing *outgoing* fields requires you to set the `:field_transformation`
+   configuration option. Example:
 
-    ```elixir
-    config :jsonapi,
-      underscore_to_dash: true,
-    ```
+   ```elixir
+   config :jsonapi,
+     field_transformation: :dasherize
+   ```
 
 2. Underscoring *incoming* params (both query and body) requires you add the
    `JSONAPI.UnderscoreParameters` Plug to your API's pipeline. Your pipeline in a
@@ -130,7 +130,8 @@ Under-the-hood `JSONAPI.EnsureSpec` relies on three individual plugs:
 config :jsonapi,
   host: "www.someotherhost.com",
   scheme: "https",
-  underscore_to_dash: true,
+  underscore_to_dash: true, # DEPRECATED
+  field_transformation: :underscore,
   remove_links: false,
   json_library: Jason
 ```
@@ -140,7 +141,14 @@ config :jsonapi,
 - **remove_links**. `links` data can optionally be removed from the payload via
   setting the configuration above to `true`. Defaults to `false`.
 - **json_library**. Defaults to [Jason](https://hex.pm/packages/jason).
-- **underscore_to_dash**. See "Dasherizing Fields".
+- **field_transformation**. This option describes how your API's fields word
+  boundaries are marked. JSON:API v1 recommends using a dash (e.g.
+  `"favorite-color": blue`). If your API uses dashed fields, set this value to
+  `:dasherize`. If your API uses underscores (e.g. `"favorite_color": "red"`)
+  set to `:underscore`.
+- **underscore_to_dash**. This is a deprecated option that previously defaulted
+  to `false`. Please set the appropriate value on the `field_transformation`
+  configuration option.
 
 ## Other
 

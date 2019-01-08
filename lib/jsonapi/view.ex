@@ -81,8 +81,6 @@ defmodule JSONAPI.View do
 
     * `:scheme` (atom) - Enables configuration of the HTTP scheme for generated URLS.  Defaults to `scheme` from the provided `conn`.
 
-    * `:underscore_to_dash` (boolean) - Use dash (`-`) as the word separated for JSON in place of underscore (`_`) per the JSONAPI spec [recommendations](http://jsonapi.org/recommendations/).  Defaults to `false`.
-
   The default behaviour for `host` and `scheme` is to derive it from the `conn` provided, while the
   default style for presentation in names is to be underscored and not dashed.
   """

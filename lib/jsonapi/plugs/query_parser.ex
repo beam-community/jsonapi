@@ -2,8 +2,8 @@ defmodule JSONAPI.QueryParser do
   @behaviour Plug
   alias JSONAPI.{Config, Deprecation, Page}
   alias JSONAPI.Exceptions.InvalidQuery
+  alias JSONAPI.Utils.String, as: JString
   alias Plug.Conn
-  alias JSONAPI.Utils.Underscore
   import JSONAPI.Utils.IncludeTree
 
   @moduledoc """
@@ -61,7 +61,7 @@ defmodule JSONAPI.QueryParser do
 
   ## Dasherized Fields
 
-  Note that if your API is returning dasherized params (e.g. `"dog-breed": "Corgi"`)
+  Note that if your API is returning dasherized fields (e.g. `"dog-breed": "Corgi"`)
   we recommend that you include the `JSONAPI.UnderscoreParameters` Plug in your
   API's pipeline. This will underscore fields for easier operations in your code.
 
@@ -187,7 +187,7 @@ defmodule JSONAPI.QueryParser do
       if inc =~ ~r/\w+\.\w+/ do
         acc ++ handle_nested_include(inc, valid_includes, config)
       else
-        inc = inc |> dash() |> String.to_existing_atom()
+        inc = inc |> normalize_fields() |> String.to_existing_atom()
 
         if Enum.any?(valid_includes, fn {key, _val} -> key == inc end) do
           acc ++ [inc]
@@ -202,7 +202,7 @@ defmodule JSONAPI.QueryParser do
     keys =
       key
       |> String.split(".")
-      |> Enum.map(&dash/1)
+      |> Enum.map(&normalize_fields/1)
       |> Enum.map(&String.to_existing_atom/1)
 
     last = List.last(keys)
@@ -212,15 +212,6 @@ defmodule JSONAPI.QueryParser do
       put_as_tree([], path, last)
     else
       raise InvalidQuery, resource: config.view.type(), param: key, param_type: :include
-    end
-  end
-
-  def dash(data) do
-    if Underscore.underscore?() do
-      Deprecation.warn(:query_parser_dash)
-      Underscore.dash(data)
-    else
-      data
     end
   end
 
@@ -254,5 +245,15 @@ defmodule JSONAPI.QueryParser do
       end
 
     struct(struct, processed_map)
+  end
+
+  defp normalize_fields(fields) do
+    Deprecation.warn(:query_parser_dash)
+
+    if JString.field_transformation() == :underscore do
+      fields
+    else
+      JString.underscore(fields)
+    end
   end
 end

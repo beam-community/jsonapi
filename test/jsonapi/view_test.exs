@@ -43,6 +43,16 @@ defmodule JSONAPI.ViewTest do
 
   alias JSONAPI.ViewTest.CommentView
 
+  setup do
+    Application.put_env(:jsonapi, :field_transformation, :underscore)
+
+    on_exit(fn ->
+      Application.delete_env(:jsonapi, :field_transformation)
+    end)
+
+    {:ok, []}
+  end
+
   test "type/0 when specified via using macro" do
     assert PostView.type() == "posts"
   end
