@@ -6,7 +6,7 @@ A project that will render your data models into [JSONAPI Documents](http://json
 
 ## JSONAPI Support
 
-This library implements [version 1.0](https://jsonapi.org/format/1.0/)
+This library implements [version 1.1](https://jsonapi.org/format/1.1/)
 of the JSON:API spec.
 
 - [x] Basic [JSONAPI Document](http://jsonapi.org/format/#document-top-level) encoding
@@ -23,7 +23,7 @@ of the JSON:API spec.
 ## Documentation
 
 * [Full docs here](https://hexdocs.pm/jsonapi)
-* [JSON API Spec (v1.0)](https://jsonapi.org/format/1.0/)
+* [JSON API Spec (v1.0)](https://jsonapi.org/format/1.1/)
 
 ## How to use with Phoenix
 
@@ -84,17 +84,20 @@ when Ecto gets more complex field selection support we will go further to only q
 
 You will need to handle filtering yourself, the filter is just a map with key=value.
 
-## Dasherized Fields
+## Camelized or Dasherized Fields
 
-JSONAPI now recommends the use of dashes (`-`) in place of underscore (`_`) as a
-word separator. Handling these fields requires two steps:
+JSONAPI has recommended in the past the use of dashes (`-`) in place of underscore (`_`) as a
+word separator for document member keys. However, as of JSONAPI 1.1, it is now recommended that member names
+are camel-cased. This library provides various configuration options for maximum flexibility.
 
-1. Dasherizing *outgoing* fields requires you to set the `:field_transformation`
+Transforming fields requires two steps:
+
+1. camelCase *outgoing* fields requires you to set the `:field_transformation`
    configuration option. Example:
 
    ```elixir
    config :jsonapi,
-     field_transformation: :dasherize
+     field_transformation: :camelize # or dasherize
    ```
 
 2. Underscoring *incoming* params (both query and body) requires you add the
@@ -142,7 +145,9 @@ config :jsonapi,
   setting the configuration above to `true`. Defaults to `false`.
 - **json_library**. Defaults to [Jason](https://hex.pm/packages/jason).
 - **field_transformation**. This option describes how your API's fields word
-  boundaries are marked. JSON:API v1 recommends using a dash (e.g.
+  boundaries are marked. JSON:API v1.1 recommends using a camelCase (e.g.
+  `"favoriteColor": blue`). If your API uses camelCase fields, set this value to
+  `:camelize`. JSON:API v1 recommended using a dash (e.g.
   `"favorite-color": blue`). If your API uses dashed fields, set this value to
   `:dasherize`. If your API uses underscores (e.g. `"favorite_color": "red"`)
   set to `:underscore`.
