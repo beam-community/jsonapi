@@ -4,7 +4,9 @@ defmodule JSONAPI.Serializer do
   """
 
   import JSONAPI.Ecto, only: [assoc_loaded?: 1]
-  alias JSONAPI.Utils.Underscore
+
+  alias JSONAPI.Utils.String, as: JString
+
   require Logger
 
   @doc """
@@ -51,7 +53,7 @@ defmodule JSONAPI.Serializer do
     encoded_data = %{
       id: view.id(data),
       type: view.type(),
-      attributes: underscore(view.attributes(data, conn)),
+      attributes: transform_fields(view.attributes(data, conn)),
       relationships: %{}
     }
 
@@ -88,7 +90,7 @@ defmodule JSONAPI.Serializer do
 
     only_rel_view = get_view(rel_view)
     # Build the relationship url
-    rel_key = underscore(key)
+    rel_key = transform_fields(key)
     rel_url = view.url_for_rel(data, rel_key, conn)
     # Build the relationship
     acc =
@@ -224,14 +226,14 @@ defmodule JSONAPI.Serializer do
   def get_view({view, :include}), do: view
   def get_view(view), do: view
 
-  def underscore(data) do
-    if Underscore.underscore?() do
-      Underscore.underscore(data)
-    else
-      data
-    end
-  end
-
   defp remove_links?, do: Application.get_env(:jsonapi, :remove_links, false)
   defp with_pagination?, do: Application.get_env(:jsonapi, :with_pagination, false)
+
+  defp transform_fields(fields) do
+    if JString.field_transformation() == :dasherize do
+      JString.dasherize(fields)
+    else
+      fields
+    end
+  end
 end

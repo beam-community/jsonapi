@@ -33,7 +33,7 @@ defmodule JSONAPI.UnderscoreParameters do
 
   import Plug.Conn
 
-  import JSONAPI.Utils.Underscore, only: [dash: 1]
+  import JSONAPI.Utils.String, only: [underscore: 1]
 
   @doc false
   def init(_opts) do
@@ -44,7 +44,7 @@ defmodule JSONAPI.UnderscoreParameters do
     content_type = get_req_header(conn, "content-type")
 
     if JSONAPI.mime_type() in content_type do
-      new_params = dash(params)
+      new_params = underscore(params)
 
       Map.put(conn, :params, new_params)
     else
