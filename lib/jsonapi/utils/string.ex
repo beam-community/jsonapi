@@ -111,9 +111,9 @@ defmodule JSONAPI.Utils.String do
   end
 
   @doc """
-  Replace underscores between words in `value` with dashes
+  Replace underscores or dashes between words in `value` with camelCasing
 
-  Ignores underscores that are not between letters/numbers
+  Ignores underscores or dashes that are not between letters/numbers
 
   ## Examples
 
