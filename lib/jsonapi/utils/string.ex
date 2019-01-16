@@ -5,7 +5,7 @@ defmodule JSONAPI.Utils.String do
 
   alias JSONAPI.Deprecation
 
-  @allowed_transformations [:dasherize, :underscore]
+  @allowed_transformations [:dasherize, :underscore, :camelize]
 
   @doc """
   Replace dashes between words in `value` with underscores
@@ -110,6 +110,58 @@ defmodule JSONAPI.Utils.String do
     end
   end
 
+  @doc """
+  Replace underscores between words in `value` with dashes
+
+  Ignores underscores that are not between letters/numbers
+
+  ## Examples
+
+      iex> camelize("top_posts")
+      "topPosts"
+
+      iex> camelize("_top_posts")
+      "_topPosts"
+
+      iex> camelize("_top__posts_")
+      "_top__posts_"
+  """
+  def camelize(value) when is_atom(value) do
+    value
+    |> to_string()
+    |> camelize()
+  end
+
+  def camelize(value) when is_binary(value) do
+    case Regex.split(~r{([a-zA-Z0-9])(?<delimeter>[-_])([a-zA-Z0-9])}, to_string(value), on: [:delimeter]) do
+      words ->
+        [h | t] = words |> Enum.filter(&(&1 != ""))
+        [String.downcase(h) | camelize_list(t)]
+        |> Enum.join()
+    end
+  end
+
+  defp camelize_list([]), do: []
+  defp camelize_list([h|t]) do
+    [String.capitalize(h)] ++ camelize_list(t)
+  end
+
+  def camelize(%{__struct__: _} = value) when is_map(value) do
+    value
+  end
+
+  def camelize(value) when is_map(value) do
+    Enum.into(value, %{}, &camelize/1)
+  end
+
+  def camelize({key, value}) do
+    if is_map(value) do
+      {camelize(key), camelize(value)}
+    else
+      {camelize(key), value}
+    end
+  end
+
   defp normalized_underscore_to_dash_config(value) when is_boolean(value) do
     Deprecation.warn(:underscore_to_dash)
 
@@ -123,12 +175,19 @@ defmodule JSONAPI.Utils.String do
   defp normalized_underscore_to_dash_config(value) when is_nil(value), do: value
 
   @doc """
-  The configured transformation for the API's fields. JSON:API v1 recommends
-  using dashed fields (e.g. "good-dog", versus "good_dog").
+  The configured transformation for the API's fields. JSON:API v1.1 recommends
+  using camlized fields (e.g. "goodDog", versus "good_dog").  However, we don't hold a strong
+  opinion, so feel free to customize it how you would like (e.g. "good-dog", versus "good_dog").
 
-  This library currently supports dashed and underscored fields.
+  This library currently supports camelized, dashed and underscored fields.
 
   ## Configuration examples
+
+  camelCase fields:
+
+  ```
+  config :jsonapi, field_transformation: :camelize
+  ```
 
   Dashed fields:
 
