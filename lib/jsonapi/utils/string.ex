@@ -133,7 +133,9 @@ defmodule JSONAPI.Utils.String do
   end
 
   def camelize(value) when is_binary(value) do
-    case Regex.split(~r{([a-zA-Z0-9])(?<delimeter>[-_])([a-zA-Z0-9])}, to_string(value),
+    case Regex.split(
+           ~r{([a-zA-Z0-9])(?<delimeter>[-_])([a-zA-Z0-9])},
+           to_string(value),
            on: [:delimeter]
          ) do
       words ->
