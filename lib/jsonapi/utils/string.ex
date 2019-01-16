@@ -134,9 +134,8 @@ defmodule JSONAPI.Utils.String do
 
   def camelize(value) when is_binary(value) do
     case Regex.split(
-           ~r{([a-zA-Z0-9])(?<delimeter>[-_])([a-zA-Z0-9])},
-           to_string(value),
-           on: [:delimeter]
+           ~r{(?<=[a-zA-Z0-9])[-_](?=[a-zA-Z0-9])},
+           to_string(value)
          ) do
       words ->
         [h | t] = words |> Enum.filter(&(&1 != ""))
