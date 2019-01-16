@@ -133,16 +133,20 @@ defmodule JSONAPI.Utils.String do
   end
 
   def camelize(value) when is_binary(value) do
-    case Regex.split(~r{([a-zA-Z0-9])(?<delimeter>[-_])([a-zA-Z0-9])}, to_string(value), on: [:delimeter]) do
+    case Regex.split(~r{([a-zA-Z0-9])(?<delimeter>[-_])([a-zA-Z0-9])}, to_string(value),
+           on: [:delimeter]
+         ) do
       words ->
         [h | t] = words |> Enum.filter(&(&1 != ""))
+
         [String.downcase(h) | camelize_list(t)]
         |> Enum.join()
     end
   end
 
   defp camelize_list([]), do: []
-  defp camelize_list([h|t]) do
+
+  defp camelize_list([h | t]) do
     [String.capitalize(h)] ++ camelize_list(t)
   end
 
