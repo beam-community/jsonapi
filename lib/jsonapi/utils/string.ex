@@ -32,7 +32,7 @@ defmodule JSONAPI.Utils.String do
     String.replace(value, ~r/([a-zA-Z0-9])-([a-zA-Z0-9])/, "\\1_\\2")
   end
 
-  @spec underscore(atom) :: atom
+  @spec underscore(atom) :: String.t()
   def underscore(value) when is_atom(value) do
     value
     |> to_string()
@@ -56,7 +56,7 @@ defmodule JSONAPI.Utils.String do
       "_top__posts_"
 
   """
-  @spec dasherize(atom) :: atom
+  @spec dasherize(atom) :: String.t()
   def dasherize(value) when is_atom(value) do
     value
     |> to_string()
@@ -88,7 +88,7 @@ defmodule JSONAPI.Utils.String do
       "_top__posts_"
 
   """
-  @spec camelize(atom) :: atom
+  @spec camelize(atom) :: String.t()
   def camelize(value) when is_atom(value) do
     value
     |> to_string()
