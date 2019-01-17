@@ -145,7 +145,7 @@ config :jsonapi,
   setting the configuration above to `true`. Defaults to `false`.
 - **json_library**. Defaults to [Jason](https://hex.pm/packages/jason).
 - **field_transformation**. This option describes how your API's fields word
-  boundaries are marked. [JSON API Spec (v1.0)](https://jsonapi.org/format/1.1/) recommends using camelCase (e.g.
+  boundaries are marked. [JSON API Spec (v1.1)](https://jsonapi.org/format/1.1/) recommends using camelCase (e.g.
   `"favoriteColor": blue`). If your API uses camelCase fields, set this value to
   `:camelize`. JSON:API v1.0 recommended using a dash (e.g.
   `"favorite-color": blue`). If your API uses dashed fields, set this value to
