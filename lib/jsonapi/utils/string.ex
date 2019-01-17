@@ -5,7 +5,7 @@ defmodule JSONAPI.Utils.String do
 
   alias JSONAPI.Deprecation
 
-  @allowed_transformations [:dasherize, :underscore, :camelize]
+  @allowed_transformations [:camelize, :dasherize, :underscore]
 
   @doc """
   Replace dashes between words in `value` with underscores
@@ -40,6 +40,7 @@ defmodule JSONAPI.Utils.String do
 
       iex> underscore(%{"f-b" => "a-d"})
       %{"f_b" => "a-d"}
+
   """
   def underscore(value) when is_binary(value) do
     String.replace(value, ~r/([a-zA-Z0-9])-([a-zA-Z0-9])/, "\\1_\\2")
@@ -83,6 +84,7 @@ defmodule JSONAPI.Utils.String do
 
       iex> dasherize("_top__posts_")
       "_top__posts_"
+
   """
   def dasherize(value) when is_atom(value) do
     value
@@ -125,6 +127,7 @@ defmodule JSONAPI.Utils.String do
 
       iex> camelize("_top__posts_")
       "_top__posts_"
+
   """
   def camelize(value) when is_atom(value) do
     value
@@ -133,15 +136,15 @@ defmodule JSONAPI.Utils.String do
   end
 
   def camelize(value) when is_binary(value) do
-    case Regex.split(
-           ~r{(?<=[a-zA-Z0-9])[-_](?=[a-zA-Z0-9])},
-           to_string(value)
-         ) do
-      words ->
-        [h | t] = words |> Enum.filter(&(&1 != ""))
+    with words <-
+           Regex.split(
+             ~r{(?<=[a-zA-Z0-9])[-_](?=[a-zA-Z0-9])},
+             to_string(value)
+           ) do
+      [h | t] = words |> Enum.filter(&(&1 != ""))
 
-        [String.downcase(h) | camelize_list(t)]
-        |> Enum.join()
+      [String.downcase(h) | camelize_list(t)]
+      |> Enum.join()
     end
   end
 

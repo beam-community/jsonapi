@@ -368,6 +368,58 @@ defmodule JSONAPISerializerTest do
     assert Enum.count(encoded.included) == 4
   end
 
+  describe "when configured to camelize fields" do
+    setup do
+      Application.put_env(:jsonapi, :field_transformation, :camelize)
+
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :field_transformation)
+      end)
+
+      {:ok, []}
+    end
+
+    test "serialize properly camelizes both attributes and relationships" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        inserted_at: NaiveDateTime.utc_now(),
+        body: "Hello world",
+        full_description: "This_is_my_description",
+        author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+        best_comments: [
+          %{
+            id: 5,
+            text: "greatest comment ever",
+            user: %{id: 4, username: "jack", last_name: "bronds"}
+          }
+        ]
+      }
+
+      encoded = Serializer.serialize(PostView, data, nil)
+
+      attributes = encoded[:data][:attributes]
+      relationships = encoded[:data][:relationships]
+      included = encoded[:included]
+
+      assert attributes["fullDescription"] == data[:full_description]
+      assert attributes["insertedAt"] == data[:inserted_at]
+
+      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "2" end)[:attributes][
+               "lastName"
+             ] == "bonds"
+
+      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "4" end)[:attributes][
+               "lastName"
+             ] == "bronds"
+
+      assert List.first(relationships["bestComments"][:data])[:id] == "5"
+
+      assert relationships["bestComments"][:links][:self] ==
+               "/mytype/1/relationships/bestComments"
+    end
+  end
+
   describe "when configured to dasherize fields" do
     setup do
       Application.put_env(:jsonapi, :field_transformation, :dasherize)

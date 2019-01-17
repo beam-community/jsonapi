@@ -230,10 +230,10 @@ defmodule JSONAPI.Serializer do
   defp with_pagination?, do: Application.get_env(:jsonapi, :with_pagination, false)
 
   defp transform_fields(fields) do
-    if JString.field_transformation() == :dasherize do
-      JString.dasherize(fields)
-    else
-      fields
+    case JString.field_transformation() do
+      :camelize -> JString.camelize(fields)
+      :dasherize -> JString.dasherize(fields)
+      _ -> fields
     end
   end
 end
