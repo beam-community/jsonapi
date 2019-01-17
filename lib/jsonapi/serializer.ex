@@ -231,8 +231,8 @@ defmodule JSONAPI.Serializer do
 
   defp transform_fields(fields) do
     case JString.field_transformation() do
-      :camelize -> JString.camelize(fields)
-      :dasherize -> JString.dasherize(fields)
+      :camelize -> JString.expand_fields(fields, &JString.camelize/1)
+      :dasherize -> JString.expand_fields(fields, &JString.dasherize/1)
       _ -> fields
     end
   end

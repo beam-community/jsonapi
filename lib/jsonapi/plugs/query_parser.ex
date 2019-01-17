@@ -253,7 +253,7 @@ defmodule JSONAPI.QueryParser do
     if JString.field_transformation() == :underscore do
       fields
     else
-      JString.underscore(fields)
+      JString.expand_fields(fields, &JString.underscore/1)
     end
   end
 end
