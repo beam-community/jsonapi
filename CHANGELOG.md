@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.9.0 (2019-01-18)
+
+This is the last release before 1.0. As such this release will feature a number
+of deprecations that you'll want to either resolve before upgrading. Should
+you have any trouble with these deprecations please file an issue.
+
+- [Added](https://github.com/jeregrine/jsonapi/pull/151) Expand Build Matrix Again
+- [Added](https://github.com/jeregrine/jsonapi/pull/155) Refactor String Manipulation Utility Module
+- [Internal](https://github.com/jeregrine/jsonapi/pull/152) Move `QueryParser` Test
+- [Added](https://github.com/jeregrine/jsonapi/pull/151) Expand Build Matrix
+- [Added](https://github.com/jeregrine/jsonapi/pull/149) Add Plug to Transform Parameters
+- [Fixed](https://github.com/jeregrine/jsonapi/pull/148) Namespace `Deprecation` module
+- [Internal](https://github.com/jeregrine/jsonapi/pull/146) Consolidate Plug Locations
+- [Fixed](https://github.com/jeregrine/jsonapi/pull/144) Set `Content-Type` for errors
+- [Internal](https://github.com/jeregrine/jsonapi/pull/140) Improve `Application.env` handling in tests
+- [Fixed](https://github.com/jeregrine/jsonapi/pull/139) Update regexes for underscore and dash
+- [Internal](https://github.com/jeregrine/jsonapi/pull/135) Remove leading `is_` from `is_data_loaded?`
+- [Fixed](https://github.com/jeregrine/jsonapi/pull/129) Remove warning about hidden being undefined
+- [Added](https://github.com/jeregrine/jsonapi/pull/126) Allows for conditionally hiding fields
+- [Fixed](https://github.com/jeregrine/jsonapi/pull/124) Omit non-Object meta
+
 ## v0.7.0-0.8.0 (2018-06-13)
 
 (Sorry I missed 0.7.0)
