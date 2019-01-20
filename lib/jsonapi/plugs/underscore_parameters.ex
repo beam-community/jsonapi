@@ -33,7 +33,7 @@ defmodule JSONAPI.UnderscoreParameters do
 
   import Plug.Conn
 
-  import JSONAPI.Utils.String, only: [underscore: 1]
+  alias JSONAPI.Utils.String, as: JString
 
   @doc false
   def init(_opts) do
@@ -44,7 +44,7 @@ defmodule JSONAPI.UnderscoreParameters do
     content_type = get_req_header(conn, "content-type")
 
     if JSONAPI.mime_type() in content_type do
-      new_params = underscore(params)
+      new_params = JString.expand_fields(params, &JString.underscore/1)
 
       Map.put(conn, :params, new_params)
     else
