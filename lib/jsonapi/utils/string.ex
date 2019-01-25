@@ -179,18 +179,6 @@ defmodule JSONAPI.Utils.String do
     fun.(value)
   end
 
-  defp normalized_underscore_to_dash_config(value) when is_boolean(value) do
-    Deprecation.warn(:underscore_to_dash)
-
-    if value do
-      :dasherize
-    else
-      :underscore
-    end
-  end
-
-  defp normalized_underscore_to_dash_config(value) when is_nil(value), do: value
-
   @doc """
   The configured transformation for the API's fields. JSON:API v1.1 recommends
   using camlized fields (e.g. "goodDog", versus "good_dog").  However, we don't hold a strong
@@ -219,8 +207,7 @@ defmodule JSONAPI.Utils.String do
   ```
   """
   def field_transformation do
-    normalized_underscore_to_dash_config(Application.get_env(:jsonapi, :underscore_to_dash)) ||
-      field_transformation(Application.get_env(:jsonapi, :field_transformation))
+    field_transformation(Application.get_env(:jsonapi, :field_transformation))
   end
 
   @doc false

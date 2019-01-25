@@ -27,11 +27,4 @@ defmodule JSONAPI.Deprecation do
       Macro.Env.stacktrace(__ENV__)
     )
   end
-
-  def warn(:underscore_to_dash) do
-    IO.warn(
-      "`:underscore_to_dash` is deprecated. If you want underscored fields, set `:field_transformation` to :underscore. If you want your fields to be dashed, set to :dasherized",
-      Macro.Env.stacktrace(__ENV__)
-    )
-  end
 end

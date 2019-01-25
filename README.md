@@ -133,7 +133,6 @@ Under-the-hood `JSONAPI.EnsureSpec` relies on three individual plugs:
 config :jsonapi,
   host: "www.someotherhost.com",
   scheme: "https",
-  underscore_to_dash: true, # DEPRECATED
   field_transformation: :underscore,
   remove_links: false,
   json_library: Jason
@@ -151,9 +150,6 @@ config :jsonapi,
   `"favorite-color": blue`). If your API uses dashed fields, set this value to
   `:dasherize`. If your API uses underscores (e.g. `"favorite_color": "red"`)
   set to `:underscore`.
-- **underscore_to_dash**. This is a deprecated option that previously defaulted
-  to `false`. Please set the appropriate value on the `field_transformation`
-  configuration option.
 
 ## Other
 
