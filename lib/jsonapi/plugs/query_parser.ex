@@ -1,8 +1,7 @@
 defmodule JSONAPI.QueryParser do
   @behaviour Plug
-  alias JSONAPI.{Config, Deprecation, Page}
+  alias JSONAPI.{Config, Page}
   alias JSONAPI.Exceptions.InvalidQuery
-  alias JSONAPI.Utils.String, as: JString
   alias Plug.Conn
   import JSONAPI.Utils.IncludeTree
 
@@ -183,7 +182,7 @@ defmodule JSONAPI.QueryParser do
       if inc =~ ~r/\w+\.\w+/ do
         acc ++ handle_nested_include(inc, valid_includes, config)
       else
-        inc = inc |> normalize_fields() |> String.to_existing_atom()
+        inc = inc |> String.to_existing_atom()
 
         if Enum.any?(valid_includes, fn {key, _val} -> key == inc end) do
           acc ++ [inc]
@@ -198,7 +197,6 @@ defmodule JSONAPI.QueryParser do
     keys =
       key
       |> String.split(".")
-      |> Enum.map(&normalize_fields/1)
       |> Enum.map(&String.to_existing_atom/1)
 
     last = List.last(keys)
@@ -241,15 +239,5 @@ defmodule JSONAPI.QueryParser do
       end
 
     struct(struct, processed_map)
-  end
-
-  defp normalize_fields(fields) do
-    Deprecation.warn(:query_parser_dash)
-
-    if JString.field_transformation() == :underscore do
-      fields
-    else
-      JString.expand_fields(fields, &JString.underscore/1)
-    end
   end
 end

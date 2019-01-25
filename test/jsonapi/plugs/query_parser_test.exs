@@ -88,24 +88,6 @@ defmodule JSONAPI.QueryParserTest do
     end
   end
 
-  describe "when API configured for dashed fields" do
-    setup do
-      Application.put_env(:jsonapi, :field_transformation, :dasherize)
-
-      on_exit(fn ->
-        Application.delete_env(:jsonapi, :field_transformation)
-      end)
-
-      {:ok, []}
-    end
-
-    test "parse_include/2 turns an include string into a keyword list" do
-      config = struct(Config, view: MyView)
-      assert parse_include(config, "author.top-posts").include == [author: :top_posts]
-      assert parse_include(config, "best-friends").include == [:best_friends]
-    end
-  end
-
   test "parse_include/2 errors with invalid includes" do
     config = struct(Config, view: MyView)
 

@@ -3,8 +3,6 @@ defmodule JSONAPI.Utils.String do
   String manipulation helpers.
   """
 
-  alias JSONAPI.Deprecation
-
   @allowed_transformations [:camelize, :dasherize, :underscore]
 
   @doc """
