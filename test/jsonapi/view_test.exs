@@ -36,7 +36,7 @@ defmodule JSONAPI.ViewTest do
       "#{user.first_name} #{user.last_name}"
     end
 
-    def hidden do
+    def hidden(_data) do
       [:password]
     end
   end

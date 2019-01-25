@@ -14,13 +14,6 @@ defmodule JSONAPI.Deprecation do
     )
   end
 
-  def warn(:hidden) do
-    IO.warn(
-      "`JSONAPI.View.hidden/0` is deprecated; use `JSONAPI.View.hidden/1` instead.",
-      Macro.Env.stacktrace(__ENV__)
-    )
-  end
-
   def warn(:query_parser_dash) do
     IO.warn(
       "`JSONAPI.QueryParser` will no longer automatically dasherize incoming parameters. Please include `JSONAPI.UnderscoreParameters` in your pipeline. See https://github.com/jeregrine/jsonapi/pull/149",
