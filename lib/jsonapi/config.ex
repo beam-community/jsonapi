@@ -7,7 +7,6 @@ defmodule JSONAPI.Config do
             fields: %{},
             filter: [],
             include: [],
-            includes: [],
             opts: nil,
             required_fields: nil,
             sort: nil,

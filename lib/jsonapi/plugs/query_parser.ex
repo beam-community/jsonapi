@@ -172,11 +172,7 @@ defmodule JSONAPI.QueryParser do
   def parse_include(%Config{} = config, include_str) do
     includes = handle_include(include_str, config)
 
-    Deprecation.warn(:includes)
-
-    config
-    |> Map.put(:includes, includes)
-    |> Map.put(:include, includes)
+    Map.put(config, :include, includes)
   end
 
   def handle_include(str, config) when is_binary(str) do
@@ -232,7 +228,7 @@ defmodule JSONAPI.QueryParser do
 
   defp build_config(opts) do
     view = Keyword.fetch!(opts, :view)
-    struct(JSONAPI.Config, opts: opts, view: view)
+    struct(Config, opts: opts, view: view)
   end
 
   defp struct_from_map(params, struct) do
