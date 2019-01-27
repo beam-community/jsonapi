@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.0 (2019-01-27)
+
+Hot on the heels of 0.9.0, 1.0.0 is here! Please remember to upgrade to 0.9.0
+first. You'll find the upgrade path much easier.
+
+- [Added](https://github.com/jeregrine/jsonapi/pull/170) run Dialyzer on CI
+- [Fixed](https://github.com/jeregrine/jsonapi/issues/134) bad includes result in HTTP 500 response
+- [Removed](https://github.com/jeregrine/jsonapi/pull/163) all deprecated code
+- [Added](https://github.com/jeregrine/jsonapi/pull/158) `camelCase` field support for JSON:API v1.1
+- [Added](https://github.com/jeregrine/jsonapi/pull/164) support for arbitrary links
+- [Added](https://github.com/jeregrine/jsonapi/pull/161) Elixir 1.8 to the build matrix
+
 ## 0.9.0 (2019-01-18)
 
 This is the last release before 1.0. As such this release will feature a number
