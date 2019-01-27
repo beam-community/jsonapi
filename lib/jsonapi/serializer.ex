@@ -146,6 +146,12 @@ defmodule JSONAPI.Serializer do
     merge_related_links(data, info, remove_links?())
   end
 
+  defp merge_base_links(doc, data, view, conn) do
+    links = Map.merge(%{self: view.url_for(data, conn)}, view.links(data, conn))
+
+    Map.merge(doc, %{links: links})
+  end
+
   defp merge_links(doc, data, view, conn, false, true) do
     pagination_links = view.links(data, conn)
 
@@ -155,15 +161,11 @@ defmodule JSONAPI.Serializer do
       )
     end
 
-    links =
-      %{self: view.url_for(data, conn)}
-      |> Map.merge(view.links(data, conn))
-
-    Map.merge(doc, %{links: links})
+    merge_base_links(doc, data, view, conn)
   end
 
   defp merge_links(doc, data, view, conn, false, false) do
-    Map.merge(doc, %{links: %{self: view.url_for(data, conn)}})
+    merge_base_links(doc, data, view, conn)
   end
 
   defp merge_links(doc, _data, _view, _conn, _remove_links, _with_pagination), do: doc

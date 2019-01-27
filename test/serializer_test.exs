@@ -89,6 +89,26 @@ defmodule JSONAPISerializerTest do
     end
   end
 
+  defmodule ExpensiveResourceView do
+    use JSONAPI.View
+
+    def fields, do: [:name]
+
+    def type, do: "expensive-resource"
+
+    def links(data, _conn) do
+      %{
+        queue: "/expensive-resource/queue/#{data.id}",
+        promotions: %{
+          href: "/promotions?rel=#{data.id}",
+          meta: %{
+            title: "Stuff you might be interested in"
+          }
+        }
+      }
+    end
+  end
+
   setup do
     Application.put_env(:jsonapi, :field_transformation, :underscore)
 
@@ -549,5 +569,26 @@ defmodule JSONAPISerializerTest do
     encoded = Serializer.serialize(UserView, data, nil)
 
     refute encoded[:links][:next]
+  end
+
+  test "serialize can include arbitrary, user-defined, links" do
+    data = %{id: 1}
+
+    assert %{
+             links: links
+           } = Serializer.serialize(ExpensiveResourceView, data, nil)
+
+    expected_links = %{
+      self: "/expensive-resource/#{data.id}",
+      queue: "/expensive-resource/queue/#{data.id}",
+      promotions: %{
+        href: "/promotions?rel=#{data.id}",
+        meta: %{
+          title: "Stuff you might be interested in"
+        }
+      }
+    }
+
+    assert expected_links == links
   end
 end
