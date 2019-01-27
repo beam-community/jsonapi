@@ -182,22 +182,33 @@ defmodule JSONAPI.QueryParser do
       if inc =~ ~r/\w+\.\w+/ do
         acc ++ handle_nested_include(inc, valid_includes, config)
       else
-        inc = inc |> String.to_existing_atom()
+        inc =
+          try do
+            String.to_existing_atom(inc)
+          rescue
+            ArgumentError -> raise_invalid_include_query(inc, config.view.type())
+          end
 
         if Enum.any?(valid_includes, fn {key, _val} -> key == inc end) do
           acc ++ [inc]
         else
-          raise InvalidQuery, resource: config.view.type(), param: inc, param_type: :include
+          raise_invalid_include_query(inc, config.view.type())
         end
       end
     end)
   end
 
+  @spec handle_nested_include(key :: String.t(), valid_include :: list(), config :: Config.t()) ::
+          list() | no_return()
   def handle_nested_include(key, valid_include, config) do
     keys =
-      key
-      |> String.split(".")
-      |> Enum.map(&String.to_existing_atom/1)
+      try do
+        key
+        |> String.split(".")
+        |> Enum.map(&String.to_existing_atom/1)
+      rescue
+        ArgumentError -> raise_invalid_include_query(key, config.view.type())
+      end
 
     last = List.last(keys)
     path = Enum.slice(keys, 0, Enum.count(keys) - 1)
@@ -205,7 +216,7 @@ defmodule JSONAPI.QueryParser do
     if member_of_tree?(keys, valid_include) do
       put_as_tree([], path, last)
     else
-      raise InvalidQuery, resource: config.view.type(), param: key, param_type: :include
+      raise_invalid_include_query(key, config.view.type())
     end
   end
 
@@ -222,6 +233,12 @@ defmodule JSONAPI.QueryParser do
       {_, view} -> view
       nil -> raise InvalidQuery, resource: view.type, param: type, param_type: :fields
     end
+  end
+
+  @spec raise_invalid_include_query(param :: String.t(), resource_type :: String.t()) ::
+          no_return()
+  defp raise_invalid_include_query(param, resource_type) do
+    raise InvalidQuery, resource: resource_type, param: param, param_type: :include
   end
 
   defp build_config(opts) do
