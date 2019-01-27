@@ -6,6 +6,7 @@ defmodule JSONAPI.Serializer do
   import JSONAPI.Ecto, only: [assoc_loaded?: 1]
 
   alias JSONAPI.Utils.String, as: JString
+  alias JSONAPI.Config
 
   require Logger
 
@@ -19,7 +20,7 @@ defmodule JSONAPI.Serializer do
   def serialize(view, data, conn \\ nil, meta \\ nil) do
     query_includes =
       case conn do
-        %Plug.Conn{assigns: %{jsonapi_query: %{includes: includes}}} -> includes
+        %Plug.Conn{assigns: %{jsonapi_query: %Config{include: include}}} -> include
         _ -> []
       end
 

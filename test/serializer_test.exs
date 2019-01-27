@@ -1,6 +1,7 @@
 defmodule JSONAPISerializerTest do
   use ExUnit.Case, async: false
-  alias JSONAPI.Serializer
+
+  alias JSONAPI.{Config, Serializer}
 
   import ExUnit.CaptureLog
 
@@ -268,8 +269,8 @@ defmodule JSONAPISerializerTest do
 
     conn = %Plug.Conn{
       assigns: %{
-        jsonapi_query: %{
-          includes: [best_comments: :user]
+        jsonapi_query: %Config{
+          include: [best_comments: :user]
         }
       }
     }
@@ -293,8 +294,8 @@ defmodule JSONAPISerializerTest do
 
     conn = %Plug.Conn{
       assigns: %{
-        jsonapi_query: %{
-          includes: [:company]
+        jsonapi_query: %Config{
+          include: [:company]
         }
       }
     }
@@ -318,8 +319,8 @@ defmodule JSONAPISerializerTest do
 
     conn = %Plug.Conn{
       assigns: %{
-        jsonapi_query: %{
-          includes: [company: :industry]
+        jsonapi_query: %Config{
+          include: [company: :industry]
         }
       }
     }
@@ -354,8 +355,8 @@ defmodule JSONAPISerializerTest do
 
     conn = %Plug.Conn{
       assigns: %{
-        jsonapi_query: %{
-          includes: [company: [industry: :tags]]
+        jsonapi_query: %Config{
+          include: [company: [industry: :tags]]
         }
       }
     }

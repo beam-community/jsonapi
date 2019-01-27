@@ -77,42 +77,15 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_include/2 turns an include string into a keyword list" do
     config = struct(Config, view: MyView)
-    assert parse_include(config, "author,comments.user").includes == [:author, comments: :user]
-    assert parse_include(config, "author").includes == [:author]
-    assert parse_include(config, "comments,author").includes == [:comments, :author]
-    assert parse_include(config, "comments.user").includes == [comments: :user]
-    assert parse_include(config, "best_friends").includes == [:best_friends]
+    assert parse_include(config, "author,comments.user").include == [:author, comments: :user]
+    assert parse_include(config, "author").include == [:author]
+    assert parse_include(config, "comments,author").include == [:comments, :author]
+    assert parse_include(config, "comments.user").include == [comments: :user]
+    assert parse_include(config, "best_friends").include == [:best_friends]
 
     assert_raise ArgumentError, "argument error", fn ->
       assert parse_include(config, "author.top-posts")
     end
-  end
-
-  describe "when API configured for dashed fields" do
-    setup do
-      Application.put_env(:jsonapi, :field_transformation, :dasherize)
-
-      on_exit(fn ->
-        Application.delete_env(:jsonapi, :field_transformation)
-      end)
-
-      {:ok, []}
-    end
-
-    test "parse_include/2 turns an include string into a keyword list" do
-      config = struct(Config, view: MyView)
-      assert parse_include(config, "author.top-posts").includes == [author: :top_posts]
-      assert parse_include(config, "best-friends").includes == [:best_friends]
-    end
-  end
-
-  test "parse_include/2 returns a map with duplicate values for include and includes for compatibility" do
-    include_list =
-      Config
-      |> struct(view: MyView)
-      |> parse_include("comments.user")
-
-    assert include_list.includes == include_list.include
   end
 
   test "parse_include/2 errors with invalid includes" do
