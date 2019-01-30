@@ -30,7 +30,15 @@ env:
 notifications:
   email: false
 
+before_cache:
+  - rm -rf _build/$MIX_HOME/lib
+
+cache:
+  directories:
+    - _build/$MIX_HOME
+
 script:
   - mix test
   - mix credo
+  - mix dialyzer --halt-exit-status
   - if ! [[ `elixir -v` = *"1.5"* ]]; then mix format --check-formatted; fi
