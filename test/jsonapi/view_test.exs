@@ -189,7 +189,28 @@ defmodule JSONAPI.ViewTest do
     assert data.meta.total_pages == 100
   end
 
-  test "attributes/2 does not display hidden fields with deprecated hidden/0" do
+  test "visible_fields/2 returns all field names by default" do
+    data = %{age: 100, first_name: "Jason", last_name: "S", password: "securepw"}
+
+    assert [:age, :first_name, :last_name, :full_name] ==
+             UserView.visible_fields(data, %Plug.Conn{})
+  end
+
+  test "visible_fields/2 removes any hidden field names" do
+    data = %{title: "Hidden body", body: "Something"}
+
+    assert [:title] == PostView.visible_fields(data, %Plug.Conn{})
+  end
+
+  test "visible_fields/2 trims returned field names to only those requested" do
+    data = %{body: "Chunky", title: "Bacon"}
+    config = %JSONAPI.Config{fields: %{PostView.type() => [:body]}}
+    conn = %Plug.Conn{assigns: %{jsonapi_query: config}}
+
+    assert [:body] == PostView.visible_fields(data, conn)
+  end
+
+  test "attributes/2 does not display hidden fields" do
     expected_map = %{age: 100, first_name: "Jason", last_name: "S", full_name: "Jason S"}
 
     assert expected_map ==
@@ -214,5 +235,13 @@ defmodule JSONAPI.ViewTest do
                %{title: "Other title", body: "Something"},
                nil
              )
+  end
+
+  test "attributes/2 can return only requested fields" do
+    data = %{body: "Chunky", title: "Bacon"}
+    config = %JSONAPI.Config{fields: %{PostView.type() => [:body]}}
+    conn = %Plug.Conn{assigns: %{jsonapi_query: config}}
+
+    assert %{body: "Chunky"} == PostView.attributes(data, conn)
   end
 end

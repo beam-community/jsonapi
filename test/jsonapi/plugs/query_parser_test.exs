@@ -119,6 +119,10 @@ defmodule JSONAPI.QueryParserTest do
     assert_raise InvalidQuery, "invalid fields, blag for type mytype", fn ->
       parse_fields(config, %{"mytype" => "blag"})
     end
+
+    assert_raise InvalidQuery, "invalid fields, username for type mytype", fn ->
+      parse_fields(config, %{"mytype" => "username"})
+    end
   end
 
   test "get_view_for_type/2" do

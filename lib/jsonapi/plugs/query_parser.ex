@@ -4,22 +4,24 @@ defmodule JSONAPI.QueryParser do
   alias JSONAPI.Exceptions.InvalidQuery
   alias Plug.Conn
   import JSONAPI.Utils.IncludeTree
+  import JSONAPI.Utils.String, only: [underscore: 1]
 
   @moduledoc """
-  Implements a fully JSONAPI V1 spec for parsing a complex query string and returning elixir
-  datastructures. The purpose is to validate and encode incoming queries and fail quickly.
+  Implements a fully JSONAPI V1 spec for parsing a complex query string and
+  returning Elixir datastructures. The purpose is to validate and encode incoming
+  queries and fail quickly.
 
   Primarialy this handles:
     * [sorts](http://jsonapi.org/format/#fetching-sorting)
     * [include](http://jsonapi.org/format/#fetching-includes)
     * [filtering](http://jsonapi.org/format/#fetching-filtering)
-    * [sparse fieldsets](http://jsonapi.org/format/#fetching-includes)
+    * [sparse fieldsets](https://jsonapi.org/format/#fetching-sparse-fieldsets)
     * [pagination](http://jsonapi.org/format/#fetching-pagination)
 
-  This plug works in conjunction with a JSONAPI View as well as some plug defined
-  configuration.
+  This Plug works in conjunction with a `JSONAPI.View` as well as some Plug
+  defined configuration.
 
-  In your controller you may add
+  In your controller you may add:
 
   ```
   plug JSONAPI.QueryParser,
@@ -29,10 +31,13 @@ defmodule JSONAPI.QueryParser do
   ```
 
   If your controller's index function receives a query with params inside those
-  bounds it will build a JSONAPI.Config that has all the validated and parsed
-  fields for your usage. The final configuration will be added to assigns `jsonapi_query`.
+  bounds it will build a `JSONAPI.Config` that has all the validated and parsed
+  fields for your usage. The final configuration will be added to assigns
+  `jsonapi_query`.
 
-  The final output will be a `JSONAPI.Config` struct and will look similar to like
+  The final output will be a `JSONAPI.Config` struct and will look similar to the
+  following:
+
       %JSONAPI.Config{
         view: MyView,
         opts: [view: MyView, sort: ["created_at", "title"], filter: ["title"]],
@@ -50,8 +55,13 @@ defmodule JSONAPI.QueryParser do
       }
 
   The final result should allow you to build a query quickly and with little overhead.
-  You will notice the fields section is a not as easy to work with as the others and
-  that is a result of Ecto not supporting high quality selects quite yet. This is a WIP.
+
+  ## Spare Fieldsets
+
+  Sparse fieldsets are supported. By default your response will include all
+  available fields. Note that the query to your database is left to you. Should
+  you want to query your DB for specific fields `JSONAPI.Config.fields` will
+  return the requested fields for each resource (see above example).
 
   ## Options
     * `:view` - The JSONAPI View which is the basis for this plug.
@@ -67,10 +77,12 @@ defmodule JSONAPI.QueryParser do
   For more details please see `JSONAPI.UnderscoreParameters`.
   """
 
+  @impl Plug
   def init(opts) do
     build_config(opts)
   end
 
+  @impl Plug
   def call(conn, opts) do
     query_params_config_struct =
       conn
@@ -94,6 +106,7 @@ defmodule JSONAPI.QueryParser do
   def parse_pagination(%Config{} = config, page),
     do: Map.put(config, :page, struct_from_map(page, %Page{}))
 
+  @spec parse_filter(Config.t(), keyword()) :: Config.t()
   def parse_filter(config, map) when map_size(map) == 0, do: config
 
   def parse_filter(%Config{opts: opts} = config, filter) do
@@ -111,7 +124,8 @@ defmodule JSONAPI.QueryParser do
     end
   end
 
-  def parse_fields(config, map) when map_size(map) == 0, do: config
+  @spec parse_fields(Config.t(), map()) :: Config.t() | no_return()
+  def parse_fields(%Config{} = config, fields) when fields == %{}, do: config
 
   def parse_fields(%Config{} = config, fields) do
     Enum.reduce(fields, config, fn {type, value}, acc ->
@@ -121,9 +135,14 @@ defmodule JSONAPI.QueryParser do
         |> Enum.into(MapSet.new())
 
       requested_fields =
-        value
-        |> String.split(",")
-        |> Enum.into(MapSet.new(), &String.to_atom/1)
+        try do
+          value
+          |> String.split(",")
+          |> Enum.map(&underscore/1)
+          |> Enum.into(MapSet.new(), &String.to_existing_atom/1)
+        rescue
+          ArgumentError -> raise_invalid_field_names(value, config.view.type())
+        end
 
       unless MapSet.subset?(requested_fields, valid_fields) do
         bad_fields =
@@ -132,10 +151,7 @@ defmodule JSONAPI.QueryParser do
           |> MapSet.to_list()
           |> Enum.join(",")
 
-        raise InvalidQuery,
-          resource: config.view.type(),
-          param: bad_fields,
-          param_type: :fields
+        raise_invalid_field_names(bad_fields, config.view.type())
       end
 
       %{acc | fields: Map.put(acc.fields, type, MapSet.to_list(requested_fields))}
@@ -220,7 +236,8 @@ defmodule JSONAPI.QueryParser do
     end
   end
 
-  def get_valid_fields_for_type(%{view: view}, type) do
+  @spec get_valid_fields_for_type(Config.t(), String.t()) :: list(atom())
+  def get_valid_fields_for_type(%Config{view: view}, type) do
     if type == view.type do
       view.fields
     else
@@ -228,10 +245,11 @@ defmodule JSONAPI.QueryParser do
     end
   end
 
+  @spec get_view_for_type(module(), String.t()) :: module() | no_return()
   def get_view_for_type(view, type) do
     case Enum.find(view.relationships, fn {k, _v} -> Atom.to_string(k) == type end) do
       {_, view} -> view
-      nil -> raise InvalidQuery, resource: view.type, param: type, param_type: :fields
+      nil -> raise_invalid_field_names(type, view.type())
     end
   end
 
@@ -239,6 +257,12 @@ defmodule JSONAPI.QueryParser do
           no_return()
   defp raise_invalid_include_query(param, resource_type) do
     raise InvalidQuery, resource: resource_type, param: param, param_type: :include
+  end
+
+  @spec raise_invalid_field_names(bad_fields :: String.t(), resource_type :: String.t()) ::
+          no_return()
+  defp raise_invalid_field_names(bad_fields, resource_type) do
+    raise InvalidQuery, resource: resource_type, param: bad_fields, param_type: :fields
   end
 
   defp build_config(opts) do

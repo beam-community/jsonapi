@@ -13,7 +13,7 @@ defmodule JSONAPITest do
   defmodule PostView do
     use JSONAPI.View
 
-    def fields, do: [:text, :body, :excerpt]
+    def fields, do: [:text, :body, :excerpt, :first_character]
     def type, do: "mytype"
 
     def relationships do
@@ -21,8 +21,11 @@ defmodule JSONAPITest do
     end
 
     def excerpt(post, _conn) do
-      letter = String.slice(post.text, 0..1)
-      letter
+      String.slice(post.text, 0..1)
+    end
+
+    def first_character(post, _conn) do
+      String.first(post.text)
     end
   end
 
@@ -273,6 +276,69 @@ defmodule JSONAPITest do
            end)
 
     assert Map.has_key?(json, "links")
+  end
+
+  describe "with an underscored API" do
+    setup do
+      Application.put_env(:jsonapi, :field_transformation, :underscore)
+
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :field_transformation)
+      end)
+
+      {:ok, []}
+    end
+
+    test "handles sparse fields properly" do
+      conn =
+        :get
+        |> conn("/posts?include=other_user.company&fields[mytype]=text,excerpt,first_character")
+        |> Plug.Conn.assign(:data, [@default_data])
+        |> MyPostPlug.call([])
+
+      assert %{
+               "data" => [
+                 %{"attributes" => attributes}
+               ]
+             } = Jason.decode!(conn.resp_body)
+
+      assert %{
+               "text" => "Hello",
+               "excerpt" => "He",
+               "first_character" => "H"
+             } == attributes
+    end
+  end
+
+  describe "with a dasherized API" do
+    setup do
+      Application.put_env(:jsonapi, :field_transformation, :dasherize)
+
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :field_transformation)
+      end)
+
+      {:ok, []}
+    end
+
+    test "handles sparse fields properly" do
+      conn =
+        :get
+        |> conn("/posts?include=other_user.company&fields[mytype]=text,first-character")
+        |> Plug.Conn.assign(:data, [@default_data])
+        |> MyPostPlug.call([])
+
+      assert %{
+               "data" => [
+                 %{"attributes" => attributes}
+               ]
+             } = Jason.decode!(conn.resp_body)
+
+      assert %{
+               "text" => "Hello",
+               "first-character" => "H"
+             } == attributes
+    end
   end
 
   test "omits explicit nil meta values as per http://jsonapi.org/format/#document-meta" do

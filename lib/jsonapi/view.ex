@@ -56,6 +56,23 @@ defmodule JSONAPI.View do
         def relationships, do: []
       end
 
+  Fields may be omitted manually using the `hidden/1` function.
+
+      defmodule UserView do
+        use JSONAPI.View
+
+        def fields, do: [:id, :username, :email]
+
+        def type, do: "user"
+
+        def hidden(_data) do
+          [:email] # will be removed from the response
+        end
+      end
+
+  In order to use [sparse fieldsets](https://jsonapi.org/format/#fetching-sparse-fieldsets)
+  you must include the `JSONAPI.QueryParser` plug.
+
   ## Relationships
 
   Currently the relationships callback expects that a map is returned
@@ -94,6 +111,9 @@ defmodule JSONAPI.View do
   The default behaviour for `host` and `scheme` is to derive it from the `conn` provided, while the
   default style for presentation in names is to be underscored and not dashed.
   """
+
+  alias Plug.Conn
+
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)
     {namespace, _opts} = Keyword.pop(opts, :namespace)
@@ -120,10 +140,37 @@ defmodule JSONAPI.View do
         def namespace, do: Application.get_env(:jsonapi, :namespace, "")
       end
 
-      def attributes(data, conn) do
-        hidden = hidden(data)
+      defp requested_fields_for_type(%Conn{assigns: %{jsonapi_query: %{fields: fields}}} = conn) do
+        fields[type()]
+      end
 
-        visible_fields = fields() -- hidden
+      defp requested_fields_for_type(_conn), do: nil
+
+      defp net_fields_for_type(requested_fields, fields) when requested_fields in [nil, %{}],
+        do: fields
+
+      defp net_fields_for_type(requested_fields, fields) do
+        fields
+        |> MapSet.new()
+        |> MapSet.intersection(MapSet.new(requested_fields))
+        |> MapSet.to_list()
+      end
+
+      @spec visible_fields(map(), conn :: nil | Conn.t()) :: list(atom)
+      def visible_fields(data, conn) do
+        all_fields =
+          conn
+          |> requested_fields_for_type()
+          |> net_fields_for_type(fields())
+
+        hidden_fields = hidden(data)
+
+        all_fields -- hidden_fields
+      end
+
+      @spec attributes(map(), conn :: nil | Conn.t()) :: map()
+      def attributes(data, conn) do
+        visible_fields = visible_fields(data, conn)
 
         Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
           value =
