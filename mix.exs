@@ -14,6 +14,7 @@ defmodule JSONAPI.Mixfile do
       start_permanent: Mix.env() == :prod,
       source_url: "https://github.com/jeregrine/jsonapi",
       deps: deps(),
+      dialyzer: dialyzer(),
       docs: [
         extras: [
           "README.md"
@@ -37,6 +38,12 @@ defmodule JSONAPI.Mixfile do
     ]
   end
 
+  defp dialyzer do
+    [
+      plt_add_deps: :app_tree
+    ]
+  end
+
   defp deps do
     [
       {:plug, "~> 1.0"},
@@ -44,7 +51,8 @@ defmodule JSONAPI.Mixfile do
       {:ex_doc, "~> 0.7", only: :dev},
       {:earmark, ">= 0.0.0", only: :dev},
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:phoenix, "~> 1.3", only: :test}
+      {:phoenix, "~> 1.3", only: :test},
+      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev, :test], runtime: false}
     ]
   end
 

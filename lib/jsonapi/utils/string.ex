@@ -157,7 +157,6 @@ defmodule JSONAPI.Utils.String do
   @spec expand_fields(map, function) :: map
   def expand_fields(%{__struct__: _} = value, _fun), do: value
 
-  @spec expand_fields(map, function) :: map
   def expand_fields(map, fun) when is_map(map) do
     Enum.into(map, %{}, &expand_fields(&1, fun))
   end
@@ -167,12 +166,10 @@ defmodule JSONAPI.Utils.String do
     {fun.(key), expand_fields(value, fun)}
   end
 
-  @spec expand_fields(tuple, function) :: tuple
   def expand_fields({key, value}, fun) do
     {fun.(key), value}
   end
 
-  @spec expand_fields(any, function) :: any
   def expand_fields(value, fun) do
     fun.(value)
   end
