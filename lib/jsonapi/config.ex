@@ -16,13 +16,13 @@ defmodule JSONAPI.Config do
             page: %Page{}
 
   @type t :: %__MODULE__{
-          data: struct,
+          data: nil | map,
           fields: map,
           filter: keyword,
           include: keyword,
-          opts: any,
+          opts: nil | keyword,
           required_fields: any,
-          sort: any,
+          sort: nil | keyword,
           view: any,
           page: Page.t()
         }
