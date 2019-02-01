@@ -10,10 +10,10 @@ defmodule JSONAPI.Page do
             cursor: nil
 
   @type t :: %__MODULE__{
-          limit: non_neg_integer,
-          offset: non_neg_integer,
-          size: non_neg_integer,
-          page: non_neg_integer,
-          cursor: non_neg_integer
+          limit: nil | non_neg_integer,
+          offset: nil | non_neg_integer,
+          size: nil | non_neg_integer,
+          page: nil | non_neg_integer,
+          cursor: nil | non_neg_integer
         }
 end
