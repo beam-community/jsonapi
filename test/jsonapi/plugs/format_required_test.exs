@@ -63,7 +63,6 @@ defmodule JSONAPI.FormatRequiredTest do
   end
 
   test "accepts a multi-RIO payload for relationship PATCH endpoints" do
-    # Cf. https://jsonapi.org/format/#crud-updating-to-many-relationships
     conn =
       :patch
       |> conn("/example", Jason.encode!(%{data: [%{type: "something"}]}))
@@ -73,7 +72,6 @@ defmodule JSONAPI.FormatRequiredTest do
   end
 
   test "accepts a multi-RIO payload for relationship POST endpoints" do
-    # Cf. https://jsonapi.org/format/#crud-updating-to-many-relationships
     conn =
       :post
       |> conn("/example", Jason.encode!(%{data: [%{type: "something"}]}))
