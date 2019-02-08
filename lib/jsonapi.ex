@@ -9,7 +9,7 @@ defmodule JSONAPI do
   in your `config/config.exs`:
       config :jsonapi, :json_library, Jason
   """
-  def json_library() do
+  def json_library do
     module = Application.get_env(:jsonapi, :json_library, Jason)
 
     if Code.ensure_loaded?(module) do
@@ -30,7 +30,5 @@ defmodule JSONAPI do
   @doc """
   This returns the MIME type for JSONAPIs
   """
-  def mime_type() do
-    @mime_type
-  end
+  def mime_type, do: @mime_type
 end

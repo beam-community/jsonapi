@@ -5,8 +5,8 @@ defmodule JSONAPI.Serializer do
 
   import JSONAPI.Ecto, only: [assoc_loaded?: 1]
 
-  alias JSONAPI.Utils.String, as: JString
-  alias JSONAPI.Config
+  alias JSONAPI.{Config, Utils}
+  alias Utils.String, as: JString
 
   require Logger
 
