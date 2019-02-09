@@ -62,10 +62,28 @@ defmodule JSONAPI.FormatRequiredTest do
     refute conn.halted
   end
 
-  test "accepts a multi-RIO payload for relationship PATCH endpoints" do
+  test "halts with a multi-RIO payload to a non-relationship PATCH endpoint" do
     conn =
       :patch
       |> conn("/example", Jason.encode!(%{data: [%{type: "something"}]}))
+      |> call_plug
+
+    assert conn.halted
+  end
+
+  test "halts with a multi-RIO payload to a non-relationship POST endpoint" do
+    conn =
+      :post
+      |> conn("/example", Jason.encode!(%{data: [%{type: "something"}]}))
+      |> call_plug
+
+    assert conn.halted
+  end
+
+  test "accepts a multi-RIO payload for relationship PATCH endpoints" do
+    conn =
+      :patch
+      |> conn("/example/relationships/things", Jason.encode!(%{data: [%{type: "something"}]}))
       |> call_plug
 
     refute conn.halted
@@ -74,7 +92,7 @@ defmodule JSONAPI.FormatRequiredTest do
   test "accepts a multi-RIO payload for relationship POST endpoints" do
     conn =
       :post
-      |> conn("/example", Jason.encode!(%{data: [%{type: "something"}]}))
+      |> conn("/example/relationships/things", Jason.encode!(%{data: [%{type: "something"}]}))
       |> call_plug
 
     refute conn.halted

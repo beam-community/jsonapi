@@ -16,7 +16,11 @@ defmodule JSONAPI.FormatRequired do
 
   def call(%{method: method, params: %{"data" => [%{"type" => _} | _]}} = conn, _)
       when method in @update_has_many_relationships_methods do
-    conn
+    if String.contains?(conn.request_path, "relationships") do
+      conn
+    else
+      send_error(conn, to_many_relationships_payload_for_standard_endpoint())
+    end
   end
 
   def call(%{params: %{"data" => %{"type" => _, "id" => _}}} = conn, _), do: conn
