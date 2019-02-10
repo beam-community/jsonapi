@@ -39,6 +39,6 @@ cache:
 
 script:
   - mix test
-  - mix credo
+  - mix credo --strict
   - if [[ `elixir -v` = *"1.8"* ]]; then mix dialyzer --halt-exit-status; fi
   - if ! [[ `elixir -v` = *"1.5"* ]]; then mix format --check-formatted; fi
