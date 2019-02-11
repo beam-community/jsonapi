@@ -5,5 +5,9 @@ erl_crash.dump
 mix.lock
 /doc
 
+# Dialyzer
+/priv/plts/*.plt
+/priv/plts/*.plt.hash
+
 .DS_Store
 .elixir_ls

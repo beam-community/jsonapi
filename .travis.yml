@@ -30,12 +30,9 @@ env:
 notifications:
   email: false
 
-before_cache:
-  - rm -rf _build/$MIX_HOME/lib
-
 cache:
   directories:
-    - _build/$MIX_HOME
+    - priv/plts
 
 script:
   - mix test
