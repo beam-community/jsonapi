@@ -62,6 +62,38 @@ defmodule JSONAPI.FormatRequiredTest do
     refute conn.halted
   end
 
+  test "halts with a multi-RIO payload to a non-relationship PATCH endpoint" do
+    :patch
+    |> conn("/example", Jason.encode!(%{data: [%{type: "something"}]}))
+    |> call_plug
+    |> assert_improper_use_of_multi_rio()
+  end
+
+  test "halts with a multi-RIO payload to a non-relationship POST endpoint" do
+    :post
+    |> conn("/example", Jason.encode!(%{data: [%{type: "something"}]}))
+    |> call_plug
+    |> assert_improper_use_of_multi_rio()
+  end
+
+  test "accepts a multi-RIO payload for relationship PATCH endpoints" do
+    conn =
+      :patch
+      |> conn("/example/relationships/things", Jason.encode!(%{data: [%{type: "something"}]}))
+      |> call_plug
+
+    refute conn.halted
+  end
+
+  test "accepts a multi-RIO payload for relationship POST endpoints" do
+    conn =
+      :post
+      |> conn("/example/relationships/things", Jason.encode!(%{data: [%{type: "something"}]}))
+      |> call_plug
+
+    refute conn.halted
+  end
+
   test "passes request through" do
     conn =
       :post
@@ -69,6 +101,22 @@ defmodule JSONAPI.FormatRequiredTest do
       |> call_plug
 
     refute conn.halted
+  end
+
+  defp assert_improper_use_of_multi_rio(conn) do
+    assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
+
+    assert %{
+             "detail" =>
+               "Check out https://jsonapi.org/format/#crud-updating-to-many-relationships for more info.",
+             "source" => %{"pointer" => "/data"},
+             "status" => 400,
+             "title" =>
+               "Data parameter has multiple Resource Identifier Objects for a non-relationship endpoint"
+           } = error
   end
 
   defp call_plug(conn) do

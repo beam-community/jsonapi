@@ -52,6 +52,16 @@ defmodule JSONAPI.ErrorView do
     |> serialize_error
   end
 
+  def to_many_relationships_payload_for_standard_endpoint do
+    "Data parameter has multiple Resource Identifier Objects for a non-relationship endpoint"
+    |> build_error(
+      400,
+      "Check out https://jsonapi.org/format/#crud-updating-to-many-relationships for more info.",
+      "/data"
+    )
+    |> serialize_error
+  end
+
   def send_error(conn, %{errors: [%{status: status}]} = error),
     do: send_error(conn, status, error)
 
