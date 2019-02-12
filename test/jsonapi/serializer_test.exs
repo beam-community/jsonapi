@@ -1,4 +1,4 @@
-defmodule JSONAPISerializerTest do
+defmodule JSONAPI.SerializerTest do
   use ExUnit.Case, async: false
 
   alias JSONAPI.{Config, Serializer}
@@ -14,8 +14,8 @@ defmodule JSONAPISerializerTest do
 
     def relationships do
       [
-        author: {JSONAPISerializerTest.UserView, :include},
-        best_comments: {JSONAPISerializerTest.CommentView, :include}
+        author: {JSONAPI.SerializerTest.UserView, :include},
+        best_comments: {JSONAPI.SerializerTest.CommentView, :include}
       ]
     end
 
@@ -33,7 +33,7 @@ defmodule JSONAPISerializerTest do
     def type, do: "user"
 
     def relationships do
-      [company: JSONAPISerializerTest.CompanyView]
+      [company: JSONAPI.SerializerTest.CompanyView]
     end
   end
 
@@ -44,7 +44,7 @@ defmodule JSONAPISerializerTest do
     def type, do: "company"
 
     def relationships do
-      [industry: JSONAPISerializerTest.IndustryView]
+      [industry: JSONAPI.SerializerTest.IndustryView]
     end
   end
 
@@ -55,7 +55,7 @@ defmodule JSONAPISerializerTest do
     def type, do: "industry"
 
     def relationships do
-      [tags: JSONAPISerializerTest.TagView]
+      [tags: JSONAPI.SerializerTest.TagView]
     end
   end
 
@@ -74,7 +74,7 @@ defmodule JSONAPISerializerTest do
     def type, do: "comment"
 
     def relationships do
-      [user: {JSONAPISerializerTest.UserView, :include}]
+      [user: {JSONAPI.SerializerTest.UserView, :include}]
     end
   end
 
@@ -85,7 +85,7 @@ defmodule JSONAPISerializerTest do
     def type, do: "not-included"
 
     def relationships do
-      [author: JSONAPISerializerTest.UserView, best_comments: JSONAPISerializerTest.CommentView]
+      [author: JSONAPI.SerializerTest.UserView, best_comments: JSONAPI.SerializerTest.CommentView]
     end
   end
 
