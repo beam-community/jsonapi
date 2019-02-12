@@ -40,6 +40,12 @@ defmodule JSONAPI.ErrorView do
     |> serialize_error
   end
 
+  def missing_data_type_param do
+    "Missing type in data parameter"
+    |> build_error(400, @crud_message, "/data/type")
+    |> serialize_error
+  end
+
   def missing_data_param do
     "Missing data parameter"
     |> build_error(400, @crud_message, "/data")
