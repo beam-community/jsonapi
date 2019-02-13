@@ -41,9 +41,10 @@ defmodule JSONAPI.View do
 
   ## Fields
 
-  By default, the resulting JSON document consists of fields, defined in fields/0
-  function. You can define custom fields or override current fields by defining
-  inside the view function `field_name/2` that takes data and conn as arguments.
+  By default, the resulting JSON document consists of fields, defined in the `fields/0`
+  function. You can define custom fields or override current fields by defining a
+  2-arity function inside the view that takes `data` and `conn` as arguments and has
+  the same name as the field it will be producing. Refer to our `fullname/2` example below.
 
       defmodule UserView do
         use JSONAPI.View
