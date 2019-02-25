@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.1.0 (2019-02-23)
+
+### Added
+
+- Various typespec changes
+- The `:namespace` option is [globally configurable](https://github.com/jeregrine/jsonapi/pull/178)
+- Fully support [sparse fieldsets](https://github.com/jeregrine/jsonapi/pull/171)
+
+### Changed
+
+- [Removed](https://github.com/jeregrine/jsonapi/pull/172) `Config.required_fields`
+- Documentation improvements
+
+### Fixes
+
+- Credo is set to use [strict option](https://github.com/jeregrine/jsonapi/pull/177)
+- `FormatRequired` Plug [accepts a legal RIO payload](https://github.com/jeregrine/jsonapi/pull/176)
+- Report on [missing data type as such](https://github.com/jeregrine/jsonapi/pull/180)
+
+### Contributors
+
+Much love to @kbaird, and @zamith.
+
 ## 1.0.0 (2019-01-27)
 
 Hot on the heels of 0.9.0, 1.0.0 is here! Please remember to upgrade to 0.9.0
