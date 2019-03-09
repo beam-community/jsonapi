@@ -145,7 +145,8 @@ defmodule JSONAPITest do
 
   test "handles includes properly" do
     conn =
-      conn(:get, "/posts?include=other_user")
+      :get
+      |> conn("/posts?include=other_user")
       |> Plug.Conn.assign(:data, [@default_data])
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
@@ -218,7 +219,8 @@ defmodule JSONAPITest do
     ]
 
     conn =
-      conn(:get, "/posts?include=other_user.company.industry.tags")
+      :get
+      |> conn("/posts?include=other_user.company.industry.tags")
       |> Plug.Conn.assign(:data, data)
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
