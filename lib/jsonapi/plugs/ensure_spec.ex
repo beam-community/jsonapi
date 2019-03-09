@@ -5,9 +5,10 @@ defmodule JSONAPI.EnsureSpec do
 
   use Plug.Builder
 
-  alias JSONAPI.{ContentTypeNegotiation, FormatRequired, IdRequired}
+  alias JSONAPI.{ContentTypeNegotiation, FormatRequired, IdRequired, ResponseContentType}
 
   plug ContentTypeNegotiation
   plug FormatRequired
   plug IdRequired
+  plug ResponseContentType
 end

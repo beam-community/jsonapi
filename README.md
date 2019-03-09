@@ -122,13 +122,15 @@ We include a set of Plugs to make enforcing the JSONAPI spec for requests easy. 
 plug JSONAPI.EnsureSpec
 ```
 
-Under-the-hood `JSONAPI.EnsureSpec` relies on three individual plugs:
+Under-the-hood `JSONAPI.EnsureSpec` relies on four individual plugs:
 
 - `JSONAPI.ContentTypeNegotiation` — Requires the `Content-Type` and `Accept` headers are set correctly.
 
 - `JSONAPI.FormatRequired` — Verifies that the JSON body matches the expected `%{data: %{attributes: attributes}}` format.
 
 - `JSONAPI.IdRequired` — Confirm the `id` key is present in `%{data: data}` and that it matches the resource's `id` in the URI.
+
+- `JSONAPI.ResponseContentType` — Ensures that you return the correct `Content-Type` header.
 
 ## Configuration
 
