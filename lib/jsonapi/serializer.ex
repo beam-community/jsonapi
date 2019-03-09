@@ -89,16 +89,16 @@ defmodule JSONAPI.Serializer do
 
     rel_data = Map.get(data, key)
 
-    only_rel_view = get_view(rel_view)
     # Build the relationship url
     rel_key = transform_fields(key)
     rel_url = view.url_for_rel(data, rel_key, conn)
+
     # Build the relationship
     acc =
       put_in(
         acc,
         [:relationships, rel_key],
-        encode_relation({only_rel_view, rel_data, rel_url, conn})
+        encode_relation({rel_view, rel_data, rel_url, conn})
       )
 
     valid_include_view = include_view(valid_includes, key)
@@ -225,9 +225,6 @@ defmodule JSONAPI.Serializer do
     end)
     |> List.flatten()
   end
-
-  def get_view({view, :include}), do: view
-  def get_view(view), do: view
 
   defp remove_links?, do: Application.get_env(:jsonapi, :remove_links, false)
   defp with_pagination?, do: Application.get_env(:jsonapi, :with_pagination, false)
