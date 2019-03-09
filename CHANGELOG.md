@@ -10,6 +10,10 @@
   already have `EnsureSpec` in play. Please see the documentation for
   `ResponseContentType` should you wish to override it for a specific end-point.
 
+### Contributors
+
+Much love to @0urobor0s
+
 ## 1.1.0 (2019-02-23)
 
 ### Added
