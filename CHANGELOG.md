@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `EnsureSpec` Plug now sets the JSON:API response content type
+  [for you](https://github.com/jeregrine/jsonapi/pull/185). This means you need
+  not manually include the `ResponseContentType` Plug in your pipeline should you
+  already have `EnsureSpec` in play. Please see the documentation for
+  `ResponseContentType` should you wish to override it for a specific end-point.
+
 ## 1.1.0 (2019-02-23)
 
 ### Added
