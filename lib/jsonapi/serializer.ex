@@ -5,7 +5,7 @@ defmodule JSONAPI.Serializer do
 
   import JSONAPI.Ecto, only: [assoc_loaded?: 1]
 
-  alias JSONAPI.{Config, Utils}
+  alias JSONAPI.{Config, Page, Utils}
   alias Utils.String, as: JString
 
   require Logger
@@ -17,7 +17,7 @@ defmodule JSONAPI.Serializer do
   Please refer to `JSONAPI.View` for more information. If you are in interested in relationships
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
-  def serialize(view, data, conn \\ nil, meta \\ nil) do
+  def serialize(view, data, conn \\ nil, meta \\ nil, page \\ nil) do
     query_includes =
       case conn do
         %Plug.Conn{assigns: %{jsonapi_query: %Config{include: include}}} -> include
@@ -38,7 +38,7 @@ defmodule JSONAPI.Serializer do
         encoded_data
       end
 
-    merge_links(encoded_data, data, view, conn, remove_links?(), with_pagination?())
+    merge_links(encoded_data, data, view, conn, page, remove_links?())
   end
 
   def encode_data(view, data, conn, query_includes) when is_list(data) do
@@ -58,7 +58,7 @@ defmodule JSONAPI.Serializer do
       relationships: %{}
     }
 
-    doc = merge_links(encoded_data, data, view, conn, remove_links?(), false)
+    doc = merge_links(encoded_data, data, view, conn, nil, remove_links?())
 
     doc =
       case view.meta(data, conn) do
@@ -146,29 +146,77 @@ defmodule JSONAPI.Serializer do
     merge_related_links(data, info, remove_links?())
   end
 
-  defp merge_base_links(doc, data, view, conn) do
-    links = Map.merge(%{self: view.url_for(data, conn)}, view.links(data, conn))
+  defp merge_base_links(%{links: links} = doc, data, view, conn) do
+    view_links = %{self: view.url_for(data, conn)}
+    |> Map.merge(view.links(data, conn))
+    |> Map.merge(links)
 
-    Map.merge(doc, %{links: links})
+    doc
+    |> Map.merge(%{links: view_links})
   end
 
-  defp merge_links(doc, data, view, conn, false, true) do
-    pagination_links = view.links(data, conn)
+  defp merge_links(doc, data, view, conn, %Page{size: size, page: page, total_pages: total_pages}, false)
+  when not is_nil(size) and not is_nil(page) and not is_nil(total_pages) do
+    first = view.url_for_pagination(data, conn, %{size: size, page: 1})
+    last = view.url_for_pagination(data, conn, %{size: size, page: total_pages})
 
-    if Enum.empty?(pagination_links) do
-      Logger.info(
-        "You've set with_pagination but have not defined any pagination links, thus no pagination links will be returned"
-      )
+    next = if page != total_pages do
+        view.url_for_pagination(data, conn, %{size: size, page: page + 1})
+    else
+      nil
     end
 
-    merge_base_links(doc, data, view, conn)
+    prev = if page != 1 do
+      view.url_for_pagination(data, conn, %{size: size, page: page - 1})
+    else
+      nil
+    end
+
+    doc
+    |> Map.merge(%{links: %{first: first, last: last, prev: prev, next: next}})
+    |> merge_base_links(data, view, conn)
   end
 
-  defp merge_links(doc, data, view, conn, false, false) do
-    merge_base_links(doc, data, view, conn)
+  defp merge_links(doc, data, view, conn, %Page{limit: limit, offset: offset, total_items: total_items}, false)
+  when not is_nil(limit) and not is_nil(offset) and not is_nil(total_items) do
+    last_offset = Integer.floor_div(total_items, limit) * offset
+    first = view.url_for_pagination(data, conn, %{offset: 0, limit: limit})
+    last = view.url_for_pagination(data, conn, %{offset: last_offset, limit: limit})
+
+    next = if offset * limit < total_items do
+        view.url_for_pagination(data, conn, %{offset: offset + limit, limit: limit})
+    else
+      nil
+    end
+
+    prev = if offset != 0 do
+      view.url_for_pagination(data, conn, %{offset: offset, limit: limit})
+    else
+      nil
+    end
+
+    doc
+    |> Map.merge(%{links: %{first: first, last: last, prev: prev, next: next}})
+    |> merge_base_links(data, view, conn)
   end
 
-  defp merge_links(doc, _data, _view, _conn, _remove_links, _with_pagination), do: doc
+  defp merge_links(doc, data, view, conn, %Page{limit: limit, cursor: cursor}, false)
+  when not is_nil(limit) and not is_nil(cursor) do
+    first = view.url_for_pagination(data, conn, %{cursor: "", limit: limit})
+    next = view.url_for_pagination(data, conn, %{cursor: view.id(Enum.take(data, -1)), limit: limit})
+
+    doc
+    |> Map.merge(%{links: %{first: first, last: nil, prev: nil, next: next}})
+    |> merge_base_links(data, view, conn)
+  end
+
+  defp merge_links(doc, data, view, conn, _page, false) do
+    doc
+    |> Map.merge(%{links: %{}})
+    |> merge_base_links(data, view, conn)
+  end
+
+  defp merge_links(doc, _data, _view, _conn, _page, _remove_links), do: doc
 
   defp merge_related_links(
          encoded_data,
@@ -227,7 +275,6 @@ defmodule JSONAPI.Serializer do
   end
 
   defp remove_links?, do: Application.get_env(:jsonapi, :remove_links, false)
-  defp with_pagination?, do: Application.get_env(:jsonapi, :with_pagination, false)
 
   defp transform_fields(fields) do
     case JString.field_transformation() do

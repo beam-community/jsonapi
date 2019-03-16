@@ -7,13 +7,17 @@ defmodule JSONAPI.Page do
             offset: nil,
             size: nil,
             page: nil,
-            cursor: nil
+            cursor: nil,
+            total_items: nil,
+            total_pages: nil
 
   @type t :: %__MODULE__{
           limit: nil | non_neg_integer,
           offset: nil | non_neg_integer,
           size: nil | non_neg_integer,
           page: nil | non_neg_integer,
-          cursor: nil | non_neg_integer
+          cursor: nil | non_neg_integer,
+          total_items: nil | non_neg_integer,
+          total_pages: nil | non_neg_integer
         }
 end

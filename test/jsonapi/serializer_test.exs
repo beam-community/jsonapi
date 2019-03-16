@@ -1,9 +1,7 @@
 defmodule JSONAPI.SerializerTest do
   use ExUnit.Case, async: false
 
-  alias JSONAPI.{Config, Serializer}
-
-  import ExUnit.CaptureLog
+  alias JSONAPI.{Config, Page, Serializer}
 
   defmodule PostView do
     use JSONAPI.View
@@ -536,38 +534,37 @@ defmodule JSONAPI.SerializerTest do
     Application.delete_env(:jsonapi, :remove_links)
   end
 
-  test "serialize includes pagination links if they are defined and with_pagination is configured" do
+  test "serialize includes pagination links if page-based pagination is requested" do
     data = %{id: 1}
-    Application.put_env(:jsonapi, :with_pagination, true)
 
-    encoded = Serializer.serialize(PostView, data, nil)
+    encoded = Serializer.serialize(PostView, data, nil, nil, %Page{page: 1, size: 10, total_pages: 2})
+
+    assert encoded[:links][:next] ==
+             PostView.url_for_pagination(data, nil, %{page: 2, size: 10})
+  end
+
+  test "serialize includes pagination links if offset-based pagination is requested" do
+    data = %{id: 1}
+
+    encoded = Serializer.serialize(PostView, data, nil, nil, %Page{offset: 0, limit: 10, total_items: 20})
+
+    assert encoded[:links][:next] ==
+             PostView.url_for_pagination(data, nil, %{offset: 10, limit: 10})
+  end
+
+  test "serialize includes pagination links if cursor-based pagination is requested" do
+    data = %{id: 1}
+
+    encoded = Serializer.serialize(PostView, data, nil, nil, %Page{cursor: "some-string", total_pages: 2})
 
     assert encoded[:links][:next] ==
              PostView.url_for_pagination(data, nil, %{cursor: "some-string"})
-
-    Application.delete_env(:jsonapi, :with_pagination)
   end
 
-  test "serialize does not include pagination links if they are not defined even with with_pagination is configured" do
-    data = %{id: 1}
-    Application.put_env(:jsonapi, :with_pagination, true)
-
-    output =
-      capture_log(fn ->
-        encoded = Serializer.serialize(UserView, data, nil)
-
-        refute encoded[:links][:next]
-      end)
-
-    assert Regex.match?(~r/info.*with_pagination/, output)
-    Application.delete_env(:jsonapi, :with_pagination)
-  end
-
-  test "serialize does not include pagination links if with_pagination is not configure" do
+  test "serialize does not include pagination links if they are not defined" do
     data = %{id: 1}
 
     encoded = Serializer.serialize(UserView, data, nil)
-
     refute encoded[:links][:next]
   end
 
