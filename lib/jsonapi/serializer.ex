@@ -147,53 +147,72 @@ defmodule JSONAPI.Serializer do
   end
 
   defp merge_base_links(%{links: links} = doc, data, view, conn) do
-    view_links = %{self: view.url_for(data, conn)}
-    |> Map.merge(view.links(data, conn))
-    |> Map.merge(links)
+    view_links =
+      %{self: view.url_for(data, conn)}
+      |> Map.merge(view.links(data, conn))
+      |> Map.merge(links)
 
     doc
     |> Map.merge(%{links: view_links})
   end
 
-  defp merge_links(doc, data, view, conn, %Page{size: size, page: page, total_pages: total_pages}, false)
-  when not is_nil(size) and not is_nil(page) and not is_nil(total_pages) do
+  defp merge_links(
+         doc,
+         data,
+         view,
+         conn,
+         %Page{size: size, page: page, total_pages: total_pages},
+         false
+       )
+       when not is_nil(size) and not is_nil(page) and not is_nil(total_pages) do
     first = view.url_for_pagination(data, conn, %{size: size, page: 1})
     last = view.url_for_pagination(data, conn, %{size: size, page: total_pages})
 
-    next = if page != total_pages do
+    next =
+      if page != total_pages do
         view.url_for_pagination(data, conn, %{size: size, page: page + 1})
-    else
-      nil
-    end
+      else
+        nil
+      end
 
-    prev = if page != 1 do
-      view.url_for_pagination(data, conn, %{size: size, page: page - 1})
-    else
-      nil
-    end
+    prev =
+      if page != 1 do
+        view.url_for_pagination(data, conn, %{size: size, page: page - 1})
+      else
+        nil
+      end
 
     doc
     |> Map.merge(%{links: %{first: first, last: last, prev: prev, next: next}})
     |> merge_base_links(data, view, conn)
   end
 
-  defp merge_links(doc, data, view, conn, %Page{limit: limit, offset: offset, total_items: total_items}, false)
-  when not is_nil(limit) and not is_nil(offset) and not is_nil(total_items) do
+  defp merge_links(
+         doc,
+         data,
+         view,
+         conn,
+         %Page{limit: limit, offset: offset, total_items: total_items},
+         false
+       )
+       when not is_nil(limit) and not is_nil(offset) and not is_nil(total_items) do
     last_offset = Integer.floor_div(total_items, limit) * offset
     first = view.url_for_pagination(data, conn, %{offset: 0, limit: limit})
     last = view.url_for_pagination(data, conn, %{offset: last_offset, limit: limit})
 
-    next = if offset * limit < total_items do
+    next =
+      if offset * limit < total_items do
         view.url_for_pagination(data, conn, %{offset: offset + limit, limit: limit})
-    else
-      nil
-    end
+      else
+        nil
+      end
 
-    prev = if offset != 0 do
-      view.url_for_pagination(data, conn, %{offset: offset, limit: limit})
-    else
-      nil
-    end
+    prev =
+      if offset != 0 do
+        view.url_for_pagination(data, conn, %{offset: offset, limit: limit})
+      else
+        nil
+      end
 
     doc
     |> Map.merge(%{links: %{first: first, last: last, prev: prev, next: next}})
@@ -201,9 +220,11 @@ defmodule JSONAPI.Serializer do
   end
 
   defp merge_links(doc, data, view, conn, %Page{limit: limit, cursor: cursor}, false)
-  when not is_nil(limit) and not is_nil(cursor) do
+       when not is_nil(limit) and not is_nil(cursor) do
     first = view.url_for_pagination(data, conn, %{cursor: "", limit: limit})
-    next = view.url_for_pagination(data, conn, %{cursor: view.id(Enum.take(data, -1)), limit: limit})
+
+    next =
+      view.url_for_pagination(data, conn, %{cursor: view.id(Enum.take(data, -1)), limit: limit})
 
     doc
     |> Map.merge(%{links: %{first: first, last: nil, prev: nil, next: next}})
