@@ -119,7 +119,7 @@ defmodule JSONAPI.View do
     {namespace, _opts} = Keyword.pop(opts, :namespace)
 
     quote do
-      import JSONAPI.Serializer, only: [serialize: 4]
+      import JSONAPI.Serializer, only: [serialize: 5]
 
       @resource_type unquote(type)
       @namespace unquote(namespace)
