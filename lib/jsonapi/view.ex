@@ -193,8 +193,8 @@ defmodule JSONAPI.View do
 
       def hidden(data), do: []
 
-      def show(model, conn, _params, meta \\ nil), do: serialize(__MODULE__, model, conn, meta)
-      def index(models, conn, _params, meta \\ nil), do: serialize(__MODULE__, models, conn, meta)
+      def show(model, conn, _params, meta \\ nil, page \\ nil), do: serialize(__MODULE__, model, conn, meta, page)
+      def index(models, conn, _params, meta \\ nil, page \\ nil), do: serialize(__MODULE__, models, conn, meta, page)
 
       def url_for(nil, nil) do
         "#{namespace()}/#{type()}"
