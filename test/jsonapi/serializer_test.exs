@@ -535,7 +535,7 @@ defmodule JSONAPI.SerializerTest do
   end
 
   test "serialize includes pagination links if page-based pagination is requested" do
-    data = %{id: 1}
+    data = [%{id: 1}]
 
     encoded =
       Serializer.serialize(PostView, data, nil, nil, %Page{page: 1, size: 10, total_pages: 2})
@@ -545,7 +545,7 @@ defmodule JSONAPI.SerializerTest do
   end
 
   test "serialize includes pagination links if offset-based pagination is requested" do
-    data = %{id: 1}
+    data = [%{id: 1}]
 
     encoded =
       Serializer.serialize(PostView, data, nil, nil, %Page{offset: 0, limit: 10, total_items: 20})
@@ -555,17 +555,17 @@ defmodule JSONAPI.SerializerTest do
   end
 
   test "serialize includes pagination links if cursor-based pagination is requested" do
-    data = %{id: 1}
+    data = [%{id: "some-string"}]
 
     encoded =
-      Serializer.serialize(PostView, data, nil, nil, %Page{cursor: "some-string", total_pages: 2})
+      Serializer.serialize(PostView, data, nil, nil, %Page{cursor: "some-string", limit: 1})
 
     assert encoded[:links][:next] ==
-             PostView.url_for_pagination(data, nil, %{cursor: "some-string"})
+             PostView.url_for_pagination(data, nil, %{cursor: "some-string", limit: 1})
   end
 
   test "serialize does not include pagination links if they are not defined" do
-    data = %{id: 1}
+    data = [%{id: 1}]
 
     encoded = Serializer.serialize(UserView, data, nil)
     refute encoded[:links][:next]

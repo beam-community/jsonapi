@@ -223,8 +223,12 @@ defmodule JSONAPI.Serializer do
        when not is_nil(limit) and not is_nil(cursor) do
     first = view.url_for_pagination(data, conn, %{cursor: "", limit: limit})
 
-    next =
-      view.url_for_pagination(data, conn, %{cursor: view.id(Enum.take(data, -1)), limit: limit})
+    next_cursor =
+      data
+      |> List.last()
+      |> view.id()
+
+    next = view.url_for_pagination(data, conn, %{cursor: next_cursor, limit: limit})
 
     doc
     |> Map.merge(%{links: %{first: first, last: nil, prev: nil, next: next}})
