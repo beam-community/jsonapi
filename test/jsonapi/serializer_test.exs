@@ -540,8 +540,7 @@ defmodule JSONAPI.SerializerTest do
     encoded =
       Serializer.serialize(PostView, data, nil, nil, %Page{page: 1, size: 10, total_pages: 2})
 
-    assert encoded[:links][:next] ==
-             PostView.url_for_pagination(data, nil, %{page: 2, size: 10})
+    assert encoded[:links][:next] == PostView.url_for_pagination(data, nil, %{page: 2, size: 10})
   end
 
   test "serialize includes pagination links if offset-based pagination is requested" do
