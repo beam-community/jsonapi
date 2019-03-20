@@ -144,6 +144,7 @@ defmodule JSONAPI.View do
 
       def pagination_links(data, conn, page) do
         paginator = Application.get_env(:jsonapi, :paginator, @paginator)
+
         if function_exported?(paginator, :paginate, 4) do
           paginator.paginate(data, __MODULE__, conn, page)
         else

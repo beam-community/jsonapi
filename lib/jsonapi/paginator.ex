@@ -1,4 +1,8 @@
 defmodule JSONAPI.Paginator do
+  @moduledoc """
+  Pagination strategy behaviour
+  """
+
   @type links :: %{
           first: String.t() | nil,
           last: String.t() | nil,
