@@ -22,6 +22,7 @@ defmodule JSONAPI.Serializer do
       case conn do
         %Plug.Conn{assigns: %{jsonapi_query: %Config{include: include, page: page}}} ->
           {include, page}
+
         _ ->
           {[], nil}
       end
@@ -159,13 +160,13 @@ defmodule JSONAPI.Serializer do
     |> Map.merge(%{links: view_links})
   end
 
-  defp merge_links(doc, data, view,conn, nil, false) do
+  defp merge_links(doc, data, view, conn, nil, false) do
     doc
     |> Map.merge(%{links: %{}})
     |> merge_base_links(data, view, conn)
   end
 
-  defp merge_links(doc, data, view,conn, page, false) do
+  defp merge_links(doc, data, view, conn, page, false) do
     doc
     |> Map.merge(%{links: view.pagination_links(data, conn, page)})
     |> merge_base_links(data, view, conn)

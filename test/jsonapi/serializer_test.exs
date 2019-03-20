@@ -538,8 +538,11 @@ defmodule JSONAPI.SerializerTest do
   test "serialize includes pagination links if page-based pagination is requested" do
     data = [%{id: 1}]
 
-    conn = %Plug.Conn{}
-    |> Plug.Conn.assign(:jsonapi_query, %JSONAPI.Config{page: %JSONAPI.Page{page: 2, size: 1, total_items: 3}})
+    conn =
+      %Plug.Conn{}
+      |> Plug.Conn.assign(:jsonapi_query, %JSONAPI.Config{
+        page: %JSONAPI.Page{page: 2, size: 1, total_items: 3}
+      })
 
     encoded = Serializer.serialize(PaginatedPostView, data, conn)
 

@@ -1,4 +1,8 @@
 defmodule JSONAPI.Paginator.Page do
+  @moduledoc """
+  Page based pagination strategy
+  """
+
   @behaviour JSONAPI.Paginator
 
   alias JSONAPI.Page
