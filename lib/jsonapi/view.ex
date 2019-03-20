@@ -211,17 +211,11 @@ defmodule JSONAPI.View do
       def index(models, conn, _params, meta \\ nil),
         do: serialize(__MODULE__, models, conn, meta)
 
-      def url_for(nil, nil) do
-        "#{namespace()}/#{type()}"
-      end
+      def url_for(nil, nil), do: "#{namespace()}/#{type()}"
 
-      def url_for(data, nil) when is_list(data) do
-        "#{namespace()}/#{type()}"
-      end
+      def url_for(data, nil) when is_list(data), do: "#{namespace()}/#{type()}"
 
-      def url_for(data, nil) do
-        "#{namespace()}/#{type()}/#{id(data)}"
-      end
+      def url_for(data, nil), do: "#{namespace()}/#{type()}/#{id(data)}"
 
       def url_for(data, %Plug.Conn{} = conn) when is_list(data) do
         "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}"
@@ -246,9 +240,7 @@ defmodule JSONAPI.View do
 
       defp prepare_url("", data, conn), do: url_for(data, conn)
 
-      defp prepare_url(query, data, conn) do
-        "#{url_for(data, conn)}?#{query}"
-      end
+      defp prepare_url(query, data, conn), do: "#{url_for(data, conn)}?#{query}"
 
       if Code.ensure_loaded?(Phoenix) do
         def render("show.json", %{data: data, conn: conn, params: params, meta: meta}),
