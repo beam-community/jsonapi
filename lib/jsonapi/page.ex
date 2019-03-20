@@ -20,4 +20,7 @@ defmodule JSONAPI.Page do
           total_items: nil | non_neg_integer,
           total_pages: nil | non_neg_integer
         }
+
+  def put_total_items(page, count), do: %__MODULE__{page | total_items: count}
+  def put_total_pages(page, count), do: %__MODULE__{page | total_pages: count}
 end

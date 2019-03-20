@@ -116,13 +116,15 @@ defmodule JSONAPI.View do
 
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)
-    {namespace, _opts} = Keyword.pop(opts, :namespace)
+    {namespace, opts} = Keyword.pop(opts, :namespace)
+    {paginator, _opts} = Keyword.pop(opts, :paginator)
 
     quote do
-      import JSONAPI.Serializer, only: [serialize: 5]
+      import JSONAPI.Serializer, only: [serialize: 4]
 
       @resource_type unquote(type)
       @namespace unquote(namespace)
+      @paginator unquote(paginator)
 
       def id(nil), do: nil
       def id(%{__struct__: Ecto.Association.NotLoaded}), do: nil
@@ -138,6 +140,15 @@ defmodule JSONAPI.View do
         def namespace, do: @namespace
       else
         def namespace, do: Application.get_env(:jsonapi, :namespace, "")
+      end
+
+      def pagination_links(data, conn, page) do
+        paginator = Application.get_env(:jsonapi, :paginator, @paginator)
+        if function_exported?(paginator, :paginate, 4) do
+          paginator.paginate(data, __MODULE__, conn, page)
+        else
+          %{}
+        end
       end
 
       defp requested_fields_for_type(%Conn{assigns: %{jsonapi_query: %{fields: fields}}} = conn) do
@@ -194,10 +205,10 @@ defmodule JSONAPI.View do
       def hidden(data), do: []
 
       def show(model, conn, _params, meta \\ nil),
-        do: serialize(__MODULE__, model, conn, meta, nil)
+        do: serialize(__MODULE__, model, conn, meta)
 
-      def index(models, conn, _params, meta \\ nil, page \\ nil),
-        do: serialize(__MODULE__, models, conn, meta, page)
+      def index(models, conn, _params, meta \\ nil),
+        do: serialize(__MODULE__, models, conn, meta)
 
       def url_for(nil, nil) do
         "#{namespace()}/#{type()}"
@@ -266,6 +277,7 @@ defmodule JSONAPI.View do
 
       defoverridable attributes: 2,
                      links: 2,
+                     pagination_links: 3,
                      fields: 0,
                      hidden: 1,
                      id: 1,
