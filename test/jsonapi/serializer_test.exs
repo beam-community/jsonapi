@@ -542,7 +542,7 @@ defmodule JSONAPI.SerializerTest do
       :get
       |> Plug.Test.conn("/my-type", %{page: %{number: 2, size: 1}})
       |> Plug.Conn.assign(:jsonapi_query, %JSONAPI.Config{
-        page: %JSONAPI.Page{page: 2, total_items: 3}
+        page: %JSONAPI.Page{page: 2, size: 1, total_items: 3}
       })
 
     encoded = Serializer.serialize(PaginatedPostView, data, conn)
