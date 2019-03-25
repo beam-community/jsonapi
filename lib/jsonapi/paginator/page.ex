@@ -7,6 +7,7 @@ defmodule JSONAPI.Paginator.Page do
 
   alias JSONAPI.Page
 
+  @impl true
   def paginate(data, view, conn, %Page{page: page, size: size, total_pages: total_pages}) do
     first = view.url_for_pagination(data, conn, %{size: size, page: 1})
     last = view.url_for_pagination(data, conn, %{size: size, page: total_pages})
