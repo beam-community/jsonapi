@@ -8,24 +8,25 @@ defmodule JSONAPI.Paginator.Page do
   alias JSONAPI.Page
 
   @impl true
-  def paginate(data, view, conn, %Page{page: page, size: size, total_pages: total_pages}) do
+  def paginate(data, view, conn, %{size: size, total_pages: total_pages} = page) do
     first = view.url_for_pagination(data, conn, %{size: size, page: 1})
     last = view.url_for_pagination(data, conn, %{size: size, page: total_pages})
 
-    next =
-      if page != total_pages do
-        view.url_for_pagination(data, conn, %{size: size, page: page + 1})
-      else
-        nil
-      end
-
-    prev =
-      if page != 1 do
-        view.url_for_pagination(data, conn, %{size: size, page: page - 1})
-      else
-        nil
-      end
-
-    %{first: first, last: last, prev: prev, next: next}
+    %{
+      first: first,
+      last: last,
+      next: next_link(data, view, conn, page),
+      prev: previous_link(data, view, conn, page),
+    }
   end
+
+  defp next_link(data, view, conn, %{page: page, size: size, total_pages: total_pages}) when page < total_pages,
+    do: view.url_for_pagination(data, conn, %{size: size, page: page + 1})
+  defp next_link(_data, _view, _conn, _page),
+    do: nil
+
+  defp previous_link(data, view, conn, %{page: page, size: size}) when page > 1,
+    do: view.url_for_pagination(data, conn, %{size: size, page: page - 1})
+  defp previous_link(_data, _view, _conn, _page),
+    do: nil
 end
