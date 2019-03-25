@@ -540,7 +540,7 @@ defmodule JSONAPI.SerializerTest do
 
     conn =
       :get
-      |> Plug.Test.conn("/my-type", %{page: %{number: 2, size: 1}})
+      |> Plug.Test.conn("/mytype", %{page: %{number: 2, size: 1}})
       |> Plug.Conn.assign(:jsonapi_query, %JSONAPI.Config{
         page: %JSONAPI.Page{page: 2, size: 1, total_items: 3}
       })
