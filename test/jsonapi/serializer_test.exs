@@ -1,7 +1,7 @@
 defmodule JSONAPI.SerializerTest do
   use ExUnit.Case, async: false
 
-  alias JSONAPI.{Config, Serializer}
+  alias JSONAPI.{Config, Page, QueryParser, Serializer}
 
   defmodule PostView do
     use JSONAPI.View
@@ -540,10 +540,16 @@ defmodule JSONAPI.SerializerTest do
 
     conn =
       :get
-      |> Plug.Test.conn("/mytype", %{page: %{number: 2, size: 1}})
-      |> Plug.Conn.assign(:jsonapi_query, %JSONAPI.Config{
-        page: %JSONAPI.Page{page: 2, size: 1, total_items: 3}
-      })
+      |> Plug.Test.conn("/mytype?page[page]=2&page[size]=1")
+      |> QueryParser.call(%Config{view: PaginatedPostView, opts: []})
+
+    %Plug.Conn{assigns: %{jsonapi_query: %Config{page: page} = config}} = conn
+
+    page = Page.put_total_items(page, 3)
+
+    conn =
+      conn
+      |> Plug.Conn.assign(:jsonapi_query, %{config | page: page})
 
     encoded = Serializer.serialize(PaginatedPostView, data, conn)
 
