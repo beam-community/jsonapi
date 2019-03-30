@@ -108,10 +108,13 @@ defmodule JSONAPI.QueryParser do
       ["page", "size", "offset", "limit", "cursor"]
       |> Enum.reduce(%{}, fn param, acc ->
         param_name = Application.get_env(:jsonapi, String.to_atom("#{param}_query_param"), param)
-        value = case Map.get(page, param_name) do
-          nil -> nil
-          value -> String.to_integer(value)
-        end
+
+        value =
+          case Map.get(page, param_name) do
+            nil -> nil
+            value -> String.to_integer(value)
+          end
+
         Map.put(acc, param, value)
       end)
 
