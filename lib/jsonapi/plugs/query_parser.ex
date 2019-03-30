@@ -103,8 +103,20 @@ defmodule JSONAPI.QueryParser do
 
   def parse_pagination(config, map) when map_size(map) == 0, do: config
 
-  def parse_pagination(%Config{} = config, page),
-    do: Map.put(config, :page, struct_from_map(page, %Page{}))
+  def parse_pagination(%Config{} = config, page) do
+    page =
+      ["page", "size", "offset", "limit", "cursor"]
+      |> Enum.reduce(%{}, fn param, acc ->
+        param_name = Application.get_env(:jsonapi, String.to_atom("#{param}_query_param"), param)
+        value = case Map.get(page, param_name) do
+          nil -> nil
+          value -> String.to_integer(value)
+        end
+        Map.put(acc, param, value)
+      end)
+
+    Map.put(config, :page, struct_from_map(page, %Page{}))
+  end
 
   @spec parse_filter(Config.t(), keyword()) :: Config.t()
   def parse_filter(config, map) when map_size(map) == 0, do: config
