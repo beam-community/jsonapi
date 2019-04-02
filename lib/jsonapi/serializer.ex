@@ -144,7 +144,8 @@ defmodule JSONAPI.Serializer do
   end
 
   defp merge_links(doc, data, view, conn, false, true) do
-    pagination_links = view.links(data, conn, Map.get(doc, :meta, %{}))
+    meta = Map.get(doc, :meta, %{})
+    pagination_links = view.links(data, conn, meta)
 
     if Enum.empty?(pagination_links) do
       Logger.info(
@@ -154,7 +155,7 @@ defmodule JSONAPI.Serializer do
 
     links =
       %{self: view.url_for(data, conn)}
-      |> Map.merge(view.links(data, conn, Map.get(doc, :meta, %{})))
+      |> Map.merge(view.links(data, conn, meta))
 
     Map.merge(doc, %{links: links})
   end
