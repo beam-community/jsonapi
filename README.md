@@ -73,7 +73,7 @@ plug JSONAPI.QueryParser,
   view: PostView
 ```
 
-This will add a `JSONAPI.Config` struct called `jsonapi_config` to your
+This will add a `JSONAPI.Config` struct called `jsonapi_query` to your
 `conn.assigns`. If a user tries to sort, filter, include, or requests an
 invalid fieldset it will raise a `Plug` error that shows the proper error
 message.
