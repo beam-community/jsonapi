@@ -134,7 +134,7 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_pagination(config, config.page).page.__struct__ == JSONAPI.Page
     assert parse_pagination(config, %{"limit" => 1}).page.limit == 1
     assert parse_pagination(config, %{"offset" => 1}).page.offset == 1
-    assert parse_pagination(config, %{"page" => 1}).page.page == 1
+    assert parse_pagination(config, %{"number" => 1}).page.number == 1
     assert parse_pagination(config, %{"size" => 1}).page.size == 1
     assert parse_pagination(config, %{"cursor" => 1}).page.cursor == 1
   end

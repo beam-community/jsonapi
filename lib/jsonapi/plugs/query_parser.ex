@@ -48,7 +48,7 @@ defmodule JSONAPI.QueryParser do
         page: %JSONAPI.Page{
           limit: limit,
           offset: offset,
-          page: page,
+          number: number,
           size: size,
           cursor: cursor
         }}
