@@ -3,8 +3,11 @@ defmodule JSONAPI.Paginator do
   Pagination strategy behaviour
   """
 
-  alias JSONAPI.Page
   alias Plug.Conn
+
+  @type page :: map()
+
+  @type options :: Keyword.t()
 
   @type links :: %{
           first: String.t() | nil,
@@ -13,5 +16,5 @@ defmodule JSONAPI.Paginator do
           prev: String.t() | nil
         }
 
-  @callback paginate(data :: term, view :: atom, conn :: Conn.t(), page :: Page.t()) :: links
+  @callback paginate(data :: term, view :: atom, conn :: Conn.t(), page, options) :: links
 end

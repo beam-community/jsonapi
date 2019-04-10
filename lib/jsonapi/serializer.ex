@@ -17,7 +17,7 @@ defmodule JSONAPI.Serializer do
   Please refer to `JSONAPI.View` for more information. If you are in interested in relationships
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
-  def serialize(view, data, conn \\ nil, meta \\ nil) do
+  def serialize(view, data, conn \\ nil, meta \\ nil, options \\ []) do
     {query_includes, query_page} =
       case conn do
         %Plug.Conn{assigns: %{jsonapi_query: %Config{include: include, page: page}}} ->
@@ -27,7 +27,7 @@ defmodule JSONAPI.Serializer do
           {[], nil}
       end
 
-    {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
+    {to_include, encoded_data} = encode_data(view, data, conn, query_includes, options)
 
     encoded_data = %{
       data: encoded_data,
@@ -41,17 +41,17 @@ defmodule JSONAPI.Serializer do
         encoded_data
       end
 
-    merge_links(encoded_data, data, view, conn, query_page, remove_links?())
+    merge_links(encoded_data, data, view, conn, query_page, remove_links?(), options)
   end
 
-  def encode_data(view, data, conn, query_includes) when is_list(data) do
+  def encode_data(view, data, conn, query_includes, options) when is_list(data) do
     Enum.map_reduce(data, [], fn d, acc ->
-      {to_include, encoded_data} = encode_data(view, d, conn, query_includes)
+      {to_include, encoded_data} = encode_data(view, d, conn, query_includes, options)
       {to_include, acc ++ [encoded_data]}
     end)
   end
 
-  def encode_data(view, data, conn, query_includes) do
+  def encode_data(view, data, conn, query_includes, options) do
     valid_includes = get_includes(view, query_includes)
 
     encoded_data = %{
@@ -61,7 +61,7 @@ defmodule JSONAPI.Serializer do
       relationships: %{}
     }
 
-    doc = merge_links(encoded_data, data, view, conn, nil, remove_links?())
+    doc = merge_links(encoded_data, data, view, conn, nil, remove_links?(), options)
 
     doc =
       case view.meta(data, conn) do
@@ -69,20 +69,21 @@ defmodule JSONAPI.Serializer do
         meta -> Map.put(doc, :meta, meta)
       end
 
-    encode_relationships(conn, doc, {view, data, query_includes, valid_includes})
+    encode_relationships(conn, doc, {view, data, query_includes, valid_includes}, options)
   end
 
-  def encode_relationships(conn, doc, {view, data, _, _} = view_info) do
+  def encode_relationships(conn, doc, {view, data, _, _} = view_info, options) do
     view.relationships()
     |> Enum.filter(&data_loaded?(Map.get(data, elem(&1, 0))))
-    |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2))
+    |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2, options))
   end
 
   def build_relationships(
         conn,
         {view, data, query_includes, valid_includes},
         {key, include_view},
-        acc
+        acc,
+        options
       ) do
     rel_view =
       case include_view do
@@ -119,7 +120,9 @@ defmodule JSONAPI.Serializer do
           []
         end
 
-      {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn, rel_query_includes)
+      {rel_included, encoded_rel} =
+        encode_data(rel_view, rel_data, conn, rel_query_includes, options)
+
       {rel_included ++ [encoded_rel], acc}
     else
       {nil, acc}
@@ -159,19 +162,19 @@ defmodule JSONAPI.Serializer do
     Map.merge(doc, %{links: view_links})
   end
 
-  defp merge_links(doc, data, view, conn, nil, false) do
+  defp merge_links(doc, data, view, conn, nil, false, _options) do
     doc
     |> Map.merge(%{links: %{}})
     |> merge_base_links(data, view, conn)
   end
 
-  defp merge_links(doc, data, view, conn, page, false) do
+  defp merge_links(doc, data, view, conn, page, false, options) do
     doc
-    |> Map.merge(%{links: view.pagination_links(data, conn, page)})
+    |> Map.merge(%{links: view.pagination_links(data, conn, page, options)})
     |> merge_base_links(data, view, conn)
   end
 
-  defp merge_links(doc, _data, _view, _conn, _page, _remove_links), do: doc
+  defp merge_links(doc, _data, _view, _conn, _page, _remove_links, _options), do: doc
 
   defp merge_related_links(
          encoded_data,

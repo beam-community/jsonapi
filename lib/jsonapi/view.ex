@@ -120,7 +120,7 @@ defmodule JSONAPI.View do
     {paginator, _opts} = Keyword.pop(opts, :paginator)
 
     quote do
-      import JSONAPI.Serializer, only: [serialize: 4]
+      import JSONAPI.Serializer, only: [serialize: 5]
 
       @resource_type unquote(type)
       @namespace unquote(namespace)
@@ -142,11 +142,11 @@ defmodule JSONAPI.View do
         def namespace, do: Application.get_env(:jsonapi, :namespace, "")
       end
 
-      def pagination_links(data, conn, page) do
+      def pagination_links(data, conn, page, options) do
         paginator = Application.get_env(:jsonapi, :paginator, @paginator)
 
-        if Code.ensure_loaded?(paginator) && function_exported?(paginator, :paginate, 4) do
-          paginator.paginate(data, __MODULE__, conn, page)
+        if Code.ensure_loaded?(paginator) && function_exported?(paginator, :paginate, 5) do
+          paginator.paginate(data, __MODULE__, conn, page, options)
         else
           %{}
         end
@@ -205,11 +205,11 @@ defmodule JSONAPI.View do
 
       def hidden(data), do: []
 
-      def show(model, conn, _params, meta \\ nil),
-        do: serialize(__MODULE__, model, conn, meta)
+      def show(model, conn, _params, meta \\ nil, options \\ []),
+        do: serialize(__MODULE__, model, conn, meta, options)
 
-      def index(models, conn, _params, meta \\ nil),
-        do: serialize(__MODULE__, models, conn, meta)
+      def index(models, conn, _params, meta \\ nil, options \\ []),
+        do: serialize(__MODULE__, models, conn, meta, options)
 
       def url_for(nil, nil), do: "#{namespace()}/#{type()}"
 
@@ -270,7 +270,7 @@ defmodule JSONAPI.View do
 
       defoverridable attributes: 2,
                      links: 2,
-                     pagination_links: 3,
+                     pagination_links: 4,
                      fields: 0,
                      hidden: 1,
                      id: 1,

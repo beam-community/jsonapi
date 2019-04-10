@@ -1,6 +1,6 @@
 defmodule JSONAPI.QueryParser do
   @behaviour Plug
-  alias JSONAPI.{Config, Page}
+  alias JSONAPI.Config
   alias JSONAPI.Exceptions.InvalidQuery
   alias Plug.Conn
   import JSONAPI.Utils.IncludeTree
@@ -45,7 +45,7 @@ defmodule JSONAPI.QueryParser do
         filter: [title: "my title"] # Easily reduceable into ecto where clauses
         include: [comments: :user] # Easily insertable into a Repo.preload,
         fields: %{"myview" => [:id, :text], "comment" => [:id, :body],
-        page: %JSONAPI.Page{
+        page: %{
           limit: limit,
           offset: offset,
           page: page,
@@ -103,23 +103,7 @@ defmodule JSONAPI.QueryParser do
 
   def parse_pagination(config, map) when map_size(map) == 0, do: config
 
-  def parse_pagination(%Config{} = config, page) do
-    page =
-      ["page", "size", "offset", "limit", "cursor"]
-      |> Enum.reduce(%{}, fn param, acc ->
-        param_name = Application.get_env(:jsonapi, String.to_atom("#{param}_query_param"), param)
-
-        value =
-          case Map.get(page, param_name) do
-            nil -> nil
-            value -> String.to_integer(value)
-          end
-
-        Map.put(acc, param, value)
-      end)
-
-    Map.put(config, :page, struct_from_map(page, %Page{}))
-  end
+  def parse_pagination(%Config{} = config, page), do: Map.put(config, :page, page)
 
   @spec parse_filter(Config.t(), keyword()) :: Config.t()
   def parse_filter(config, map) when map_size(map) == 0, do: config
