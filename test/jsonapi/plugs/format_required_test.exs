@@ -61,13 +61,21 @@ defmodule JSONAPI.FormatRequiredTest do
     refute conn.halted
   end
 
-  test "halts if only type member is present on a patch" do
+  test "halts and returns an error for missing id in data param on a patch" do
     conn =
       :patch
-      |> conn("/example", Jason.encode!(%{data: %{type: "something"}}))
+      |> conn("/example", Jason.encode!(%{data: %{attributes: %{}, type: "something"}}))
       |> call_plug
 
     assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
+
+    assert %{
+             "source" => %{"pointer" => "/data/id"},
+             "title" => "Missing id in data parameter"
+           } = error
   end
 
   test "does not halt if type and id members are present on a patch" do

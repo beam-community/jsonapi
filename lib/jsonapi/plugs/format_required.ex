@@ -25,6 +25,10 @@ defmodule JSONAPI.FormatRequired do
 
   def call(%{params: %{"data" => %{"type" => _, "id" => _}}} = conn, _), do: conn
 
+  def call(%{method: "PATCH", params: %{"data" => %{"attributes" => _}}} = conn, _) do
+    send_error(conn, missing_data_id_param())
+  end
+
   def call(%{params: %{"data" => %{"attributes" => _}}} = conn, _),
     do: send_error(conn, missing_data_type_param())
 
