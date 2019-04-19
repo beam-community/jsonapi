@@ -3,6 +3,7 @@ defmodule JSONAPI.Utils.IncludeTree do
   Internal utility for building trees of resource relationships
   """
 
+  @spec put_as_tree(term(), term(), term()) :: term()
   def put_as_tree(acc, items, val) do
     [head | tail] = Enum.reverse(items)
     build_tree(Keyword.put(acc, head, val), tail)
@@ -14,6 +15,7 @@ defmodule JSONAPI.Utils.IncludeTree do
     build_tree(Keyword.put([], head, acc), tail)
   end
 
+  @spec member_of_tree?(term(), term()) :: boolean()
   def member_of_tree?([], _thing), do: true
   def member_of_tree?(_thing, []), do: false
 
@@ -25,6 +27,7 @@ defmodule JSONAPI.Utils.IncludeTree do
     end
   end
 
+  @spec get_base_relationships(tuple()) :: term()
   def get_base_relationships({view, :include}), do: get_base_relationships(view)
 
   def get_base_relationships(view) do

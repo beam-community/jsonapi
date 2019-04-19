@@ -6,6 +6,7 @@ defmodule JSONAPI.ErrorView do
 
   @crud_message "Check out http://jsonapi.org/format/#crud for more info."
 
+  @spec build_error(binary(), pos_integer(), binary() | nil, binary() | nil) :: map()
   def build_error(title, status, detail, pointer \\ nil, meta \\ nil) do
     error = %{
       detail: detail,
@@ -18,12 +19,14 @@ defmodule JSONAPI.ErrorView do
     |> append_field(:meta, meta)
   end
 
+  @spec malformed_id :: map()
   def malformed_id do
     "Malformed id in data parameter"
     |> build_error(422, @crud_message, "/data/id")
     |> serialize_error
   end
 
+  @spec mismatched_id :: map()
   def mismatched_id do
     "Mismatched id parameter"
     |> build_error(
@@ -34,37 +37,43 @@ defmodule JSONAPI.ErrorView do
     |> serialize_error
   end
 
+  @spec missing_data_attributes_param :: map()
   def missing_data_attributes_param do
     "Missing attributes in data parameter"
     |> build_error(400, @crud_message, "/data/attributes")
     |> serialize_error
   end
 
+  @spec missing_data_id_param :: map()
   def missing_data_id_param do
     "Missing id in data parameter"
     |> build_error(400, @crud_message, "/data/id")
     |> serialize_error
   end
 
+  @spec missing_data_type_param :: map()
   def missing_data_type_param do
     "Missing type in data parameter"
     |> build_error(400, @crud_message, "/data/type")
     |> serialize_error
   end
 
+  @spec missing_data_param :: map()
   def missing_data_param do
     "Missing data parameter"
     |> build_error(400, @crud_message, "/data")
     |> serialize_error
   end
 
+  @spec missing_id :: map()
   def missing_id do
     "Missing id in data parameter"
     |> build_error(400, @crud_message, "/data/id")
     |> serialize_error
   end
 
-  def to_many_relationships_payload_for_standard_endpoint do
+  @spec too_many_relationships_payload_for_standard_endpoint :: map()
+  def too_many_relationships_payload_for_standard_endpoint do
     "Data parameter has multiple Resource Identifier Objects for a non-relationship endpoint"
     |> build_error(
       400,
@@ -74,6 +83,7 @@ defmodule JSONAPI.ErrorView do
     |> serialize_error
   end
 
+  @spec send_error(Plug.Conn.t(), term()) :: term()
   def send_error(conn, %{errors: [%{status: status}]} = error),
     do: send_error(conn, status, error)
 
@@ -96,6 +106,7 @@ defmodule JSONAPI.ErrorView do
     |> halt
   end
 
+  @spec serialize_error(map()) :: map()
   def serialize_error(error) do
     error = Map.take(error, [:detail, :id, :links, :meta, :source, :status, :title])
     %{errors: [error]}

@@ -10,6 +10,8 @@ defmodule JSONAPI.Serializer do
 
   require Logger
 
+  @typep serialized_doc :: map()
+
   @doc """
   Takes a view, data and a optional plug connection and returns a fully JSONAPI Serialized document.
   This assumes you are using the JSONAPI.View and have data in maps or structs.
@@ -17,6 +19,7 @@ defmodule JSONAPI.Serializer do
   Please refer to `JSONAPI.View` for more information. If you are in interested in relationships
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
+  @spec serialize(module(), term(), Plug.Conn.t() | nil, map() | nil) :: serialized_doc()
   def serialize(view, data, conn \\ nil, meta \\ nil) do
     query_includes =
       case conn do
@@ -69,12 +72,14 @@ defmodule JSONAPI.Serializer do
     encode_relationships(conn, doc, {view, data, query_includes, valid_includes})
   end
 
+  @spec encode_relationships(Plug.Conn.t(), serialized_doc(), tuple()) :: tuple()
   def encode_relationships(conn, doc, {view, data, _, _} = view_info) do
     view.relationships()
     |> Enum.filter(&data_loaded?(Map.get(data, elem(&1, 0))))
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2))
   end
 
+  @spec build_relationships(Plug.Conn.t(), tuple(), tuple(), tuple()) :: tuple()
   def build_relationships(
         conn,
         {view, data, query_includes, valid_includes},
@@ -134,10 +139,12 @@ defmodule JSONAPI.Serializer do
   defp generate_view_tuple({view, :include}), do: {view, :include}
   defp generate_view_tuple(view) when is_atom(view), do: {view, :include}
 
+  @spec data_loaded?(map() | list()) :: boolean()
   def data_loaded?(rel_data) do
     assoc_loaded?(rel_data) && (is_map(rel_data) || is_list(rel_data))
   end
 
+  @spec encode_relation(tuple()) :: map()
   def encode_relation({rel_view, rel_data, _rel_url, _conn} = info) do
     data = %{
       data: encode_rel_data(rel_view, rel_data)
@@ -180,6 +187,7 @@ defmodule JSONAPI.Serializer do
 
   defp merge_related_links(encoded_rel_data, _info, _remove_links), do: encoded_rel_data
 
+  @spec encode_rel_data(module(), map() | list()) :: map() | nil
   def encode_rel_data(_view, nil), do: nil
 
   def encode_rel_data(view, data) when is_list(data) do
@@ -194,6 +202,7 @@ defmodule JSONAPI.Serializer do
   end
 
   # Flatten and unique all the included objects
+  @spec flatten_included(keyword()) :: keyword()
   def flatten_included(included) do
     included
     |> List.flatten()

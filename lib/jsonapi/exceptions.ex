@@ -11,6 +11,7 @@ defmodule JSONAPI.Exceptions do
                  param: nil,
                  param_type: nil
 
+    @spec exception(keyword()) :: Exception.t()
     def exception(opts) do
       resource = Keyword.fetch!(opts, :resource)
       param = Keyword.fetch!(opts, :param)
