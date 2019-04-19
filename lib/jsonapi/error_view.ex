@@ -72,8 +72,8 @@ defmodule JSONAPI.ErrorView do
     |> serialize_error
   end
 
-  @spec too_many_relationships_payload_for_standard_endpoint :: map()
-  def too_many_relationships_payload_for_standard_endpoint do
+  @spec to_many_relationships_payload_for_standard_endpoint :: map()
+  def to_many_relationships_payload_for_standard_endpoint do
     "Data parameter has multiple Resource Identifier Objects for a non-relationship endpoint"
     |> build_error(
       400,

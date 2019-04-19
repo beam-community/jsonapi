@@ -19,7 +19,7 @@ defmodule JSONAPI.FormatRequired do
     if String.contains?(conn.request_path, "relationships") do
       conn
     else
-      send_error(conn, too_many_relationships_payload_for_standard_endpoint())
+      send_error(conn, to_many_relationships_payload_for_standard_endpoint())
     end
   end
 
