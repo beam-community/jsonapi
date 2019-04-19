@@ -18,8 +18,54 @@ defmodule JSONAPI.SerializerTest do
     end
   end
 
+  defmodule PageBasedPaginator do
+    @moduledoc """
+    Page based pagination strategy
+    """
+
+    @behaviour JSONAPI.Paginator
+
+    @impl true
+    def paginate(data, view, conn, page, options) do
+      number =
+        page
+        |> Map.get("page", "0")
+        |> String.to_integer()
+
+      size =
+        page
+        |> Map.get("size", "0")
+        |> String.to_integer()
+
+      total_pages =
+        options
+        |> Keyword.get(:total_pages, 0)
+
+      %{
+        first: view.url_for_pagination(data, conn, %{page | "page" => "1"}),
+        last: view.url_for_pagination(data, conn, %{page | "page" => total_pages}),
+        next: next_link(data, view, conn, number, size, total_pages),
+        prev: previous_link(data, view, conn, number, size)
+      }
+    end
+
+    defp next_link(data, view, conn, page, size, total_pages)
+         when page < total_pages,
+         do: view.url_for_pagination(data, conn, %{size: size, page: page + 1})
+
+    defp next_link(_data, _view, _conn, _page, _size, _total_pages),
+      do: nil
+
+    defp previous_link(data, view, conn, page, size)
+         when page > 1,
+         do: view.url_for_pagination(data, conn, %{size: size, page: page - 1})
+
+    defp previous_link(_data, _view, _conn, _page, _size),
+      do: nil
+  end
+
   defmodule PaginatedPostView do
-    use JSONAPI.View, paginator: JSONAPI.Paginator.Page
+    use JSONAPI.View, paginator: PageBasedPaginator
 
     def fields, do: [:text, :body, :full_description, :inserted_at]
     def type, do: "mytype"
@@ -537,19 +583,24 @@ defmodule JSONAPI.SerializerTest do
 
   test "serialize includes pagination links if page-based pagination is requested" do
     data = [%{id: 1}]
+    view = PaginatedPostView
 
     conn =
       :get
       |> Plug.Test.conn("/mytype?page[page]=2&page[size]=1")
-      |> QueryParser.call(%Config{view: PaginatedPostView, opts: []})
+      |> QueryParser.call(%Config{view: view, opts: []})
 
     encoded =
       Serializer.serialize(PaginatedPostView, data, conn, nil, total_pages: 3, total_items: 3)
 
-    assert encoded[:links][:first]
-    assert encoded[:links][:last]
-    assert encoded[:links][:next]
-    assert encoded[:links][:prev]
+    page = conn.assigns.jsonapi_query.page
+    first = view.url_for_pagination(data, conn, %{page | "page" => 1})
+    last = view.url_for_pagination(data, conn, %{page | "page" => 3})
+
+    assert encoded[:links][:first] == first
+    assert encoded[:links][:last] == last
+    assert encoded[:links][:next] == last
+    assert encoded[:links][:prev] == first
   end
 
   test "serialize does not include pagination links if they are not defined" do
