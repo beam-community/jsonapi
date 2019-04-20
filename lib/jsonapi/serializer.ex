@@ -20,7 +20,7 @@ defmodule JSONAPI.Serializer do
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
   @spec serialize(module(), term(), Plug.Conn.t() | nil, map() | nil, list()) :: serialized_doc()
-  def serialize(view, data, conn \\ nil, meta \\ nil, page \\ nil) do
+  def serialize(view, data, conn \\ nil, meta \\ nil, options \\ nil) do
     {query_includes, query_page} =
       case conn do
         %Plug.Conn{assigns: %{jsonapi_query: %Config{include: include, page: page}}} ->
@@ -82,7 +82,7 @@ defmodule JSONAPI.Serializer do
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2, options))
   end
 
-  @spec build_relationships(Plug.Conn.t(), tuple(), tuple(), tuple()) :: tuple()
+  @spec build_relationships(Plug.Conn.t(), tuple(), tuple(), tuple(), list()) :: tuple()
   def build_relationships(
         conn,
         {view, data, query_includes, valid_includes},
