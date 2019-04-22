@@ -19,15 +19,18 @@ defmodule JSONAPI.Serializer do
   Please refer to `JSONAPI.View` for more information. If you are in interested in relationships
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
-  @spec serialize(module(), term(), Plug.Conn.t() | nil, map() | nil) :: serialized_doc()
-  def serialize(view, data, conn \\ nil, meta \\ nil) do
-    query_includes =
+  @spec serialize(module(), term(), Plug.Conn.t() | nil, map() | nil, list()) :: serialized_doc()
+  def serialize(view, data, conn \\ nil, meta \\ nil, options \\ []) do
+    {query_includes, query_page} =
       case conn do
-        %Plug.Conn{assigns: %{jsonapi_query: %Config{include: include}}} -> include
-        _ -> []
+        %Plug.Conn{assigns: %{jsonapi_query: %Config{include: include, page: page}}} ->
+          {include, page}
+
+        _ ->
+          {[], nil}
       end
 
-    {to_include, encoded_data} = encode_data(view, data, conn, query_includes)
+    {to_include, encoded_data} = encode_data(view, data, conn, query_includes, options)
 
     encoded_data = %{
       data: encoded_data,
@@ -41,17 +44,17 @@ defmodule JSONAPI.Serializer do
         encoded_data
       end
 
-    merge_links(encoded_data, data, view, conn, remove_links?(), with_pagination?())
+    merge_links(encoded_data, data, view, conn, query_page, remove_links?(), options)
   end
 
-  def encode_data(view, data, conn, query_includes) when is_list(data) do
+  def encode_data(view, data, conn, query_includes, options) when is_list(data) do
     Enum.map_reduce(data, [], fn d, acc ->
-      {to_include, encoded_data} = encode_data(view, d, conn, query_includes)
+      {to_include, encoded_data} = encode_data(view, d, conn, query_includes, options)
       {to_include, acc ++ [encoded_data]}
     end)
   end
 
-  def encode_data(view, data, conn, query_includes) do
+  def encode_data(view, data, conn, query_includes, options) do
     valid_includes = get_includes(view, query_includes)
 
     encoded_data = %{
@@ -61,7 +64,7 @@ defmodule JSONAPI.Serializer do
       relationships: %{}
     }
 
-    doc = merge_links(encoded_data, data, view, conn, remove_links?(), false)
+    doc = merge_links(encoded_data, data, view, conn, nil, remove_links?(), options)
 
     doc =
       case view.meta(data, conn) do
@@ -69,22 +72,23 @@ defmodule JSONAPI.Serializer do
         meta -> Map.put(doc, :meta, meta)
       end
 
-    encode_relationships(conn, doc, {view, data, query_includes, valid_includes})
+    encode_relationships(conn, doc, {view, data, query_includes, valid_includes}, options)
   end
 
-  @spec encode_relationships(Plug.Conn.t(), serialized_doc(), tuple()) :: tuple()
-  def encode_relationships(conn, doc, {view, data, _, _} = view_info) do
+  @spec encode_relationships(Plug.Conn.t(), serialized_doc(), tuple(), list()) :: tuple()
+  def encode_relationships(conn, doc, {view, data, _, _} = view_info, options) do
     view.relationships()
     |> Enum.filter(&data_loaded?(Map.get(data, elem(&1, 0))))
-    |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2))
+    |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2, options))
   end
 
-  @spec build_relationships(Plug.Conn.t(), tuple(), tuple(), tuple()) :: tuple()
+  @spec build_relationships(Plug.Conn.t(), tuple(), tuple(), tuple(), list()) :: tuple()
   def build_relationships(
         conn,
         {view, data, query_includes, valid_includes},
         {key, include_view},
-        acc
+        acc,
+        options
       ) do
     rel_view =
       case include_view do
@@ -121,7 +125,9 @@ defmodule JSONAPI.Serializer do
           []
         end
 
-      {rel_included, encoded_rel} = encode_data(rel_view, rel_data, conn, rel_query_includes)
+      {rel_included, encoded_rel} =
+        encode_data(rel_view, rel_data, conn, rel_query_includes, options)
+
       {rel_included ++ [encoded_rel], acc}
     else
       {nil, acc}
@@ -153,29 +159,29 @@ defmodule JSONAPI.Serializer do
     merge_related_links(data, info, remove_links?())
   end
 
-  defp merge_base_links(doc, data, view, conn) do
-    links = Map.merge(%{self: view.url_for(data, conn)}, view.links(data, conn))
+  defp merge_base_links(%{links: links} = doc, data, view, conn) do
+    view_links =
+      data
+      |> view.links(conn)
+      |> Map.merge(links)
+      |> Map.merge(%{self: view.url_for(data, conn)})
 
-    Map.merge(doc, %{links: links})
+    Map.merge(doc, %{links: view_links})
   end
 
-  defp merge_links(doc, data, view, conn, false, true) do
-    pagination_links = view.links(data, conn)
-
-    if Enum.empty?(pagination_links) do
-      Logger.info(
-        "You've set with_pagination but have not defined any pagination links, thus no pagination links will be returned"
-      )
-    end
-
-    merge_base_links(doc, data, view, conn)
+  defp merge_links(doc, data, view, conn, nil, false, _options) do
+    doc
+    |> Map.merge(%{links: %{}})
+    |> merge_base_links(data, view, conn)
   end
 
-  defp merge_links(doc, data, view, conn, false, false) do
-    merge_base_links(doc, data, view, conn)
+  defp merge_links(doc, data, view, conn, page, false, options) do
+    doc
+    |> Map.merge(%{links: view.pagination_links(data, conn, page, options)})
+    |> merge_base_links(data, view, conn)
   end
 
-  defp merge_links(doc, _data, _view, _conn, _remove_links, _with_pagination), do: doc
+  defp merge_links(doc, _data, _view, _conn, _page, _remove_links, _options), do: doc
 
   defp merge_related_links(
          encoded_data,
@@ -236,7 +242,6 @@ defmodule JSONAPI.Serializer do
   end
 
   defp remove_links?, do: Application.get_env(:jsonapi, :remove_links, false)
-  defp with_pagination?, do: Application.get_env(:jsonapi, :with_pagination, false)
 
   defp transform_fields(fields) do
     case JString.field_transformation() do

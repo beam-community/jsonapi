@@ -131,12 +131,12 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_pagination/2 turns a fields map into a map of pagination values" do
     config = struct(Config, view: MyView)
-    assert parse_pagination(config, config.page).page.__struct__ == JSONAPI.Page
-    assert parse_pagination(config, %{"limit" => 1}).page.limit == 1
-    assert parse_pagination(config, %{"offset" => 1}).page.offset == 1
-    assert parse_pagination(config, %{"page" => 1}).page.page == 1
-    assert parse_pagination(config, %{"size" => 1}).page.size == 1
-    assert parse_pagination(config, %{"cursor" => 1}).page.cursor == 1
+    assert parse_pagination(config, config.page).page == %{}
+    assert parse_pagination(config, %{"limit" => "1"}).page == %{"limit" => "1"}
+    assert parse_pagination(config, %{"offset" => "1"}).page == %{"offset" => "1"}
+    assert parse_pagination(config, %{"page" => "1"}).page == %{"page" => "1"}
+    assert parse_pagination(config, %{"size" => "1"}).page == %{"size" => "1"}
+    assert parse_pagination(config, %{"cursor" => "cursor"}).page == %{"cursor" => "cursor"}
   end
 
   test "get_view_for_type/2 raises on invalid fields" do

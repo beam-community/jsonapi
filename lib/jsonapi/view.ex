@@ -116,13 +116,15 @@ defmodule JSONAPI.View do
 
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)
-    {namespace, _opts} = Keyword.pop(opts, :namespace)
+    {namespace, opts} = Keyword.pop(opts, :namespace)
+    {paginator, _opts} = Keyword.pop(opts, :paginator)
 
     quote do
-      import JSONAPI.Serializer, only: [serialize: 4]
+      import JSONAPI.Serializer, only: [serialize: 5]
 
       @resource_type unquote(type)
       @namespace unquote(namespace)
+      @paginator unquote(paginator)
 
       def id(nil), do: nil
       def id(%{__struct__: Ecto.Association.NotLoaded}), do: nil
@@ -138,6 +140,16 @@ defmodule JSONAPI.View do
         def namespace, do: @namespace
       else
         def namespace, do: Application.get_env(:jsonapi, :namespace, "")
+      end
+
+      def pagination_links(data, conn, page, options) do
+        paginator = Application.get_env(:jsonapi, :paginator, @paginator)
+
+        if Code.ensure_loaded?(paginator) && function_exported?(paginator, :paginate, 5) do
+          paginator.paginate(data, __MODULE__, conn, page, options)
+        else
+          %{}
+        end
       end
 
       defp requested_fields_for_type(%Conn{assigns: %{jsonapi_query: %{fields: fields}}} = conn) do
@@ -193,20 +205,17 @@ defmodule JSONAPI.View do
 
       def hidden(data), do: []
 
-      def show(model, conn, _params, meta \\ nil), do: serialize(__MODULE__, model, conn, meta)
-      def index(models, conn, _params, meta \\ nil), do: serialize(__MODULE__, models, conn, meta)
+      def show(model, conn, _params, meta \\ nil, options \\ []),
+        do: serialize(__MODULE__, model, conn, meta, options)
 
-      def url_for(nil, nil) do
-        "#{namespace()}/#{type()}"
-      end
+      def index(models, conn, _params, meta \\ nil, options \\ []),
+        do: serialize(__MODULE__, models, conn, meta, options)
 
-      def url_for(data, nil) when is_list(data) do
-        "#{namespace()}/#{type()}"
-      end
+      def url_for(nil, nil), do: "#{namespace()}/#{type()}"
 
-      def url_for(data, nil) do
-        "#{namespace()}/#{type()}/#{id(data)}"
-      end
+      def url_for(data, nil) when is_list(data), do: "#{namespace()}/#{type()}"
+
+      def url_for(data, nil), do: "#{namespace()}/#{type()}/#{id(data)}"
 
       def url_for(data, %Plug.Conn{} = conn) when is_list(data) do
         "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}"
@@ -231,9 +240,7 @@ defmodule JSONAPI.View do
 
       defp prepare_url("", data, conn), do: url_for(data, conn)
 
-      defp prepare_url(query, data, conn) do
-        "#{url_for(data, conn)}?#{query}"
-      end
+      defp prepare_url(query, data, conn), do: "#{url_for(data, conn)}?#{query}"
 
       if Code.ensure_loaded?(Phoenix) do
         def render("show.json", %{data: data, conn: conn, params: params, meta: meta}),
@@ -263,6 +270,7 @@ defmodule JSONAPI.View do
 
       defoverridable attributes: 2,
                      links: 2,
+                     pagination_links: 4,
                      fields: 0,
                      hidden: 1,
                      id: 1,

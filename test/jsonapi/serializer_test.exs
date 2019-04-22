@@ -1,9 +1,7 @@
 defmodule JSONAPI.SerializerTest do
   use ExUnit.Case, async: false
 
-  alias JSONAPI.{Config, Serializer}
-
-  import ExUnit.CaptureLog
+  alias JSONAPI.{Config, QueryParser, Serializer}
 
   defmodule PostView do
     use JSONAPI.View
@@ -18,12 +16,59 @@ defmodule JSONAPI.SerializerTest do
         best_comments: {JSONAPI.SerializerTest.CommentView, :include}
       ]
     end
+  end
 
-    def links(data, conn) do
+  defmodule PageBasedPaginator do
+    @moduledoc """
+    Page based pagination strategy
+    """
+
+    @behaviour JSONAPI.Paginator
+
+    @impl true
+    def paginate(data, view, conn, page, options) do
+      number =
+        page
+        |> Map.get("page", "0")
+        |> String.to_integer()
+
+      size =
+        page
+        |> Map.get("size", "0")
+        |> String.to_integer()
+
+      total_pages =
+        options
+        |> Keyword.get(:total_pages, 0)
+
       %{
-        next: url_for_pagination(data, conn, %{cursor: "some-string"})
+        first: view.url_for_pagination(data, conn, %{page | "page" => "1"}),
+        last: view.url_for_pagination(data, conn, %{page | "page" => total_pages}),
+        next: next_link(data, view, conn, number, size, total_pages),
+        prev: previous_link(data, view, conn, number, size)
       }
     end
+
+    defp next_link(data, view, conn, page, size, total_pages)
+         when page < total_pages,
+         do: view.url_for_pagination(data, conn, %{size: size, page: page + 1})
+
+    defp next_link(_data, _view, _conn, _page, _size, _total_pages),
+      do: nil
+
+    defp previous_link(data, view, conn, page, size)
+         when page > 1,
+         do: view.url_for_pagination(data, conn, %{size: size, page: page - 1})
+
+    defp previous_link(_data, _view, _conn, _page, _size),
+      do: nil
+  end
+
+  defmodule PaginatedPostView do
+    use JSONAPI.View, paginator: PageBasedPaginator
+
+    def fields, do: [:text, :body, :full_description, :inserted_at]
+    def type, do: "mytype"
   end
 
   defmodule UserView do
@@ -536,39 +581,36 @@ defmodule JSONAPI.SerializerTest do
     Application.delete_env(:jsonapi, :remove_links)
   end
 
-  test "serialize includes pagination links if they are defined and with_pagination is configured" do
-    data = %{id: 1}
-    Application.put_env(:jsonapi, :with_pagination, true)
+  test "serialize includes pagination links if page-based pagination is requested" do
+    data = [%{id: 1}]
+    view = PaginatedPostView
 
-    encoded = Serializer.serialize(PostView, data, nil)
+    conn =
+      :get
+      |> Plug.Test.conn("/mytype?page[page]=2&page[size]=1")
+      |> QueryParser.call(%Config{view: view, opts: []})
 
-    assert encoded[:links][:next] ==
-             PostView.url_for_pagination(data, nil, %{cursor: "some-string"})
+    encoded =
+      Serializer.serialize(PaginatedPostView, data, conn, nil, total_pages: 3, total_items: 3)
 
-    Application.delete_env(:jsonapi, :with_pagination)
+    page = conn.assigns.jsonapi_query.page
+    first = view.url_for_pagination(data, conn, %{page | "page" => 1})
+    last = view.url_for_pagination(data, conn, %{page | "page" => 3})
+
+    assert encoded[:links][:first] == first
+    assert encoded[:links][:last] == last
+    assert encoded[:links][:next] == last
+    assert encoded[:links][:prev] == first
   end
 
-  test "serialize does not include pagination links if they are not defined even with with_pagination is configured" do
-    data = %{id: 1}
-    Application.put_env(:jsonapi, :with_pagination, true)
-
-    output =
-      capture_log(fn ->
-        encoded = Serializer.serialize(UserView, data, nil)
-
-        refute encoded[:links][:next]
-      end)
-
-    assert Regex.match?(~r/info.*with_pagination/, output)
-    Application.delete_env(:jsonapi, :with_pagination)
-  end
-
-  test "serialize does not include pagination links if with_pagination is not configure" do
-    data = %{id: 1}
+  test "serialize does not include pagination links if they are not defined" do
+    data = [%{id: 1}]
 
     encoded = Serializer.serialize(UserView, data, nil)
-
+    refute encoded[:links][:first]
+    refute encoded[:links][:last]
     refute encoded[:links][:next]
+    refute encoded[:links][:prev]
   end
 
   test "serialize can include arbitrary, user-defined, links" do
