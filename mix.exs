@@ -53,6 +53,7 @@ defmodule JSONAPI.Mixfile do
       {:earmark, ">= 0.0.0", only: :dev},
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:phoenix, "~> 1.3", only: :test},
+      {:ecto, "~> 3.1", only: :test},
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev, :test], runtime: false}
     ]
   end

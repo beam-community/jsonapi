@@ -76,9 +76,8 @@ defmodule JSONAPI.Serializer do
   end
 
   @spec encode_relationships(Plug.Conn.t(), serialized_doc(), tuple(), list()) :: tuple()
-  def encode_relationships(conn, doc, {view, data, _, _} = view_info, options) do
+  def encode_relationships(conn, doc, {view, _data, _, _} = view_info, options) do
     view.relationships()
-    |> Enum.filter(&data_loaded?(Map.get(data, elem(&1, 0))))
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2, options))
   end
 
@@ -152,11 +151,15 @@ defmodule JSONAPI.Serializer do
 
   @spec encode_relation(tuple()) :: map()
   def encode_relation({rel_view, rel_data, _rel_url, _conn} = info) do
-    data = %{
-      data: encode_rel_data(rel_view, rel_data)
-    }
+    if data_loaded?(rel_data) do
+      data = %{
+        data: encode_rel_data(rel_view, rel_data)
+      }
 
-    merge_related_links(data, info, remove_links?())
+      merge_related_links(data, info, remove_links?())
+    else
+      merge_related_links(%{}, info, remove_links?())
+    end
   end
 
   defp merge_base_links(%{links: links} = doc, data, view, conn) do
@@ -188,7 +191,12 @@ defmodule JSONAPI.Serializer do
          {rel_view, rel_data, rel_url, conn},
          false = _remove_links
        ) do
-    Map.merge(encoded_data, %{links: %{self: rel_url, related: rel_view.url_for(rel_data, conn)}})
+    if data_loaded?(rel_data) do
+      related_url = rel_view.url_for(rel_data, conn)
+      Map.merge(encoded_data, %{links: %{self: rel_url, related: related_url}})
+    else
+      Map.merge(encoded_data, %{links: %{self: rel_url}})
+    end
   end
 
   defp merge_related_links(encoded_rel_data, _info, _remove_links), do: encoded_rel_data

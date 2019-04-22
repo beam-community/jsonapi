@@ -164,6 +164,18 @@ defmodule JSONAPI.SerializerTest do
     {:ok, []}
   end
 
+  test "self link for a collection" do
+    encoded = Serializer.serialize(PostView, [], nil)
+
+    assert encoded[:links][:self] == "/mytype"
+  end
+
+  test "self link for an individual resource" do
+    encoded = Serializer.serialize(PostView, %{id: 1}, nil)
+
+    assert encoded[:links][:self] == "/mytype/1"
+  end
+
   test "serialize includes meta as top level member" do
     meta = %{total_pages: 10}
     encoded = Serializer.serialize(PostView, %{id: 1, text: "Hello"}, nil, meta)
@@ -244,80 +256,6 @@ defmodule JSONAPI.SerializerTest do
     end)
 
     assert Enum.count(encoded[:included]) == 4
-  end
-
-  test "serialize handles an empty relationship" do
-    data = %{
-      id: 1,
-      text: "Hello",
-      body: "Hello world",
-      author: %{id: 2, username: "jason"},
-      best_comments: []
-    }
-
-    encoded = Serializer.serialize(PostView, data, nil)
-
-    encoded_data = encoded[:data]
-    assert encoded_data[:id] == PostView.id(data)
-    assert encoded_data[:type] == PostView.type()
-
-    attributes = encoded_data[:attributes]
-    assert attributes[:text] == data[:text]
-    assert attributes[:body] == data[:body]
-
-    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    assert map_size(encoded_data[:relationships]) == 2
-    assert encoded_data[:relationships][:best_comments][:data] == []
-
-    assert Enum.count(encoded[:included]) == 1
-  end
-
-  test "serialize handles a nil relationship" do
-    data = %{
-      id: 1,
-      text: "Hello",
-      body: "Hello world",
-      author: %{id: 2, username: "jason"},
-      best_comments: nil
-    }
-
-    encoded = Serializer.serialize(PostView, data, nil)
-
-    encoded_data = encoded[:data]
-    assert encoded_data[:id] == PostView.id(data)
-    assert encoded_data[:type] == PostView.type()
-
-    attributes = encoded_data[:attributes]
-    assert attributes[:text] == data[:text]
-    assert attributes[:body] == data[:body]
-
-    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    assert map_size(encoded_data[:relationships]) == 1
-
-    assert Enum.count(encoded[:included]) == 1
-  end
-
-  test "serialize handles a relationship self link on a show request" do
-    data = %{
-      id: 1,
-      text: "Hello",
-      body: "Hello world",
-      author: %{id: 2, username: "jason"},
-      best_comments: []
-    }
-
-    encoded = Serializer.serialize(PostView, data, nil)
-
-    encoded_data = encoded[:data]
-
-    assert encoded_data[:relationships][:author][:links][:self] ==
-             "/mytype/1/relationships/author"
-  end
-
-  test "serialize handles a relationship self link on an index request" do
-    encoded = Serializer.serialize(PostView, [], nil)
-
-    assert encoded[:links][:self] == "/mytype"
   end
 
   test "serialize handles including from the query" do
@@ -552,33 +490,41 @@ defmodule JSONAPI.SerializerTest do
     assert included == []
   end
 
-  test "serialize does not include links if remove_links is configured" do
-    data = %{
-      id: 1,
-      text: "Hello",
-      body: "Hello world",
-      full_description: "This_is_my_description",
-      author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
-      best_comments: [
-        %{
-          id: 5,
-          text: "greatest comment ever",
-          user: %{id: 4, username: "jack", last_name: "bronds"}
-        }
-      ]
-    }
+  describe "configured to remove links" do
+    setup do
+      Application.put_env(:jsonapi, :remove_links, true)
 
-    Application.put_env(:jsonapi, :remove_links, true)
+      on_exit(fn ->
+        Application.put_env(:jsonapi, :remove_links, false)
+      end)
 
-    encoded = Serializer.serialize(PostView, data, nil)
+      {:ok, []}
+    end
 
-    relationships = encoded[:data][:relationships]
+    test "does not include links" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        body: "Hello world",
+        full_description: "This_is_my_description",
+        author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+        best_comments: [
+          %{
+            id: 5,
+            text: "greatest comment ever",
+            user: %{id: 4, username: "jack", last_name: "bronds"}
+          }
+        ]
+      }
 
-    refute relationships[:links]
-    refute encoded[:data][:links]
-    refute encoded[:links]
+      encoded = Serializer.serialize(PostView, data, nil)
 
-    Application.delete_env(:jsonapi, :remove_links)
+      relationships = encoded[:data][:relationships]
+
+      refute relationships[:links]
+      refute encoded[:data][:links]
+      refute encoded[:links]
+    end
   end
 
   test "serialize includes pagination links if page-based pagination is requested" do
@@ -632,5 +578,181 @@ defmodule JSONAPI.SerializerTest do
     }
 
     assert expected_links == links
+  end
+
+  describe "relationships" do
+    test "data relationships for single resource object included when association data present" do
+      data = %{
+        id: 8,
+        tags: [
+          %{id: 9, name: "a tag"},
+          %{id: 67, name: "another tag"}
+        ]
+      }
+
+      assert %{
+               data: %{
+                 relationships: relationships
+               }
+             } = Serializer.serialize(IndustryView, data, nil)
+
+      expected_relationships = %{
+        tags: %{
+          data: [
+            %{id: "9", type: "tag"},
+            %{id: "67", type: "tag"}
+          ],
+          links: %{
+            related: "/tag",
+            self: "/industry/8/relationships/tags"
+          }
+        }
+      }
+
+      assert expected_relationships == relationships
+    end
+
+    test "data for relationship is not loaded with Ecto" do
+      data = %{
+        id: 42,
+        text: "Hey friend!",
+        # just need a struct of some sort
+        user: %Ecto.Association.NotLoaded{}
+      }
+
+      assert %{
+               data: %{
+                 relationships: relationships
+               }
+             } = Serializer.serialize(CommentView, data, nil)
+
+      expected_relationships = %{
+        user: %{
+          links: %{
+            self: "/comment/42/relationships/user"
+          }
+        }
+      }
+
+      assert expected_relationships == relationships
+    end
+
+    test "relationships can be side-loaded by default" do
+      data = %{
+        id: 42,
+        text: "Hey friend!",
+        user: %{
+          id: 1,
+          username: "jherdman"
+        }
+      }
+
+      assert %{
+               data: %{
+                 relationships: relationships
+               },
+               included: included
+             } = Serializer.serialize(CommentView, data, nil)
+
+      expected_relationships = %{
+        user: %{
+          data: %{
+            id: "1",
+            type: "user"
+          },
+          links: %{
+            related: "/user/1",
+            self: "/comment/42/relationships/user"
+          }
+        }
+      }
+
+      assert expected_relationships == relationships
+
+      expected_included = [
+        %{
+          attributes: %{
+            first_name: nil,
+            last_name: nil,
+            username: "jherdman"
+          },
+          id: "1",
+          links: %{self: "/user/1"},
+          relationships: %{
+            company: %{
+              links: %{
+                self: "/user/1/relationships/company"
+              }
+            }
+          },
+          type: "user"
+        }
+      ]
+
+      assert expected_included == included
+    end
+
+    test "links are included by default" do
+      data = %{id: 1}
+
+      assert %{
+               data: %{
+                 relationships: relationships
+               }
+             } = Serializer.serialize(UserView, data, nil)
+
+      expected_relationships = %{
+        company: %{
+          links: %{
+            self: "/user/1/relationships/company"
+          }
+        }
+      }
+
+      assert expected_relationships == relationships
+    end
+
+    test "relationship self link on a show request" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        body: "Hello world",
+        author: %{id: 2, username: "jason"},
+        best_comments: []
+      }
+
+      encoded = Serializer.serialize(PostView, data, nil)
+
+      encoded_data = encoded[:data]
+
+      assert encoded_data[:relationships][:author][:links][:self] ==
+               "/mytype/1/relationships/author"
+    end
+
+    test "serialize handles an empty relationship" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        body: "Hello world",
+        author: %{id: 2, username: "jason"},
+        best_comments: []
+      }
+
+      encoded = Serializer.serialize(PostView, data, nil)
+
+      encoded_data = encoded[:data]
+      assert encoded_data[:id] == PostView.id(data)
+      assert encoded_data[:type] == PostView.type()
+
+      attributes = encoded_data[:attributes]
+      assert attributes[:text] == data[:text]
+      assert attributes[:body] == data[:body]
+
+      assert encoded_data[:links][:self] == PostView.url_for(data, nil)
+      assert map_size(encoded_data[:relationships]) == 2
+      assert encoded_data[:relationships][:best_comments][:data] == []
+
+      assert Enum.count(encoded[:included]) == 1
+    end
   end
 end
