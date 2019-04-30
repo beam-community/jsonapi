@@ -203,8 +203,8 @@ defmodule PageBasedPaginator do
     total_pages = Keyword.get(options, :total_pages, 0)
 
     %{
-      first: view.url_for_pagination(data, conn, %{page | "page" => "1"}),
-      last: view.url_for_pagination(data, conn, %{page | "page" => total_pages}),
+      first: view.url_for_pagination(data, conn, Map.put(page, "page", "1")),
+      last: view.url_for_pagination(data, conn, Map.put(page, "page", total_pages)),
       next: next_link(data, view, conn, number, size, total_pages),
       prev: previous_link(data, view, conn, number, size)
     }
