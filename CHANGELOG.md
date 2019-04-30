@@ -4,15 +4,34 @@
 
 ### Added
 
+### Changed
+
+### Contributors
+
+## 1.2.0 (2019-04-29)
+
+### Added
+
+- Pagination has had a massive overhaul. Docs have been updated. Please file issues
+  should you run into any problems. You may wish to review
+  [the pull request](https://github.com/jeregrine/jsonapi/pull/189) for more details.
+- [More typespecs](https://github.com/jeregrine/jsonapi/pull/198)
 - `EnsureSpec` Plug now sets the JSON:API response content type
   [for you](https://github.com/jeregrine/jsonapi/pull/185). This means you need
   not manually include the `ResponseContentType` Plug in your pipeline should you
   already have `EnsureSpec` in play. Please see the documentation for
   `ResponseContentType` should you wish to override it for a specific end-point.
 
+### Changed
+
+- Ex Doc was updated to leverage some of its fancy new features.
+- `EnsureSpec` pipeline checks to ensure that
+  [a PATCH request has an ID](https://github.com/jeregrine/jsonapi/commit/86d98d9dc0ddd29143b9da1a6522acfbcb8bb904)
+- Documentation improvements
+
 ### Contributors
 
-Much love to @0urobor0s
+Much love to: @0urobor0s, @kbaird, @lucacorti, @strzibny
 
 ## 1.1.0 (2019-02-23)
 
