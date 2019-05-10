@@ -246,7 +246,7 @@ defmodule JSONAPI.QueryParser do
 
   @spec get_view_for_type(module(), String.t()) :: module() | no_return()
   def get_view_for_type(view, type) do
-    case Enum.find(view.relationships, fn {k, _v} -> Atom.to_string(k) == type end) do
+    case Enum.find(view.relationships, fn {_k, v} -> v.type == type end) do
       {_, view} -> view
       nil -> raise_invalid_field_names(type, view.type())
     end

@@ -14,7 +14,7 @@ defmodule JSONAPI.QueryParserTest do
       [
         author: JSONAPI.QueryParserTest.UserView,
         comments: JSONAPI.QueryParserTest.CommentView,
-        best_friends: JSONAPI.QueryParsertTest.UserView
+        best_friends: JSONAPI.QueryParserTest.UserView
       ]
     end
   end
@@ -126,7 +126,7 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "get_view_for_type/2" do
-    assert get_view_for_type(MyView, "comments") == JSONAPI.QueryParserTest.CommentView
+    assert get_view_for_type(MyView, "comment") == JSONAPI.QueryParserTest.CommentView
   end
 
   test "parse_pagination/2 turns a fields map into a map of pagination values" do
@@ -140,8 +140,8 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "get_view_for_type/2 raises on invalid fields" do
-    assert_raise InvalidQuery, "invalid fields, comment for type mytype", fn ->
-      get_view_for_type(MyView, "comment")
+    assert_raise InvalidQuery, "invalid fields, comments for type mytype", fn ->
+      get_view_for_type(MyView, "comments")
     end
   end
 end
