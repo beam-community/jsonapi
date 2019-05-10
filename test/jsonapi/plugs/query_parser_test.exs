@@ -125,8 +125,12 @@ defmodule JSONAPI.QueryParserTest do
     end
   end
 
-  test "get_view_for_type/2" do
+  test "get_view_for_type/2 using view.type as key" do
     assert get_view_for_type(MyView, "comment") == JSONAPI.QueryParserTest.CommentView
+  end
+
+  test "DEPRECATED: get_view_for_type/2 using relationship name as key" do
+    assert get_view_for_type(MyView, "comments") == JSONAPI.QueryParserTest.CommentView
   end
 
   test "parse_pagination/2 turns a fields map into a map of pagination values" do
@@ -140,8 +144,8 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "get_view_for_type/2 raises on invalid fields" do
-    assert_raise InvalidQuery, "invalid fields, comments for type mytype", fn ->
-      get_view_for_type(MyView, "comments")
+    assert_raise InvalidQuery, "invalid fields, cupcake for type mytype", fn ->
+      get_view_for_type(MyView, "cupcake")
     end
   end
 end
