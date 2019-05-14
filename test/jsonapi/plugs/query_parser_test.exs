@@ -14,7 +14,7 @@ defmodule JSONAPI.QueryParserTest do
       [
         author: JSONAPI.QueryParserTest.UserView,
         comments: JSONAPI.QueryParserTest.CommentView,
-        best_friends: JSONAPI.QueryParsertTest.UserView
+        best_friends: JSONAPI.QueryParserTest.UserView
       ]
     end
   end
@@ -125,7 +125,11 @@ defmodule JSONAPI.QueryParserTest do
     end
   end
 
-  test "get_view_for_type/2" do
+  test "get_view_for_type/2 using view.type as key" do
+    assert get_view_for_type(MyView, "comment") == JSONAPI.QueryParserTest.CommentView
+  end
+
+  test "DEPRECATED: get_view_for_type/2 using relationship name as key" do
     assert get_view_for_type(MyView, "comments") == JSONAPI.QueryParserTest.CommentView
   end
 
@@ -140,8 +144,8 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "get_view_for_type/2 raises on invalid fields" do
-    assert_raise InvalidQuery, "invalid fields, comment for type mytype", fn ->
-      get_view_for_type(MyView, "comment")
+    assert_raise InvalidQuery, "invalid fields, cupcake for type mytype", fn ->
+      get_view_for_type(MyView, "cupcake")
     end
   end
 end
