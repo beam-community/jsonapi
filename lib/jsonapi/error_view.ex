@@ -10,7 +10,7 @@ defmodule JSONAPI.ErrorView do
   def build_error(title, status, detail, pointer \\ nil, meta \\ nil) do
     error = %{
       detail: detail,
-      status: status,
+      status: Integer.to_string(status),
       title: title
     }
 
@@ -97,6 +97,10 @@ defmodule JSONAPI.ErrorView do
   def send_error(conn, status, error) when is_map(error) do
     json = JSONAPI.json_library().encode!(error)
     send_error(conn, status, json)
+  end
+
+  def send_error(conn, status, error) when is_binary(status) do
+    send_error(conn, String.to_integer(status), error)
   end
 
   def send_error(conn, status, error) do
