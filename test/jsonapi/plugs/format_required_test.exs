@@ -138,7 +138,7 @@ defmodule JSONAPI.FormatRequiredTest do
              "detail" =>
                "Check out https://jsonapi.org/format/#crud-updating-to-many-relationships for more info.",
              "source" => %{"pointer" => "/data"},
-             "status" => 400,
+             "status" => "400",
              "title" =>
                "Data parameter has multiple Resource Identifier Objects for a non-relationship endpoint"
            } = error
