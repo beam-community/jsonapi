@@ -45,7 +45,8 @@ defmodule JSONAPI.SerializerTest do
         first: view.url_for_pagination(data, conn, %{page | "page" => "1"}),
         last: view.url_for_pagination(data, conn, %{page | "page" => total_pages}),
         next: next_link(data, view, conn, number, size, total_pages),
-        prev: previous_link(data, view, conn, number, size)
+        prev: previous_link(data, view, conn, number, size),
+        self: view.url_for_pagination(data, conn, %{size: size, page: number})
       }
     end
 
@@ -596,11 +597,13 @@ defmodule JSONAPI.SerializerTest do
     page = conn.assigns.jsonapi_query.page
     first = view.url_for_pagination(data, conn, %{page | "page" => 1})
     last = view.url_for_pagination(data, conn, %{page | "page" => 3})
+    self = view.url_for_pagination(data, conn, page)
 
     assert encoded[:links][:first] == first
     assert encoded[:links][:last] == last
     assert encoded[:links][:next] == last
     assert encoded[:links][:prev] == first
+    assert encoded[:links][:self] == self
   end
 
   test "serialize does not include pagination links if they are not defined" do

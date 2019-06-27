@@ -161,10 +161,9 @@ defmodule JSONAPI.Serializer do
 
   defp merge_base_links(%{links: links} = doc, data, view, conn) do
     view_links =
-      data
-      |> view.links(conn)
+      %{self: view.url_for(data, conn)}
+      |> Map.merge(view.links(data, conn))
       |> Map.merge(links)
-      |> Map.merge(%{self: view.url_for(data, conn)})
 
     Map.merge(doc, %{links: view_links})
   end
