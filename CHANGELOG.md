@@ -1,12 +1,21 @@
 # Changelog
 
-## Unreleased
+## 1.2.1 (2019-06-27)
 
 ### Added
 
+N/A
+
 ### Changed
 
+- [Updated example pagination code](https://github.com/jeregrine/jsonapi/pull/204)
+- [Fixed sparse fieldset compliance for relationships](https://github.com/jeregrine/jsonapi/pull/203)
+- [Error status codes](https://github.com/jeregrine/jsonapi/pull/206) in error responses should be Strings
+- [Fixed a problem](https://github.com/jeregrine/jsonapi/pull/208) with "self" pagination link
+
 ### Contributors
+
+A fist bump of appreciation to @lucacorti, @leepfrog, @jasondew, and @thebrianemory.
 
 ## 1.2.0 (2019-04-29)
 
