@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.2 (2019-09-28)
+
+### Added
+
+N/A
+
+### Changed
+
+- [Removed Elixir 1.5 from the Build Matrix](https://github.com/jeregrine/jsonapi/pull/212)
+- [Fixed underscoring camelCase params](https://github.com/jeregrine/jsonapi/pull/211)
+
 ## 1.2.1 (2019-06-27)
 
 ### Added
