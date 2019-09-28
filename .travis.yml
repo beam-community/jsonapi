@@ -4,7 +4,6 @@ elixir:
   - 1.8
   - 1.7
   - 1.6
-  - 1.5
 
 otp_release:
   - 21.1
@@ -16,8 +15,6 @@ matrix:
   exclude:
     - elixir: 1.6
       otp_release: 18.3
-    - elixir: 1.5
-      otp_release: 21.1
     - elixir: 1.8
       otp_release: 19.3
     - elixir: 1.8
@@ -38,4 +35,3 @@ script:
   - mix test
   - mix credo --strict
   - if [[ `elixir -v` = *"1.8"* ]]; then mix dialyzer --halt-exit-status; fi
-  - if ! [[ `elixir -v` = *"1.5"* ]]; then mix format --check-formatted; fi
