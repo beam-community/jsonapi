@@ -24,10 +24,16 @@ defmodule JSONAPI.Utils.String do
       iex> underscore("-top--posts-")
       "-top--posts-"
 
+      iex> underscore("corgiAge")
+      "corgi_age"
+
   """
   @spec underscore(String.t()) :: String.t()
   def underscore(value) when is_binary(value) do
-    String.replace(value, ~r/([a-zA-Z0-9])-([a-zA-Z0-9])/, "\\1_\\2")
+    value
+    |> String.replace(~r/([a-zA-Z\d])-([a-zA-Z\d])/, "\\1_\\2")
+    |> String.replace(~r/([a-z\d])([A-Z])/, "\\1_\\2")
+    |> String.downcase()
   end
 
   @spec underscore(atom) :: String.t()
@@ -153,6 +159,11 @@ defmodule JSONAPI.Utils.String do
       iex> expand_fields(%{"inserted-at" => ~N[2019-01-17 03:27:24.776957]}, &underscore/1)
       %{"inserted_at" => ~N[2019-01-17 03:27:24.776957]}
 
+      iex> expand_fields(%{"xValue" => 123}, &underscore/1)
+      %{"x_value" => 123}
+
+      iex> expand_fields(%{"attributes" => %{"corgiName" => "Wardel"}}, &underscore/1)
+      %{"attributes" => %{"corgi_name" => "Wardel"}}
   """
   @spec expand_fields(map, function) :: map
   def expand_fields(%{__struct__: _} = value, _fun), do: value
