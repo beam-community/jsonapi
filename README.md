@@ -161,7 +161,7 @@ config :jsonapi,
 - **remove_links**. `links` data can optionally be removed from the payload via
   setting the configuration above to `true`. Defaults to `false`.
 - **json_library**. Defaults to [Jason](https://hex.pm/packages/jason).
-- **paginator**. Module implementing pagination links generation. Deafults to `nil`.
+- **paginator**. Module implementing pagination links generation. Defaults to `nil`.
 
 
 ## Pagination
