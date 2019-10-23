@@ -238,11 +238,23 @@ defmodule JSONAPI.View do
         |> prepare_url(data, conn)
       end
 
-      defp build_query_params({key, %{} = value}) do
-        Enum.map(value, fn {k, v} -> {"#{key}[#{k}]", v} end)
+      defp build_query_params({key, value} = kv) when is_list(value) do
+        format(key, value)
       end
 
-      defp build_query_params(data), do: [data]
+      defp build_query_params({key, %{} = value}) do
+        Enum.flat_map(value, fn {k, v} -> format("#{key}[#{k}]", v) end)
+      end
+
+      defp build_query_params({key, value}), do: format(key, value)
+
+      defp format(key, value) when is_list(value) do
+        Enum.map(value, & {"#{key}[]", &1})
+      end
+
+      defp format(key, value) do
+        [{key, value}]
+      end
 
       defp prepare_url("", data, conn), do: url_for(data, conn)
 
