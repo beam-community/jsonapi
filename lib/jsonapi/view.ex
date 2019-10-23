@@ -229,14 +229,19 @@ defmodule JSONAPI.View do
         "#{url_for(data, conn)}/relationships/#{rel_type}"
       end
 
-      def url_for_pagination(data, conn, pagination_attrs) do
-        pagination_attrs
-        |> Enum.reduce(%{}, fn {key, value}, acc ->
-          Map.put(acc, "page[#{key}]", value)
-        end)
+      def url_for_pagination(data, %{query_params: query_params} = conn, pagination_attrs) do
+        query_params
+        |> Map.put("page", pagination_attrs)
+        |> Enum.flat_map(&build_query_params/1)
         |> URI.encode_query()
         |> prepare_url(data, conn)
       end
+
+      defp build_query_params({key, %{} = value}) do
+        Enum.map(value, fn {k, v} -> {"#{key}[#{k}]", v} end)
+      end
+
+      defp build_query_params(data), do: [data]
 
       defp prepare_url("", data, conn), do: url_for(data, conn)
 
