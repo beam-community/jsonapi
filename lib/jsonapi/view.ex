@@ -217,7 +217,7 @@ defmodule JSONAPI.View do
 
       def url_for(data, nil), do: "#{namespace()}/#{type()}/#{id(data)}"
 
-      def url_for(data, %Plug.Conn{} = conn) when is_list(data) do
+      def url_for(data, %Plug.Conn{} = conn) when is_list(data) or is_nil(data) do
         "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}"
       end
 
@@ -231,6 +231,7 @@ defmodule JSONAPI.View do
 
       def url_for_pagination(data, %{query_params: query_params} = conn, pagination_attrs) do
         query_params
+        |> Map.drop([:__struct__])
         |> Map.put("page", pagination_attrs)
         |> Enum.flat_map(&build_query_params/1)
         |> URI.encode_query()

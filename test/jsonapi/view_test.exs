@@ -146,10 +146,17 @@ defmodule JSONAPI.ViewTest do
   end
 
   test "url_for_pagination/3" do
-    assert PostView.url_for_pagination(nil, nil, %{}) == "/api/posts"
+    conn = Plug.Conn.fetch_query_params(%Plug.Conn{})
 
-    assert PostView.url_for_pagination(nil, nil, %{number: 1, size: 10}) ==
-             "/api/posts?page%5Bnumber%5D=1&page%5Bsize%5D=10"
+    assert PostView.url_for_pagination(nil, conn, %{}) == "http://www.example.com/api/posts"
+
+    assert PostView.url_for_pagination(nil, conn, %{number: 1, size: 10}) ==
+             "http://www.example.com/api/posts?page%5Bnumber%5D=1&page%5Bsize%5D=10"
+
+    conn_with_query_params = Kernel.update_in(conn.query_params, &Map.put(&1, :number, 5))
+
+    assert PostView.url_for_pagination(nil, conn_with_query_params, %{}) ==
+             "http://www.example.com/api/posts?number=5"
   end
 
   test "render/2 is defined when 'Phoenix' is loaded" do
