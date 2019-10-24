@@ -590,6 +590,7 @@ defmodule JSONAPI.SerializerTest do
       :get
       |> Plug.Test.conn("/mytype?page[page]=2&page[size]=1")
       |> QueryParser.call(%Config{view: view, opts: []})
+      |> Plug.Conn.fetch_query_params()
 
     encoded =
       Serializer.serialize(PaginatedPostView, data, conn, nil, total_pages: 3, total_items: 3)

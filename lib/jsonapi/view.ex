@@ -231,7 +231,6 @@ defmodule JSONAPI.View do
 
       def url_for_pagination(data, %{query_params: query_params} = conn, pagination_attrs) do
         query_params
-        |> Map.drop([:__struct__])
         |> Map.put("page", pagination_attrs)
         |> Enum.flat_map(&build_query_params/1)
         |> URI.encode_query()
