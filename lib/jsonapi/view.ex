@@ -241,7 +241,7 @@ defmodule JSONAPI.View do
         format(key, value)
       end
 
-      defp build_query_params({key, %{} = value}) do
+      defp build_query_params({key, value}) when is_map(value) do
         Enum.flat_map(value, fn {k, v} -> format("#{key}[#{k}]", v) end)
       end
 
