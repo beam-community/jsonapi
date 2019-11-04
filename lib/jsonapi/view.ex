@@ -238,20 +238,20 @@ defmodule JSONAPI.View do
       end
 
       defp build_query_params({key, value} = kv) when is_list(value) do
-        format(key, value)
+        to_query_string_tuple(key, value)
       end
 
       defp build_query_params({key, value}) when is_map(value) do
-        Enum.flat_map(value, fn {k, v} -> format("#{key}[#{k}]", v) end)
+        Enum.flat_map(value, fn {k, v} -> to_query_string_tuple("#{key}[#{k}]", v) end)
       end
 
-      defp build_query_params({key, value}), do: format(key, value)
+      defp build_query_params({key, value}), do: to_query_string_tuple(key, value)
 
-      defp format(key, value) when is_list(value) do
+      defp to_query_string_tuple(key, value) when is_list(value) do
         Enum.map(value, & {"#{key}[]", &1})
       end
 
-      defp format(key, value) do
+      defp to_query_string_tuple(key, value) do
         [{key, value}]
       end
 
