@@ -142,6 +142,8 @@ defmodule JSONAPI.SerializerTest do
 
     def type, do: "expensive-resource"
 
+    def links(nil, _conn), do: %{}
+
     def links(data, _conn) do
       %{
         queue: "/expensive-resource/queue/#{data.id}",
@@ -636,5 +638,15 @@ defmodule JSONAPI.SerializerTest do
     }
 
     assert expected_links == links
+  end
+
+  test "serialize returns a null data if it receives a null data" do
+      assert %{
+             data: data,
+             links: links
+           } = Serializer.serialize(ExpensiveResourceView, nil, nil)
+
+    assert nil == data
+    assert %{self: "/expensive-resource"} == links
   end
 end
