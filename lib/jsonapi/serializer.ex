@@ -47,7 +47,7 @@ defmodule JSONAPI.Serializer do
     merge_links(encoded_data, data, view, conn, query_page, remove_links?(), options)
   end
 
-  def encode_data(view, nil, conn, query_includes, options), do: {[], nil}
+  def encode_data(_view, nil, _conn, _query_includes, _options), do: {[], nil}
 
   def encode_data(view, data, conn, query_includes, options) when is_list(data) do
     Enum.map_reduce(data, [], fn d, acc ->
