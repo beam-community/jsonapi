@@ -158,7 +158,8 @@ defmodule JSONAPI.ViewTest do
     end
 
     test "with query parameters", %{conn: conn} do
-      conn_with_query_params = Kernel.update_in(conn.query_params, &Map.put(&1, "comments", [5, 2]))
+      conn_with_query_params =
+        Kernel.update_in(conn.query_params, &Map.put(&1, "comments", [5, 2]))
 
       assert PostView.url_for_pagination(nil, conn_with_query_params, %{number: 1, size: 10}) ==
                "http://www.example.com/api/posts?comments%5B%5D=5&comments%5B%5D=2&page%5Bnumber%5D=1&page%5Bsize%5D=10"

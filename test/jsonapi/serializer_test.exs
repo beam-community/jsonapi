@@ -641,7 +641,7 @@ defmodule JSONAPI.SerializerTest do
   end
 
   test "serialize returns a null data if it receives a null data" do
-      assert %{
+    assert %{
              data: data,
              links: links
            } = Serializer.serialize(ExpensiveResourceView, nil, nil)
