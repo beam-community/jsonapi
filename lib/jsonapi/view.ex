@@ -120,6 +120,7 @@ defmodule JSONAPI.View do
     {paginator, _opts} = Keyword.pop(opts, :paginator)
 
     quote do
+      import JSONAPI.Utils.List, only: [to_custom_list: 1]
       import JSONAPI.Serializer, only: [serialize: 5]
 
       @resource_type unquote(type)
@@ -232,27 +233,9 @@ defmodule JSONAPI.View do
       def url_for_pagination(data, %{query_params: query_params} = conn, pagination_attrs) do
         query_params
         |> Map.put("page", pagination_attrs)
-        |> Enum.flat_map(&build_query_params/1)
+        |> to_custom_list()
         |> URI.encode_query()
         |> prepare_url(data, conn)
-      end
-
-      defp build_query_params({key, value} = kv) when is_list(value) do
-        to_query_string_tuple(key, value)
-      end
-
-      defp build_query_params({key, value}) when is_map(value) do
-        Enum.flat_map(value, fn {k, v} -> to_query_string_tuple("#{key}[#{k}]", v) end)
-      end
-
-      defp build_query_params({key, value}), do: to_query_string_tuple(key, value)
-
-      defp to_query_string_tuple(key, value) when is_list(value) do
-        Enum.map(value, & {"#{key}[]", &1})
-      end
-
-      defp to_query_string_tuple(key, value) do
-        [{key, value}]
       end
 
       defp prepare_url("", data, conn), do: url_for(data, conn)
