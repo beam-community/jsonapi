@@ -120,7 +120,7 @@ defmodule JSONAPI.View do
     {paginator, _opts} = Keyword.pop(opts, :paginator)
 
     quote do
-      import JSONAPI.Utils.List, only: [to_custom_list: 1]
+      import JSONAPI.Utils.List, only: [to_list_of_query_string_components: 1]
       import JSONAPI.Serializer, only: [serialize: 5]
 
       @resource_type unquote(type)
@@ -233,7 +233,7 @@ defmodule JSONAPI.View do
       def url_for_pagination(data, %{query_params: query_params} = conn, pagination_attrs) do
         query_params
         |> Map.put("page", pagination_attrs)
-        |> to_custom_list()
+        |> to_list_of_query_string_components()
         |> URI.encode_query()
         |> prepare_url(data, conn)
       end
