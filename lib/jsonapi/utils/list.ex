@@ -29,20 +29,20 @@ defmodule JSONAPI.Utils.List do
   end
 
   defp do_to_list_of_query_string_components({key, value}) when is_list(value) do
-    into_tuple_and_put_in_list(key, value)
+    to_list_of_two_elem_tuple(key, value)
   end
 
   defp do_to_list_of_query_string_components({key, value}) when is_map(value) do
-    Enum.flat_map(value, fn {k, v} -> into_tuple_and_put_in_list("#{key}[#{k}]", v) end)
+    Enum.flat_map(value, fn {k, v} -> to_list_of_two_elem_tuple("#{key}[#{k}]", v) end)
   end
 
-  defp do_to_list_of_query_string_components({key, value}), do: into_tuple_and_put_in_list(key, value)
+  defp do_to_list_of_query_string_components({key, value}), do: to_list_of_two_elem_tuple(key, value)
 
-  defp into_tuple_and_put_in_list(key, value) when is_list(value) do
+  defp to_list_of_two_elem_tuple(key, value) when is_list(value) do
     Enum.map(value, &{"#{key}[]", &1})
   end
 
-  defp into_tuple_and_put_in_list(key, value) do
+  defp to_list_of_two_elem_tuple(key, value) do
     [{key, value}]
   end
 end
