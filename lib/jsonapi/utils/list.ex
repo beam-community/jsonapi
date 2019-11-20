@@ -4,10 +4,6 @@ defmodule JSONAPI.Utils.List do
   @doc """
   Transforms a Map into a List of Tuples that can be converted into a query string via URI.encode_query/1
 
-  - if values are terms that implements the String.Chars protocol it returns [{key1, value1}, {key2, value2}]
-  - if any value is a list es. %{key1: ["a", "b"]} it returns [{key1[], "a"}, {key1[], "b"}]
-  - if any value is a map es. %{key1: %{key2: "c", key3: "d"}} it returns [{key1[key2], "c"}, {key1[key3], "d"}]
-
   ## Examples
 
       iex> to_list_of_query_string_components(%{"number" => 5})
