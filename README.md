@@ -27,6 +27,20 @@ of the JSON:API spec.
 
 ## How to use with Phoenix
 
+### Installation
+
+Add the following line to your `mix.deps` file with the desired verison to install `jsonapi`.
+
+```elixir
+defp deps do [
+  ...
+  {:jsonapi, "~> x.x.x"}
+  ...
+]
+```
+
+### Usage
+
 Simply add `use JSONAPI.View` either to the top of your view, or to the web.ex view section and add the
 proper functions to your view like so.
 
@@ -161,7 +175,7 @@ config :jsonapi,
 - **remove_links**. `links` data can optionally be removed from the payload via
   setting the configuration above to `true`. Defaults to `false`.
 - **json_library**. Defaults to [Jason](https://hex.pm/packages/jason).
-- **paginator**. Module implementing pagination links generation. Deafults to `nil`.
+- **paginator**. Module implementing pagination links generation. Defaults to `nil`.
 
 
 ## Pagination

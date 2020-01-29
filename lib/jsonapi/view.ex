@@ -120,6 +120,7 @@ defmodule JSONAPI.View do
     {paginator, _opts} = Keyword.pop(opts, :paginator)
 
     quote do
+      import JSONAPI.Utils.List, only: [to_list_of_query_string_components: 1]
       import JSONAPI.Serializer, only: [serialize: 5]
 
       @resource_type unquote(type)
@@ -217,7 +218,7 @@ defmodule JSONAPI.View do
 
       def url_for(data, nil), do: "#{namespace()}/#{type()}/#{id(data)}"
 
-      def url_for(data, %Plug.Conn{} = conn) when is_list(data) do
+      def url_for(data, %Plug.Conn{} = conn) when is_list(data) or is_nil(data) do
         "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}"
       end
 
@@ -229,11 +230,10 @@ defmodule JSONAPI.View do
         "#{url_for(data, conn)}/relationships/#{rel_type}"
       end
 
-      def url_for_pagination(data, conn, pagination_attrs) do
-        pagination_attrs
-        |> Enum.reduce(%{}, fn {key, value}, acc ->
-          Map.put(acc, "page[#{key}]", value)
-        end)
+      def url_for_pagination(data, %{query_params: query_params} = conn, pagination_attrs) do
+        query_params
+        |> Map.put("page", pagination_attrs)
+        |> to_list_of_query_string_components()
         |> URI.encode_query()
         |> prepare_url(data, conn)
       end

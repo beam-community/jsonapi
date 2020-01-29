@@ -145,11 +145,28 @@ defmodule JSONAPI.ViewTest do
     end
   end
 
-  test "url_for_pagination/3" do
-    assert PostView.url_for_pagination(nil, nil, %{}) == "/api/posts"
+  describe "url_for_pagination/3" do
+    setup do
+      {:ok, conn: Plug.Conn.fetch_query_params(%Plug.Conn{})}
+    end
 
-    assert PostView.url_for_pagination(nil, nil, %{number: 1, size: 10}) ==
-             "/api/posts?page%5Bnumber%5D=1&page%5Bsize%5D=10"
+    test "with pagination information", %{conn: conn} do
+      assert PostView.url_for_pagination(nil, conn, %{}) == "http://www.example.com/api/posts"
+
+      assert PostView.url_for_pagination(nil, conn, %{number: 1, size: 10}) ==
+               "http://www.example.com/api/posts?page%5Bnumber%5D=1&page%5Bsize%5D=10"
+    end
+
+    test "with query parameters", %{conn: conn} do
+      conn_with_query_params =
+        Kernel.update_in(conn.query_params, &Map.put(&1, "comments", [5, 2]))
+
+      assert PostView.url_for_pagination(nil, conn_with_query_params, %{number: 1, size: 10}) ==
+               "http://www.example.com/api/posts?comments%5B%5D=5&comments%5B%5D=2&page%5Bnumber%5D=1&page%5Bsize%5D=10"
+
+      assert PostView.url_for_pagination(nil, conn_with_query_params, %{}) ==
+               "http://www.example.com/api/posts?comments%5B%5D=5&comments%5B%5D=2"
+    end
   end
 
   test "render/2 is defined when 'Phoenix' is loaded" do
