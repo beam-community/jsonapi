@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.3 (2020-01-28)
+
+### Added
+
+N/A
+
+### Changed
+
+- [Fixed documentation typo](https://github.com/jeregrine/jsonapi/pull/213)
+- [Added query parameters to links](https://github.com/jeregrine/jsonapi/pull/214)
+- [Added installation instructions](https://github.com/jeregrine/jsonapi/pull/216)
+
+### Contributors
+
+Big ups to @jgelens, @komlanvi, @ryanlabouve
+
 ## 1.2.2 (2019-09-28)
 
 ### Added
