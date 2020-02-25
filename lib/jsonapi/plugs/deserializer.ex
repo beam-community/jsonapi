@@ -29,10 +29,11 @@ defmodule JSONAPI.Deserializer do
       plug JSONAPI.Deserializer
   """
 
+  alias JSONAPI.Utils.ParamParser
+
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    Map.put(conn, :params, JSONAPI.Utils.ParamParser.parse(conn.params))
+    Map.put(conn, :params, ParamParser.parse(conn.params))
   end
 end
-

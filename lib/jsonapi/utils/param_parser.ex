@@ -29,4 +29,3 @@ defimpl JSONAPI.Utils.ParamParser, for: Map do
     end)
   end
 end
-
