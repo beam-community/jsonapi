@@ -4,9 +4,9 @@ defmodule JSONAPI.DeserializerTest do
 
   defmodule ExamplePlug do
     use Plug.Builder
-    plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
-    plug(JSONAPI.Deserializer)
-    plug(:return)
+    plug Plug.Parsers, parsers: [:json], json_decoder: Jason
+    plug JSONAPI.Deserializer
+    plug :return
 
     def return(conn, _opts) do
       send_resp(conn, 200, "success")
