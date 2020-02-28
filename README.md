@@ -105,7 +105,7 @@ Please see its documentation for details.
 
 JSONAPI has recommended in the past the use of dashes (`-`) in place of underscore (`_`) as a
 word separator for document member keys. However, as of [JSON API Spec (v1.1)](https://jsonapi.org/format/1.1/), it is now recommended that member names
-are camelCased. This library provides various configuration options for maximum flexibility.
+are camelCased. This library provides various configuration options for maximum flexibility including serializing outgoing parameters and deserializing incoming paramenters.
 
 Transforming fields requires two steps:
 
@@ -123,8 +123,8 @@ Transforming fields requires two steps:
 
    ```elixir
    pipeline :api do
-     plug(JSONAPI.EnsureSpec)
-     plug(JSONAPI.UnderscoreParameters)
+     plug JSONAPI.EnsureSpec
+     plug JSONAPI.UnderscoreParameters
    end
    ```
 
