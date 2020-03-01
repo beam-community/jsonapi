@@ -3,6 +3,8 @@ defmodule JSONAPI.Utils.DataToParams do
   Converts params in the JSON api format into flat params convenient for
   changeset casting.
   """
+  alias JSONAPI.Utils.String, as: JString
+
   @spec process(map) :: map
   def process(%{"data" => _} = incoming) do
     incoming
@@ -40,10 +42,10 @@ defmodule JSONAPI.Utils.DataToParams do
     relationships
     |> Enum.reduce(%{}, fn
       {key, %{"data" => nil}}, acc ->
-        Map.put(acc, "#{key}-id", nil)
+        Map.put(acc, transform_fields("#{key}-id"), nil)
 
       {key, %{"data" => %{"id" => id}}}, acc ->
-        Map.put(acc, "#{key}-id", id)
+        Map.put(acc, transform_fields("#{key}-id"), id)
     end)
     |> Map.merge(data)
     |> Map.drop(["relationships"])
@@ -67,4 +69,12 @@ defmodule JSONAPI.Utils.DataToParams do
     |> Map.drop(["included"])
   end
   defp process_included(incoming), do: incoming
+
+  defp transform_fields(fields) do
+    case JString.field_transformation() do
+      :camelize -> JString.expand_fields(fields, &JString.camelize/1)
+      :dasherize -> JString.expand_fields(fields, &JString.dasherize/1)
+      _ -> fields
+    end
+  end
 end
