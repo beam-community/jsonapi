@@ -118,7 +118,8 @@ Transforming fields requires two steps:
    ```
 
 2. Underscoring *incoming* params (both query and body) requires you add the
-   `JSONAPI.UnderscoreParameters` Plug to your API's pipeline.
+   `JSONAPI.UnderscoreParameters` Plug to your API's pipeline. This makes it easy to
+   work with changeset data.
 
    ```elixir
    pipeline :api do
@@ -128,8 +129,10 @@ Transforming fields requires two steps:
    ```
 
 3. Deserializing *incoming* body params requires you add the
-   `JSONAPI.Deserializer` Plug to your API's pipeline. Your pipeline in a
-   Phoenix app might look something like this:
+   `JSONAPI.Deserializer` Plug to your API's pipeline. Note that the deserializer
+   expects the same casing for your *outgoing* params as your *incoming* params
+
+   Your pipeline in a Phoenix app might look something like this:
 
    ```elixir
    pipeline :api do
