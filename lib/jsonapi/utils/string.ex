@@ -234,6 +234,7 @@ defmodule JSONAPI.Utils.String do
   end
 
   @doc false
+  def field_transformation(nil), do: nil
   def field_transformation(transformation) when transformation in @allowed_transformations,
     do: transformation
 end

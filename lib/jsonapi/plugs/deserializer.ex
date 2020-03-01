@@ -53,7 +53,7 @@ defmodule JSONAPI.Deserializer do
   @spec init(Keyword.t) :: Keyword.t
   def init(opts), do: opts
 
-  @spec call(Conn.t, Keyword.t) :: Plug.Conn.t
+  @spec call(Plug.Conn.t, Keyword.t) :: Plug.Conn.t
   def call(conn, _opts) do
     content_type = get_req_header(conn, "content-type")
 
