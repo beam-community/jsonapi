@@ -48,6 +48,9 @@ defmodule JSONAPI.DeserializerTest do
               "nested-key" => true
             }
           }
+        },
+        "filter" => %{
+          "dog-breed" => "Corgi"
         }
       })
 
@@ -59,6 +62,8 @@ defmodule JSONAPI.DeserializerTest do
     result = ExamplePlug.call(conn, [])
     assert result.params["some-nonsense"] == true
     assert result.params["some-map"]["nested-key"] == true
+    # Preserves query params
+    assert result.params["filter"]["dog-breed"] == "Corgi"
   end
 
   defmodule ExampleUnderscorePlug do
