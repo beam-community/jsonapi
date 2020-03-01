@@ -36,8 +36,7 @@ defmodule JSONAPI.UnderscoreParameters do
   alias JSONAPI.Utils.String, as: JString
 
   @doc false
-  def init(_opts) do
-  end
+  def init(opts), do: opts
 
   @doc false
   def call(%Plug.Conn{params: params} = conn, _opts) do
