@@ -25,7 +25,7 @@ defmodule JSONAPI.DeserializerTest do
     assert result.params == %{}
   end
 
-  test "converts non-jsonapi.org format params" do
+  test "ignores non-jsonapi.org format params" do
     req_body = Jason.encode!(%{"some-nonsense" => "yup"})
 
     conn =
@@ -34,10 +34,10 @@ defmodule JSONAPI.DeserializerTest do
       |> put_req_header("accept", @ct)
 
     result = ExamplePlug.call(conn, [])
-    assert result.params == %{"some_nonsense" => "yup"}
+    assert result.params == %{"some-nonsense" => "yup"}
   end
 
-  test "converts attribute key names" do
+  test "deserializes attribute key names" do
     req_body =
       Jason.encode!(%{
         "data" => %{
@@ -45,7 +45,7 @@ defmodule JSONAPI.DeserializerTest do
             "some-nonsense" => true,
             "foo-bar" => true,
             "some-map" => %{
-              "nested-key" => "unaffected-values"
+              "nested-key" => true
             }
           }
         }
@@ -57,40 +57,34 @@ defmodule JSONAPI.DeserializerTest do
       |> put_req_header("accept", @ct)
 
     result = ExamplePlug.call(conn, [])
-    assert result.params["data"]["attributes"]["some_nonsense"]
-    assert result.params["data"]["attributes"]["foo_bar"]
-    assert result.params["data"]["attributes"]["some_map"]["nested_key"]
+    assert result.params["some-nonsense"] == true
+    assert result.params["some-map"]["nested-key"] == true
   end
 
-  test "converts query param key names - dasherized" do
-    req_body = Jason.encode!(%{"data" => %{}})
+  defmodule ExampleUnderscorePlug do
+    use Plug.Builder
+    plug Plug.Parsers, parsers: [:json], json_decoder: Jason
+    plug JSONAPI.Deserializer
+    plug JSONAPI.UnderscoreParameters
 
-    conn =
-      Plug.Test.conn("POST", "/?page[page-size]=2", req_body)
-      |> put_req_header("content-type", @ct)
-      |> put_req_header("accept", @ct)
+    plug :return
 
-    result = ExamplePlug.call(conn, [])
-    assert result.params["page"]["page_size"] == "2"
+    def return(conn, _opts) do
+      send_resp(conn, 200, "success")
+    end
   end
 
-  test "converts query param key names - underscored" do
-    req_body = Jason.encode!(%{"data" => %{}})
-
-    conn =
-      Plug.Test.conn("POST", "/?page[page_size]=2", req_body)
-      |> put_req_header("content-type", @ct)
-      |> put_req_header("accept", @ct)
-
-    result = ExamplePlug.call(conn, [])
-    assert result.query_params["page"]["page_size"] == "2"
-  end
-
-  test "retains payload type" do
+  test "deserializes attribute key names and underscores them" do
     req_body =
       Jason.encode!(%{
         "data" => %{
-          "type" => "foo-bar"
+          "attributes" => %{
+            "some-nonsense" => true,
+            "foo-bar" => true,
+            "some-map" => %{
+              "nested-key" => true
+            }
+          }
         }
       })
 
@@ -99,7 +93,8 @@ defmodule JSONAPI.DeserializerTest do
       |> put_req_header("content-type", @ct)
       |> put_req_header("accept", @ct)
 
-    result = ExamplePlug.call(conn, [])
-    assert result.params["data"]["type"] == "foo-bar"
+    result = ExampleUnderscorePlug.call(conn, [])
+    assert result.params["some_nonsense"] == true
+    assert result.params["some_map"]["nested_key"] == true
   end
 end
