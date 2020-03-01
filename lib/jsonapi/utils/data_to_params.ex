@@ -11,12 +11,11 @@ defmodule JSONAPI.Utils.DataToParams do
     |> process_relationships()
     |> process_attributes()
   end
-  def process(incoming) do
-    incoming
-  end
+  def process(incoming), do: incoming
 
   defp flatten_incoming(%{"data" => data} = incoming) do
-    Map.merge(incoming, data)
+    incoming
+    |> Map.merge(data)
     |> Map.drop(["data"])
   end
 
@@ -26,7 +25,8 @@ defmodule JSONAPI.Utils.DataToParams do
     Map.drop(data, ["attributes"])
   end
   defp process_attributes(%{"attributes" => attributes} = data) do
-    Map.merge(data, attributes)
+    data
+    |> Map.merge(attributes)
     |> Map.drop(["attributes"])
   end
   defp process_attributes(data), do: data
@@ -37,16 +37,15 @@ defmodule JSONAPI.Utils.DataToParams do
     Map.drop(data, ["relationships"])
   end
   defp process_relationships(%{"relationships" => relationships} = data) do
-    result =
-      Enum.reduce(relationships, %{}, fn
-        {key, %{"data" => nil}}, acc ->
-          Map.put(acc, "#{key}-id", nil)
+    relationships
+    |> Enum.reduce(%{}, fn
+      {key, %{"data" => nil}}, acc ->
+        Map.put(acc, "#{key}-id", nil)
 
-        {key, %{"data" => %{"id" => id}}}, acc ->
-          Map.put(acc, "#{key}-id", id)
-      end)
-
-    Map.merge(data, result)
+      {key, %{"data" => %{"id" => id}}}, acc ->
+        Map.put(acc, "#{key}-id", id)
+    end)
+    |> Map.merge(data)
     |> Map.drop(["relationships"])
   end
   defp process_relationships(data), do: data
@@ -57,10 +56,8 @@ defmodule JSONAPI.Utils.DataToParams do
     Map.drop(incoming, ["included"])
   end
   defp process_included(%{"included" => included} = incoming) do
-    Enum.reduce(
-      included,
-      incoming,
-      fn (%{"data" => %{"type" => type}} = params, acc) ->
+    included
+    |> Enum.reduce(incoming, fn (%{"data" => %{"type" => type}} = params, acc) ->
         flattened = process(params)
         case Map.has_key?(acc, type) do
           false -> Map.put(acc, type, [flattened])
