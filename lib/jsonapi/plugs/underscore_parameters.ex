@@ -1,7 +1,8 @@
 defmodule JSONAPI.UnderscoreParameters do
   @moduledoc """
-  Takes dasherized JSON:API params and turns them into underscored params. Add
-  this to your API's pipeline to aid in dealing with incoming parameters.
+  Takes dasherized JSON:API params and deserializes them to underscored params. Add
+  this to your API's pipeline to aid in dealing with incoming parameters such as query
+  params or data.
 
   Note that this Plug will only underscore parameters when the request's content
   type is for a JSON:API request (i.e. "application/vnd.api+json"). All other
@@ -9,7 +10,25 @@ defmodule JSONAPI.UnderscoreParameters do
 
   ## Example
 
-  Given a request like:
+  %{
+    "data" => %{
+      "attributes" => %{
+        "foo-bar" => true
+      }
+    }
+  }
+
+  are transformed to:
+
+  %{
+    "data" => %{
+      "attributes" => %{
+        "foo_bar" => true
+      }
+    }
+  }
+
+  Moreover, with a GET request like:
 
       GET /example?filters[dog-breed]=Corgi
 
@@ -26,8 +45,8 @@ defmodule JSONAPI.UnderscoreParameters do
       # e.g. a Phoenix app
 
       pipeline :api do
-        plug(JSONAPI.EnforceSpec)
-        plug(JSONAPI.UnderscoreParameters)
+        plug JSONAPI.EnforceSpec
+        plug JSONAPI.UnderscoreParameters
       end
   """
 
