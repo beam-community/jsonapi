@@ -198,6 +198,7 @@ defmodule JSONAPI.Utils.String do
     {fun.(key), value}
   end
 
+  @spec expand_fields(String.t(), function) :: map
   def expand_fields(value, fun) do
     fun.(value)
   end
