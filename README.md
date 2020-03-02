@@ -132,7 +132,7 @@ Transforming fields requires two steps:
 
 3. Deserializing *incoming* body params requires you add the
    `JSONAPI.Deserializer` Plug to your API's pipeline. Note that the deserializer
-   expects the same casing for your *outgoing* params as your *incoming* params
+   expects the same casing for your *outgoing* params as your *incoming* params.
 
    Your pipeline in a Phoenix app might look something like this:
 
