@@ -82,11 +82,22 @@ defmodule JSONAPI.DataToParamsTest do
       "included" => [
         %{
           "data" => %{
+            "id" => "234",
+            "type" => "friend",
             "attributes" => %{
               "name" => "Tara"
             },
-            "id" => "234",
-            "type" => "friend"
+            "relationships" => %{
+              "baz" => %{
+                "data" => %{
+                  "id" => "2",
+                  "type" => "baz"
+                }
+              },
+              "boo" => %{
+                "data" => nil
+              }
+            }
           }
         },
         %{
@@ -122,7 +133,9 @@ defmodule JSONAPI.DataToParamsTest do
         %{
           "name" => "Tara",
           "id" => "234",
-          "type" => "friend"
+          "type" => "friend",
+          "baz-id" => "2",
+          "boo-id" => nil
         }
       ],
       "organization" => [
