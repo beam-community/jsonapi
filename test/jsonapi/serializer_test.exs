@@ -335,13 +335,15 @@ defmodule JSONAPI.SerializerTest do
       ]
     }
 
-    conn = %Plug.Conn{
-      assigns: %{
-        jsonapi_query: %Config{
-          include: [best_comments: :user]
+    conn =
+      %Plug.Conn{
+        assigns: %{
+          jsonapi_query: %Config{
+            include: [best_comments: :user]
+          }
         }
       }
-    }
+      |> Plug.Conn.fetch_query_params()
 
     encoded = Serializer.serialize(PostView, data, conn)
 
@@ -360,13 +362,15 @@ defmodule JSONAPI.SerializerTest do
       company: %{id: 2, name: "acme"}
     }
 
-    conn = %Plug.Conn{
-      assigns: %{
-        jsonapi_query: %Config{
-          include: [:company]
+    conn =
+      %Plug.Conn{
+        assigns: %{
+          jsonapi_query: %Config{
+            include: [:company]
+          }
         }
       }
-    }
+      |> Plug.Conn.fetch_query_params()
 
     encoded = Serializer.serialize(UserView, data, conn)
 
@@ -385,13 +389,15 @@ defmodule JSONAPI.SerializerTest do
       company: %{id: 2, name: "acme", industry: %{id: 4, name: "stuff"}}
     }
 
-    conn = %Plug.Conn{
-      assigns: %{
-        jsonapi_query: %Config{
-          include: [company: :industry]
+    conn =
+      %Plug.Conn{
+        assigns: %{
+          jsonapi_query: %Config{
+            include: [company: :industry]
+          }
         }
       }
-    }
+      |> Plug.Conn.fetch_query_params()
 
     encoded = Serializer.serialize(UserView, data, conn)
 
@@ -421,13 +427,15 @@ defmodule JSONAPI.SerializerTest do
       }
     }
 
-    conn = %Plug.Conn{
-      assigns: %{
-        jsonapi_query: %Config{
-          include: [company: [industry: :tags]]
+    conn =
+      %Plug.Conn{
+        assigns: %{
+          jsonapi_query: %Config{
+            include: [company: [industry: :tags]]
+          }
         }
       }
-    }
+      |> Plug.Conn.fetch_query_params()
 
     encoded = Serializer.serialize(UserView, data, conn)
 
