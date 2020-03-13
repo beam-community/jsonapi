@@ -161,31 +161,26 @@ defmodule JSONAPI.Serializer do
     merge_related_links(data, info, remove_links?())
   end
 
-  defp merge_base_links(%{links: links} = doc, data, view, conn, page) do
-    self = case page do
-      nil -> view.url_for(data, conn)
-      _ ->
-        view.url_for_pagination(data, conn, page)
-    end
-
-    view_links =
-      %{self: self}
-      |> Map.merge(view.links(data, conn))
-      |> Map.merge(links)
-
+  defp merge_base_links(%{links: links} = doc, data, view, conn) do
+    view_links = Map.merge(view.links(data, conn), links)
     Map.merge(doc, %{links: view_links})
   end
 
   defp merge_links(doc, data, view, conn, nil, false, _options) do
     doc
-    |> Map.merge(%{links: %{}})
-    |> merge_base_links(data, view, conn, nil)
+    |> Map.merge(%{links: %{self: view.url_for(data, conn)}})
+    |> merge_base_links(data, view, conn)
   end
 
   defp merge_links(doc, data, view, conn, page, false, options) do
+    links =
+      Map.merge(view.pagination_links(data, conn, page, options), %{
+        self: view.url_for_pagination(data, conn, page)
+      })
+
     doc
-    |> Map.merge(%{links: view.pagination_links(data, conn, page, options)})
-    |> merge_base_links(data, view, conn, page)
+    |> Map.merge(%{links: links})
+    |> merge_base_links(data, view, conn)
   end
 
   defp merge_links(doc, _data, _view, _conn, _page, _remove_links, _options), do: doc
