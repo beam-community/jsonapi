@@ -657,4 +657,24 @@ defmodule JSONAPI.SerializerTest do
     assert nil == data
     assert %{self: "/expensive-resource"} == links
   end
+
+  test "serialize handles query parameters in self links" do
+    data = [%{id: 1}]
+    view = PaginatedPostView
+
+    conn =
+      :get
+      |> Plug.Test.conn("/mytype?page[page]=2&page[size]=1")
+      |> QueryParser.call(%Config{view: view, opts: []})
+      |> Plug.Conn.fetch_query_params()
+
+    encoded =
+      Serializer.serialize(PaginatedPostView, data, conn, nil, total_pages: 3, total_items: 3)
+
+    assert encoded[:links][:self] ==
+             "http://www.example.com/mytype?page%5Bpage%5D=2&page%5Bsize%5D=1"
+
+    assert List.first(encoded[:data])[:links][:self] ==
+             "http://www.example.com/mytype/1"
+  end
 end
