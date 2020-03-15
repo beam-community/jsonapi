@@ -6,6 +6,7 @@ defmodule JSONAPI.Utils.DataToParams do
   alias JSONAPI.Utils.String, as: JString
 
   @spec process(map) :: map
+  def process(%{"data" => nil}), do: nil
   def process(%{"data" => _} = incoming) do
     incoming
     |> flatten_incoming()
@@ -15,6 +16,9 @@ defmodule JSONAPI.Utils.DataToParams do
   end
   def process(incoming), do: incoming
 
+  defp flatten_incoming(%{"data" => data}) when is_list(data) do
+    data
+  end
   defp flatten_incoming(%{"data" => data} = incoming) do
     incoming
     |> Map.merge(data)
@@ -46,6 +50,9 @@ defmodule JSONAPI.Utils.DataToParams do
 
       {key, %{"data" => %{"id" => id}}}, acc ->
         Map.put(acc, transform_fields("#{key}-id"), id)
+
+      {key, %{"data" => list}}, acc when is_list(list) ->
+        Map.put(acc, transform_fields("#{key}-id"), Enum.map(list, &(Map.get(&1, "id"))))
     end)
     |> Map.merge(data)
     |> Map.drop(["relationships"])
