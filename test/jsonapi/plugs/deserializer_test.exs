@@ -13,7 +13,7 @@ defmodule JSONAPI.DeserializerTest do
     end
   end
 
-  @ct "application/vnd.api+json"
+  @ct JSONAPI.mime_type()
 
   test "Ignores bodyless requests" do
     conn =
