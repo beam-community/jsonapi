@@ -1,6 +1,6 @@
 defmodule JSONAPI.Deserializer do
   @moduledoc """
-  This plug "deserializes" params for ease of use when casting to changesets.
+  This plug flattens incoming params for ease of use when casting to changesets.
   As a result, you are able to pattern match specific attributes in your controller
   actions.
 

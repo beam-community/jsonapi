@@ -128,12 +128,14 @@ Transforming fields requires two steps:
    end
    ```
 
-3. Deserializing *incoming* body params requires you add the
-   `JSONAPI.Deserializer` Plug to your API's pipeline. Note that the deserializer
-   expects the same casing for your *outgoing* params as your *incoming* params.
+3. JSONAPI.Deserializer is a plug designed to make a JSON:API resource object more convenient
+   to work with when creating or updating resources. This plug works by taking the resource
+   object format and flattening it into an easier to manipulate Map.
+
+   Note that the deserializer expects the same casing for your *outgoing* params as your
+   *incoming* params.
 
    Your pipeline in a Phoenix app might look something like this:
-
    ```elixir
    pipeline :api do
      plug JSONAPI.EnsureSpec
