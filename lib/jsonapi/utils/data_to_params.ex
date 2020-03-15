@@ -1,6 +1,6 @@
 defmodule JSONAPI.Utils.DataToParams do
   @moduledoc ~S"""
-  Converts params in the JSON api format into flat params convenient for
+  Converts a Map representation of the JSON:API resource object format into a flat Map convenient for
   changeset casting.
   """
   alias JSONAPI.Utils.String, as: JString
