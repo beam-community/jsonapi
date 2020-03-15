@@ -34,6 +34,64 @@ defmodule JSONAPI.DataToParamsTest do
     }
   end
 
+  test "converts to many relationship" do
+    incoming = %{
+      "data" => %{
+        "id" => "1",
+        "type" => "user",
+        "attributes" => %{
+          "foo-bar" => true
+        },
+        "relationships" => %{
+          "baz" => %{
+            "data" => [
+              %{"id" => "2", "type" => "baz"},
+              %{"id" => "3", "type" => "baz"}
+            ]
+          }
+        }
+      }
+    }
+
+    result = JSONAPI.Utils.DataToParams.process(incoming)
+
+    assert result == %{
+      "id" => "1",
+      "type" => "user",
+      "foo-bar" => true,
+      "baz-id" => ["2", "3"]
+    }
+  end
+
+  test "converts polymorphic" do
+    incoming = %{
+      "data" => %{
+        "id" => "1",
+        "type" => "user",
+        "attributes" => %{
+          "foo-bar" => true
+        },
+        "relationships" => %{
+          "baz" => %{
+            "data" => [
+              %{"id" => "2", "type" => "baz"},
+              %{"id" => "3", "type" => "yooper"}
+            ]
+          }
+        }
+      }
+    }
+
+    result = JSONAPI.Utils.DataToParams.process(incoming)
+
+    assert result == %{
+      "id" => "1",
+      "type" => "user",
+      "foo-bar" => true,
+      "baz-id" => ["2", "3"]
+    }
+  end
+
   test "processes single includes" do
     incoming = %{
       "data" => %{
@@ -151,6 +209,22 @@ defmodule JSONAPI.DataToParamsTest do
     }
   end
 
+  test "processes simple array of data" do
+    incoming = %{
+      "data" => [
+        %{"id" => "1", "type" => "user"},
+        %{"id" => "2", "type" => "user"}
+      ]
+    }
+
+    result = JSONAPI.Utils.DataToParams.process(incoming)
+
+    assert result == [
+      %{"id" => "1", "type" => "user"},
+      %{"id" => "2", "type" => "user"}
+    ]
+  end
+
   test "processes empty keys" do
     incoming = %{
       "data" => %{
@@ -184,5 +258,15 @@ defmodule JSONAPI.DataToParamsTest do
       "id" => "1",
       "type" => "user"
     }
+  end
+
+  test "processes nil data" do
+    incoming = %{
+      "data" => nil
+    }
+
+    result = JSONAPI.Utils.DataToParams.process(incoming)
+
+    assert result == nil
   end
 end

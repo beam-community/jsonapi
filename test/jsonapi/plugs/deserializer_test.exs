@@ -37,6 +37,26 @@ defmodule JSONAPI.DeserializerTest do
     assert result.params == %{"some-nonsense" => "yup"}
   end
 
+  test "works with basic list of data" do
+    req_body = Jason.encode!(%{
+      "data" => [
+        %{"id" => "1", "type" => "car"},
+        %{"id" => "2", "type" => "car"}
+      ]
+    })
+
+    conn =
+      Plug.Test.conn("POST", "/", req_body)
+      |> put_req_header("content-type", @ct)
+      |> put_req_header("accept", @ct)
+
+    result = ExamplePlug.call(conn, [])
+    assert result.params == [
+      %{"id" => "1", "type" => "car"},
+      %{"id" => "2", "type" => "car"}
+    ]
+  end
+
   test "deserializes attribute key names" do
     req_body =
       Jason.encode!(%{
