@@ -64,7 +64,6 @@ defmodule JSONAPI.Utils.DataToParams do
 
           new_map
         end)
-
     end)
     |> Map.merge(data)
     |> Map.drop(["relationships"])
