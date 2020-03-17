@@ -44,31 +44,32 @@ defmodule JSONAPI.Utils.DataToParams do
   end
   defp process_relationships(%{"relationships" => relationships} = data) do
     relationships
-    |> Enum.reduce(%{}, fn
-      {key, %{"data" => nil}}, acc ->
-        Map.put(acc, transform_fields("#{key}-id"), nil)
-
-      {key, %{"data" => %{"id" => id}}}, acc ->
-        Map.put(acc, transform_fields("#{key}-id"), id)
-
-      {_key, %{"data" => list}}, acc when is_list(list) ->
-        Enum.reduce(list, acc, fn %{"id" => id, "type" => type}, inner_acc ->
-          {_val, new_map} =
-            Map.get_and_update(inner_acc, transform_fields("#{type}-id"), fn existing ->
-              case existing do
-                val when is_list(val) -> {val, val ++ [id]}
-                val when is_binary(val) -> {val, [val] ++ [id]}
-                _ -> {nil, id}
-              end
-            end)
-
-          new_map
-        end)
-    end)
+    |> Enum.reduce(%{}, &(transform_relationship(&1, &2)))
     |> Map.merge(data)
     |> Map.drop(["relationships"])
   end
   defp process_relationships(data), do: data
+
+  defp transform_relationship({key, %{"data" => nil}}, acc) do
+    Map.put(acc, transform_fields("#{key}-id"), nil)
+  end
+  defp transform_relationship({key, %{"data" => %{"id" => id}}}, acc) do
+    Map.put(acc, transform_fields("#{key}-id"), id)
+  end
+  defp transform_relationship({_key, %{"data" => list}}, acc) when is_list(list) do
+    Enum.reduce(list, acc, fn %{"id" => id, "type" => type}, inner_acc ->
+      {_val, new_map} =
+        Map.get_and_update(inner_acc, transform_fields("#{type}-id"), fn existing ->
+          case existing do
+            val when is_list(val) -> {val, val ++ [id]}
+            val when is_binary(val) -> {val, [val] ++ [id]}
+            _ -> {nil, id}
+          end
+        end)
+
+      new_map
+    end)
+  end
 
   ## Included
 
