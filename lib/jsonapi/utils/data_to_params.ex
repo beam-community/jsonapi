@@ -51,8 +51,20 @@ defmodule JSONAPI.Utils.DataToParams do
       {key, %{"data" => %{"id" => id}}}, acc ->
         Map.put(acc, transform_fields("#{key}-id"), id)
 
-      {key, %{"data" => list}}, acc when is_list(list) ->
-        Map.put(acc, transform_fields("#{key}-id"), Enum.map(list, &(Map.get(&1, "id"))))
+      {_key, %{"data" => list}}, acc when is_list(list) ->
+        Enum.reduce(list, acc, fn %{"id" => id, "type" => type}, inner_acc ->
+          {_val, new_map} =
+            Map.get_and_update(inner_acc, transform_fields("#{type}-id"), fn existing ->
+              case existing do
+                val when is_list(val) -> {val, val ++ [id]}
+                val when is_binary(val) -> {val, [val] ++ [id]}
+                _ -> {nil, id}
+              end
+            end)
+
+          new_map
+        end)
+
     end)
     |> Map.merge(data)
     |> Map.drop(["relationships"])
