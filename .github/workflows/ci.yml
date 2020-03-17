@@ -15,9 +15,9 @@ jobs:
     name: Test (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
     strategy:
       matrix:
-        elixir: ['1.10', '1.9', '1.8', '1.7', '1.6.6']
+        elixir: ['1.10', '1.9', '1.8', '1.7']
         # All of the above can use this version. For details see: https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
-        otp: [21]
+        otp: [22, 21]
 
     steps:
       - uses: actions/checkout@v2
