@@ -43,7 +43,8 @@ jobs:
       - name: Restore Dialyzer Cache
         uses: actions/download-artifact@v1
         with:
-          name: priv/plts
+          name: PLT Cache
+          path: priv/plts
 
       - run: mix dialyzer --halt-exit-status
 
@@ -51,4 +52,5 @@ jobs:
         uses: actions/upload-artifact@v1
         if: success()
         with:
-          name: priv/plts
+          name: PLT Cache
+          path: priv/plts
