@@ -9,6 +9,8 @@ on:
 
 jobs:
   test:
+    env:
+      MIX_ENV: test
     runs-on: ubuntu-latest
     name: Test (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
     strategy:
