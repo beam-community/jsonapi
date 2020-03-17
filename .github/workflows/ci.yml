@@ -25,7 +25,19 @@ jobs:
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
-      - uses: actions/cache@v1
+      - run: mix deps.get
+      - run: mix test
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Linting
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: 21
+          elixir-version: '1.10'
+          - uses: actions/cache@v1
         env:
           cache-name: mix
         with:
@@ -41,18 +53,6 @@ jobs:
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
           restore-keys: |
              ${{ runner.os }}-${{ env.cache-name }}-
-      - run: mix deps.get
-      - run: mix test
-
-  lint:
-    runs-on: ubuntu-latest
-    name: Linting
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-elixir@v1
-        with:
-          otp-version: 21
-          elixir-version: '1.10'
       - run: mix deps.get
       - run: mix compile --warnings-as-errors
       - run: mix format --check-formatted
