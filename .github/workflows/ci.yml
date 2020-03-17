@@ -17,7 +17,7 @@ jobs:
       matrix:
         elixir: ['1.10', '1.9', '1.8', '1.7', '1.6.6']
         # All of the above can use this version. For details see: https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
-        otp: [21]
+        otp: [22, 21]
 
     steps:
       - uses: actions/checkout@v2
@@ -31,12 +31,17 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     name: Linting
+    strategy:
+      matrix:
+        elixir: ['1.10']
+        # All of the above can use this version. For details see: https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
+        otp: [21]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
         with:
-          otp-version: 21
-          elixir-version: '1.10'
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
       - uses: actions/cache@v1
         env:
           cache-name: mix
