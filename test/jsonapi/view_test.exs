@@ -190,7 +190,12 @@ defmodule JSONAPI.ViewTest do
   end
 
   test "index renders with data, conn" do
-    data = CommentView.render("index.json", %{data: [%{id: 1, body: "hi"}], conn: %Plug.Conn{}})
+    data =
+      CommentView.render("index.json", %{
+        data: [%{id: 1, body: "hi"}],
+        conn: Plug.Conn.fetch_query_params(%Plug.Conn{})
+      })
+
     data = Enum.at(data.data, 0)
     assert data.attributes.body == "hi"
   end
@@ -199,7 +204,7 @@ defmodule JSONAPI.ViewTest do
     data =
       CommentView.render("index.json", %{
         data: [%{id: 1, body: "hi"}],
-        conn: %Plug.Conn{},
+        conn: Plug.Conn.fetch_query_params(%Plug.Conn{}),
         meta: %{total_pages: 100}
       })
 
