@@ -44,7 +44,7 @@ defmodule JSONAPI.Utils.DataToParams do
   end
   defp process_relationships(%{"relationships" => relationships} = data) do
     relationships
-    |> Enum.reduce(%{}, &(transform_relationship(&1, &2)))
+    |> Enum.reduce(%{}, &transform_relationship/2)
     |> Map.merge(data)
     |> Map.drop(["relationships"])
   end
