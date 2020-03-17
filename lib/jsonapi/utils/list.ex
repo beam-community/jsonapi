@@ -32,7 +32,8 @@ defmodule JSONAPI.Utils.List do
     Enum.flat_map(value, fn {k, v} -> to_list_of_two_elem_tuple("#{key}[#{k}]", v) end)
   end
 
-  defp do_to_list_of_query_string_components({key, value}), do: to_list_of_two_elem_tuple(key, value)
+  defp do_to_list_of_query_string_components({key, value}),
+    do: to_list_of_two_elem_tuple(key, value)
 
   defp to_list_of_two_elem_tuple(key, value) when is_list(value) do
     Enum.map(value, &{"#{key}[]", &1})
