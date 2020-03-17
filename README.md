@@ -25,6 +25,10 @@ of the JSON:API spec.
 * [Full docs here](https://hexdocs.pm/jsonapi)
 * [JSON API Spec (v1.1)](https://jsonapi.org/format/1.1/)
 
+## Badges
+
+![](https://github.com/jeregrine/jsonapi/workflows/Continuous%20Integration/badge.svg)
+
 ## How to use with Phoenix
 
 ### Installation

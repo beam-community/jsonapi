@@ -1,0 +1,33 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      matrix:
+        otp: [21.1, 20.3, 19.3, 18.3]
+        elixir: [1.8, 1.7, 1.6]
+        exclude:
+          - otp: 18.3
+            elixir: 1.6
+          - otp: 18.3
+            elixir: 1.8
+          - otp: 19.3
+            elixir: 1.8
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      - run: mix deps.get
+      - run: mix test
