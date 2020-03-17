@@ -88,7 +88,8 @@ defmodule JSONAPI.DataToParamsTest do
       "id" => "1",
       "type" => "user",
       "foo-bar" => true,
-      "baz-id" => ["2", "3"]
+      "baz-id" => "2",
+      "yooper-id" => "3"
     }
   end
 
