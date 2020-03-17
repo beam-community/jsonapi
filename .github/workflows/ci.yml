@@ -37,7 +37,7 @@ jobs:
         with:
           otp-version: 21
           elixir-version: '1.10'
-          - uses: actions/cache@v1
+      - uses: actions/cache@v1
         env:
           cache-name: mix
         with:
