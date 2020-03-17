@@ -47,17 +47,17 @@ jobs:
           cache-name: mix
         with:
           path: ~/.mix
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
+          key: cache-${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
           restore-keys: |
-             ${{ runner.os }}-${{ env.cache-name }}-
+             cache-${{ runner.os }}-${{ env.cache-name }}-
       - uses: actions/cache@v1
         env:
           cache-name: build
         with:
           path: _build
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
+          key: cache-${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
           restore-keys: |
-             ${{ runner.os }}-${{ env.cache-name }}-
+             cache-${{ runner.os }}-${{ env.cache-name }}-
       - run: mix deps.get
       - run: mix compile --warnings-as-errors
       - run: mix format --check-formatted
