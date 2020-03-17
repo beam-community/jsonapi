@@ -166,13 +166,7 @@ defmodule JSONAPI.Serializer do
     Map.merge(doc, %{links: view_links})
   end
 
-  defp merge_links(doc, data, view, conn, nil, false, _options) do
-    doc
-    |> Map.merge(%{links: %{self: view.url_for(data, conn)}})
-    |> merge_base_links(data, view, conn)
-  end
-
-  defp merge_links(doc, data, view, conn, page, false, options) do
+  defp merge_links(doc, data, view, conn, page, false, options) when is_list(data) do
     links =
       Map.merge(view.pagination_links(data, conn, page, options), %{
         self: view.url_for_pagination(data, conn, page)
@@ -180,6 +174,12 @@ defmodule JSONAPI.Serializer do
 
     doc
     |> Map.merge(%{links: links})
+    |> merge_base_links(data, view, conn)
+  end
+
+  defp merge_links(doc, data, view, conn, _page, false, _options) do
+    doc
+    |> Map.merge(%{links: %{self: view.url_for(data, conn)}})
     |> merge_base_links(data, view, conn)
   end
 
