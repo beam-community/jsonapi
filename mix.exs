@@ -40,7 +40,6 @@ defmodule JSONAPI.Mixfile do
 
   defp dialyzer do
     [
-      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
       plt_add_deps: :app_tree
     ]
   end
@@ -53,7 +52,7 @@ defmodule JSONAPI.Mixfile do
       {:earmark, ">= 0.0.0", only: :dev},
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:phoenix, "~> 1.3", only: :test},
-      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false}
     ]
   end
 
