@@ -2,8 +2,6 @@
 
 A project that will render your data models into [JSONAPI Documents](http://jsonapi.org/format) and parse/verify JSONAPI query strings.
 
-[![Build Status](https://travis-ci.org/jeregrine/jsonapi.svg)](https://travis-ci.org/jeregrine/jsonapi)
-
 ## JSONAPI Support
 
 This library implements [version 1.1](https://jsonapi.org/format/1.1/)
@@ -24,6 +22,10 @@ of the JSON:API spec.
 
 * [Full docs here](https://hexdocs.pm/jsonapi)
 * [JSON API Spec (v1.1)](https://jsonapi.org/format/1.1/)
+
+## Badges
+
+![](https://github.com/jeregrine/jsonapi/workflows/Continuous%20Integration/badge.svg)
 
 ## How to use with Phoenix
 
