@@ -50,10 +50,10 @@ defmodule JSONAPI.Deserializer do
   import Plug.Conn
   alias JSONAPI.Utils.DataToParams
 
-  @spec init(Keyword.t) :: Keyword.t
+  @spec init(Keyword.t()) :: Keyword.t()
   def init(opts), do: opts
 
-  @spec call(Plug.Conn.t, Keyword.t) :: Plug.Conn.t
+  @spec call(Plug.Conn.t(), Keyword.t()) :: Plug.Conn.t()
   def call(conn, _opts) do
     content_type = get_req_header(conn, "content-type")
 
