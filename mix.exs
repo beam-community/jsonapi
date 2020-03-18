@@ -4,7 +4,7 @@ defmodule JSONAPI.Mixfile do
   def project do
     [
       app: :jsonapi,
-      version: "1.2.3",
+      version: "1.3.0",
       package: package(),
       compilers: compilers(Mix.env()),
       description: description(),
@@ -58,7 +58,13 @@ defmodule JSONAPI.Mixfile do
 
   defp package do
     [
-      maintainers: ["Jason Stiebs", "Mitchell Henke", "Jake Robers", "Sean Callan"],
+      maintainers: [
+        "Jason Stiebs",
+        "Mitchell Henke",
+        "Jake Robers",
+        "Sean Callan",
+        "James Herdman"
+      ],
       licenses: ["MIT"],
       links: %{github: "https://github.com/jeregrine/jsonapi", docs: "http://hexdocs.pm/jsonapi/"}
     ]
