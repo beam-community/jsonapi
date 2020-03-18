@@ -26,12 +26,12 @@ defmodule JSONAPI.DataToParamsTest do
     result = JSONAPI.Utils.DataToParams.process(incoming)
 
     assert result == %{
-      "id" => "1",
-      "type" => "user",
-      "foo-bar" => true,
-      "baz-id" => "2",
-      "boo-id" => nil
-    }
+             "id" => "1",
+             "type" => "user",
+             "foo-bar" => true,
+             "baz-id" => "2",
+             "boo-id" => nil
+           }
   end
 
   test "converts to many relationship" do
@@ -56,11 +56,11 @@ defmodule JSONAPI.DataToParamsTest do
     result = JSONAPI.Utils.DataToParams.process(incoming)
 
     assert result == %{
-      "id" => "1",
-      "type" => "user",
-      "foo-bar" => true,
-      "baz-id" => ["2", "3"]
-    }
+             "id" => "1",
+             "type" => "user",
+             "foo-bar" => true,
+             "baz-id" => ["2", "3"]
+           }
   end
 
   test "converts polymorphic" do
@@ -85,12 +85,12 @@ defmodule JSONAPI.DataToParamsTest do
     result = JSONAPI.Utils.DataToParams.process(incoming)
 
     assert result == %{
-      "id" => "1",
-      "type" => "user",
-      "foo-bar" => true,
-      "baz-id" => "2",
-      "yooper-id" => "3"
-    }
+             "id" => "1",
+             "type" => "user",
+             "foo-bar" => true,
+             "baz-id" => "2",
+             "yooper-id" => "3"
+           }
   end
 
   test "processes single includes" do
@@ -118,15 +118,17 @@ defmodule JSONAPI.DataToParamsTest do
     result = JSONAPI.Utils.DataToParams.process(incoming)
 
     assert result == %{
-      "friend" => [%{
-        "name" => "Tara",
-        "id" => "234",
-        "type" => "friend"
-      }],
-      "id" => "1",
-      "type" => "user",
-      "name" => "Jerome"
-    }
+             "friend" => [
+               %{
+                 "name" => "Tara",
+                 "id" => "234",
+                 "type" => "friend"
+               }
+             ],
+             "id" => "1",
+             "type" => "user",
+             "name" => "Jerome"
+           }
   end
 
   test "processes has many includes" do
@@ -183,31 +185,31 @@ defmodule JSONAPI.DataToParamsTest do
     result = JSONAPI.Utils.DataToParams.process(incoming)
 
     assert result == %{
-      "friend" => [
-        %{
-          "name" => "Wild Bill",
-          "id" => "0012",
-          "type" => "friend"
-        },
-        %{
-          "name" => "Tara",
-          "id" => "234",
-          "type" => "friend",
-          "baz-id" => "2",
-          "boo-id" => nil
-        }
-      ],
-      "organization" => [
-        %{
-          "title" => "Sr",
-          "id" => "456",
-          "type" => "organization"
-        }
-      ],
-      "id" => "1",
-      "type" => "user",
-      "name" => "Jerome"
-    }
+             "friend" => [
+               %{
+                 "name" => "Wild Bill",
+                 "id" => "0012",
+                 "type" => "friend"
+               },
+               %{
+                 "name" => "Tara",
+                 "id" => "234",
+                 "type" => "friend",
+                 "baz-id" => "2",
+                 "boo-id" => nil
+               }
+             ],
+             "organization" => [
+               %{
+                 "title" => "Sr",
+                 "id" => "456",
+                 "type" => "organization"
+               }
+             ],
+             "id" => "1",
+             "type" => "user",
+             "name" => "Jerome"
+           }
   end
 
   test "processes simple array of data" do
@@ -221,9 +223,9 @@ defmodule JSONAPI.DataToParamsTest do
     result = JSONAPI.Utils.DataToParams.process(incoming)
 
     assert result == [
-      %{"id" => "1", "type" => "user"},
-      %{"id" => "2", "type" => "user"}
-    ]
+             %{"id" => "1", "type" => "user"},
+             %{"id" => "2", "type" => "user"}
+           ]
   end
 
   test "processes empty keys" do
@@ -240,9 +242,9 @@ defmodule JSONAPI.DataToParamsTest do
     result = JSONAPI.Utils.DataToParams.process(incoming)
 
     assert result == %{
-      "id" => "1",
-      "type" => "user"
-    }
+             "id" => "1",
+             "type" => "user"
+           }
   end
 
   test "processes empty data" do
@@ -256,9 +258,9 @@ defmodule JSONAPI.DataToParamsTest do
     result = JSONAPI.Utils.DataToParams.process(incoming)
 
     assert result == %{
-      "id" => "1",
-      "type" => "user"
-    }
+             "id" => "1",
+             "type" => "user"
+           }
   end
 
   test "processes nil data" do
