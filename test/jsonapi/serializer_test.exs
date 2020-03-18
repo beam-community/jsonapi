@@ -230,7 +230,9 @@ defmodule JSONAPI.SerializerTest do
 
     data_list = [data, data, data]
 
-    encoded = Serializer.serialize(PostView, data_list, nil)
+    conn = Plug.Conn.fetch_query_params(%Plug.Conn{})
+
+    encoded = Serializer.serialize(PostView, data_list, conn)
 
     assert Enum.count(encoded[:data]) == 3
 
@@ -242,7 +244,7 @@ defmodule JSONAPI.SerializerTest do
       assert attributes[:text] == data[:text]
       assert attributes[:body] == data[:body]
 
-      assert enc[:links][:self] == PostView.url_for(data, nil)
+      assert enc[:links][:self] == PostView.url_for(data, conn)
       assert map_size(enc[:relationships]) == 2
     end)
 
@@ -318,9 +320,9 @@ defmodule JSONAPI.SerializerTest do
   end
 
   test "serialize handles a relationship self link on an index request" do
-    encoded = Serializer.serialize(PostView, [], nil)
+    encoded = Serializer.serialize(PostView, [], Plug.Conn.fetch_query_params(%Plug.Conn{}))
 
-    assert encoded[:links][:self] == "/mytype"
+    assert encoded[:links][:self] == "http://www.example.com/mytype"
   end
 
   test "serialize handles including from the query" do
@@ -620,7 +622,7 @@ defmodule JSONAPI.SerializerTest do
   test "serialize does not include pagination links if they are not defined" do
     data = [%{id: 1}]
 
-    encoded = Serializer.serialize(UserView, data, nil)
+    encoded = Serializer.serialize(UserView, data, Plug.Conn.fetch_query_params(%Plug.Conn{}))
     refute encoded[:links][:first]
     refute encoded[:links][:last]
     refute encoded[:links][:next]
