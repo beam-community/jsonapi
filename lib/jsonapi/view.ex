@@ -230,12 +230,17 @@ defmodule JSONAPI.View do
         "#{url_for(data, conn)}/relationships/#{rel_type}"
       end
 
-      def url_for_pagination(data, %{query_params: query_params} = conn, pagination_attrs) do
+      def url_for_pagination(data, %{query_params: query_params} = conn, nil = _pagination_attrs) do
         query_params
-        |> Map.put("page", pagination_attrs)
         |> to_list_of_query_string_components()
         |> URI.encode_query()
         |> prepare_url(data, conn)
+      end
+
+      def url_for_pagination(data, %{query_params: query_params} = conn, pagination_attrs) do
+        query_params = Map.put(query_params, "page", pagination_attrs)
+
+        url_for_pagination(data, %{conn | query_params: query_params}, nil)
       end
 
       defp prepare_url("", data, conn), do: url_for(data, conn)
