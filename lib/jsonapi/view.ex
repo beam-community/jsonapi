@@ -119,6 +119,7 @@ defmodule JSONAPI.View do
     {namespace, opts} = Keyword.pop(opts, :namespace)
     {paginator, _opts} = Keyword.pop(opts, :paginator)
 
+    # credo:disable-for-next-line Credo.Check.Refactor.LongQuoteBlocks
     quote do
       import JSONAPI.Utils.List, only: [to_list_of_query_string_components: 1]
       import JSONAPI.Serializer, only: [serialize: 5]
