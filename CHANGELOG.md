@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.3.0 (2020-03-21)
+
+### Added
+
+- [Add Deserializer Plug](https://github.com/jeregrine/jsonapi/pull/222)
+
+### Changed
+
+- [Continuous](https://github.com/jeregrine/jsonapi/pull/226) [Integration](https://github.com/jeregrine/jsonapi/pull/227)
+  with Github actions.
+- ["self" URL can include query parameters](https://github.com/jeregrine/jsonapi/pull/224)
+
+### Contributors
+
+A healthy Covid-19 safe foot-tap to: @CostantiniMatteo, @lucacorti, @snewcomer, and @jherdman
+
 ## 1.2.3 (2020-01-28)
 
 ### Added
