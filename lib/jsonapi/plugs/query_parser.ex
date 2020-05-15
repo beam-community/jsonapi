@@ -191,6 +191,7 @@ defmodule JSONAPI.QueryParser do
 
   def handle_include(str, config) when is_binary(str) do
     valid_includes = get_base_relationships(config.view)
+
     includes =
       str
       |> String.split(",")
