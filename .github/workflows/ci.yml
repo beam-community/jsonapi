@@ -46,22 +46,6 @@ jobs:
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
-      - uses: actions/cache@v1
-        env:
-          cache-name: mix
-        with:
-          path: ~/.mix
-          key: cache-${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
-          restore-keys: |
-             cache-${{ runner.os }}-${{ env.cache-name }}-
-      - uses: actions/cache@v1
-        env:
-          cache-name: build
-        with:
-          path: _build
-          key: cache-${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
-          restore-keys: |
-             cache-${{ runner.os }}-${{ env.cache-name }}-
       - run: mix deps.get
       - run: mix compile --warnings-as-errors
       - run: mix format --check-formatted
