@@ -33,7 +33,7 @@ defmodule JSONAPI.UnderscoreParametersTest do
                    "first_name" => "John",
                    "last_name" => "Cleese",
                    "stats" => %{
-                     "age" => 45,
+                     "age" => "45",
                      "dog_name" => "Pedro"
                    }
                  }
