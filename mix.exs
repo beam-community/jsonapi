@@ -8,7 +8,7 @@ defmodule JSONAPI.Mixfile do
       package: package(),
       compilers: compilers(Mix.env()),
       description: description(),
-      elixir: "~> 1.0",
+      elixir: "~> 1.7",
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
@@ -50,7 +50,7 @@ defmodule JSONAPI.Mixfile do
       {:jason, "~> 1.0", optional: true},
       {:ex_doc, "~> 0.20", only: :dev},
       {:earmark, ">= 0.0.0", only: :dev},
-      {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:phoenix, "~> 1.3", only: :test},
       {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false}
     ]
