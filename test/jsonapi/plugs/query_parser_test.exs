@@ -67,6 +67,12 @@ defmodule JSONAPI.QueryParserTest do
     assert filter[:name] == "jason"
   end
 
+  test "parse_filter/2 handles multiple comma-separated filter values" do
+    config = struct(Config, opts: [filter: ~w(name)], view: MyView)
+    filter = parse_filter(config, %{"name" => "jason,api"}).filter
+    assert filter[:name] == ["jason", "api"]
+  end
+
   test "parse_filter/2 raises on invalid filters" do
     config = struct(Config, opts: [], view: MyView)
 

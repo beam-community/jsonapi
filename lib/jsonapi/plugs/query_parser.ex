@@ -113,13 +113,20 @@ defmodule JSONAPI.QueryParser do
 
     Enum.reduce(filter, config, fn {key, val}, acc ->
       check_filter_validity!(opts_filter, key, config)
-      %{acc | filter: Keyword.put(acc.filter, String.to_atom(key), val)}
+      %{acc | filter: Keyword.put(acc.filter, String.to_atom(key), parse_filter_value(val))}
     end)
   end
 
   defp check_filter_validity!(filters, key, config) do
     unless key in filters do
       raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
+    end
+  end
+
+  defp parse_filter_value(value) do
+    case String.split(value, ",") do
+      [value] -> value
+      values -> values
     end
   end
 
