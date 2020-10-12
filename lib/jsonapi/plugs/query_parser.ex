@@ -124,7 +124,15 @@ defmodule JSONAPI.QueryParser do
   end
 
   defp parse_filter_value(value) do
-    case String.split(value, ",") do
+    :jsonapi
+    |> Application.get_env(:filter_values_separator, nil)
+    |> do_parse_filter_value(value)
+  end
+
+  defp do_parse_filter_value(nil, value), do: value
+
+  defp do_parse_filter_value(separator, value) do
+    case String.split(value, separator) do
       [value] -> value
       values -> values
     end
