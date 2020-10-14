@@ -124,15 +124,18 @@ defmodule JSONAPI.SerializerTest do
     end
   end
 
-  defmodule CommentView2 do
+  defmodule CommentaryView do
     use JSONAPI.View, type: "comment"
 
     def fields, do: [:text]
 
     def relationships do
-      # renames "user" data property to "commenter" JSON:API relationship
+      # renames "user1" data property to "commenter" JSON:API relationship (and specifies default inclusion)
+      # renames "user2" to "witness"
+      # leaves "user3" name alone
       [commenter: {:user1, JSONAPI.SerializerTest.UserView, :include},
-      other: {:user2, JSONAPI.SerializerTest.UserView}]
+      witness: {:user2, JSONAPI.SerializerTest.UserView},
+      user3: JSONAPI.SerializerTest.UserView]
     end
   end
 
@@ -352,6 +355,12 @@ defmodule JSONAPI.SerializerTest do
         username: "hi",
         first_name: "hello",
         last_name: "world"
+      },
+      user3: %{
+        id: 4,
+        username: "hi",
+        first_name: "hello",
+        last_name: "world"
       }
     }
 
@@ -363,10 +372,11 @@ defmodule JSONAPI.SerializerTest do
       }
       |> Plug.Conn.fetch_query_params()
 
-    encoded = Serializer.serialize(CommentView2, data, conn)
+    encoded = Serializer.serialize(CommentaryView, data, conn)
 
     assert encoded.data.relationships.commenter != nil
-    assert encoded.data.relationships.other != nil
+    assert encoded.data.relationships.witness != nil
+    assert encoded.data.relationships.user3 != nil
     refute Map.has_key?(encoded.data.relationships, :user1)
     refute Map.has_key?(encoded.data.relationships, :user2)
 
@@ -750,12 +760,13 @@ defmodule JSONAPI.SerializerTest do
 
   test "extrapolates relationship config with rewritten name" do
     configs =
-      CommentView2.relationships()
+      CommentaryView.relationships()
       |> Enum.map(&Serializer.extrapolate_relationship_config/1)
 
     assert configs == [
       {:commenter, :user1, JSONAPI.SerializerTest.UserView, true},
-      {:other, :user2, JSONAPI.SerializerTest.UserView, false}
+      {:witness, :user2, JSONAPI.SerializerTest.UserView, false},
+      {:user3, :user3, JSONAPI.SerializerTest.UserView, false}
     ]
   end
 end
