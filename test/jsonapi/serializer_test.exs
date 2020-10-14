@@ -727,4 +727,35 @@ defmodule JSONAPI.SerializerTest do
     assert List.first(encoded[:data])[:links][:self] ==
              "http://www.example.com/mytype/1"
   end
+
+  test "extrapolates relationship config simplest case" do
+    config =
+      IndustryView.relationships()
+      |> List.first()
+      |> Serializer.extrapolate_relationship_config()
+
+    assert config == {:tags, :tags, JSONAPI.SerializerTest.TagView, false}
+  end
+
+  test "extrapolates relationship config with default include" do
+    configs =
+      PostView.relationships()
+      |> Enum.map(&Serializer.extrapolate_relationship_config/1)
+
+    assert configs == [
+      {:author, :author, JSONAPI.SerializerTest.UserView, true},
+      {:best_comments, :best_comments, JSONAPI.SerializerTest.CommentView, true}
+    ]
+  end
+
+  test "extrapolates relationship config with rewritten name" do
+    configs =
+      CommentView2.relationships()
+      |> Enum.map(&Serializer.extrapolate_relationship_config/1)
+
+    assert configs == [
+      {:commenter, :user1, JSONAPI.SerializerTest.UserView, true},
+      {:other, :user2, JSONAPI.SerializerTest.UserView, false}
+    ]
+  end
 end
