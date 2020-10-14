@@ -89,19 +89,17 @@ defmodule JSONAPI.Serializer do
   @spec build_relationships(Plug.Conn.t(), tuple(), term(), term(), module(), tuple(), list()) :: tuple()
   def build_relationships(
         conn,
-        {view, data, query_includes, valid_includes},
-        rewrite_key,
-        data_key,
+        {parent_view, parent_data, query_includes, valid_includes},
+        relationship_name,
+        rel_data,
         rel_view,
         acc,
         options
       ) do
 
-    rel_data = Map.get(data, data_key)
-
     # Build the relationship url
-    rel_key = transform_fields(rewrite_key)
-    rel_url = view.url_for_rel(data, rel_key, conn)
+    rel_key = transform_fields(relationship_name)
+    rel_url = parent_view.url_for_rel(parent_data, rel_key, conn)
 
     # Build the relationship
     acc =
@@ -111,14 +109,14 @@ defmodule JSONAPI.Serializer do
         encode_relation({rel_view, rel_data, rel_url, conn})
       )
 
-    valid_include_view = include_view(valid_includes, rewrite_key)
+    valid_include_view = include_view(valid_includes, relationship_name)
 
     if {rel_view, :include} == valid_include_view && data_loaded?(rel_data) do
       rel_query_includes =
         if is_list(query_includes) do
           query_includes
           |> Enum.reduce([], fn
-            {^rewrite_key, value}, acc -> acc ++ [value]
+            {^relationship_name, value}, acc -> acc ++ [value]
             _, acc -> acc
           end)
           |> List.flatten()
@@ -138,21 +136,23 @@ defmodule JSONAPI.Serializer do
   @spec build_relationships(Plug.Conn.t(), tuple(), tuple(), tuple(), list()) :: tuple()
   def build_relationships(
         conn,
-        {_view, _data, _query_includes, _valid_includes} = view_info,
+        {_parent_view, data, _query_includes, _valid_includes} = parent_info,
         rel_config,
         acc,
         options
       ) do
 
-    {rewrite_key, data_key, view, _include}
+    {rewrite_key, data_key, rel_view, _include}
       = extrapolate_relationship_config(rel_config)
+
+    rel_data = Map.get(data, data_key)
 
     build_relationships(
       conn,
-      view_info,
+      parent_info,
       rewrite_key,
-      data_key,
-      view,
+      rel_data,
+      rel_view,
       acc,
       options
     )
