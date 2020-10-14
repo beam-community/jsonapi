@@ -84,12 +84,9 @@ defmodule JSONAPI.Serializer do
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2, options))
   end
 
-  defp get_data_key({rewrite_key, {data_key, _, :include}}), do: data_key
-  defp get_data_key({data_key, {_, :include}}), do: data_key
-  defp get_data_key({rewrite_key, {data_key, _}}), do: data_key
-  defp get_data_key({data_key, _}), do: data_key
+  defp get_data_key(rel_config), do: elem(extrapolate_relationship_config(rel_config), 1)
 
-  @spec build_relationships(Plug.Conn.t(), tuple(), term(), term(), any(), tuple(), list()) :: tuple()
+  @spec build_relationships(Plug.Conn.t(), tuple(), term(), term(), module(), tuple(), list()) :: tuple()
   def build_relationships(
         conn,
         {view, data, query_includes, valid_includes},
@@ -142,24 +139,13 @@ defmodule JSONAPI.Serializer do
   def build_relationships(
         conn,
         {_view, _data, _query_includes, _valid_includes} = view_info,
-        {key, view_config},
+        rel_config,
         acc,
         options
       ) do
-    # promote the data key to also be the rewrite key for the relationship:
-    {rewrite_key, data_key, view} = case view_config do
-      {data_key, view, :include} ->
-        {key, data_key, view}
 
-      {view, :include} ->
-        {key, key, view}
-
-      {data_key, view} ->
-        {key, data_key, view}
-
-      view ->
-        {key, key, view}
-    end
+    {rewrite_key, data_key, view, _include}
+      = extrapolate_relationship_config(rel_config)
 
     build_relationships(
       conn,
@@ -172,6 +158,29 @@ defmodule JSONAPI.Serializer do
     )
   end
 
+  @doc """
+  Given the relationship config entry provided by a JSONAPI.View, produce
+  the extrapolated config tuple containing:
+    - The name of the relationship to be used when serializing
+    - The key in the data the relationship is found under
+    - The relationship resource's JSONAPI.View module
+    - A boolean for whether the relationship is included by default or not
+  """
+  @spec extrapolate_relationship_config(tuple()) :: {atom(), atom(), module(), boolean()}
+  def extrapolate_relationship_config({rewrite_key, {data_key, view, :include}}) do
+    {rewrite_key, data_key, view, true}
+  end
+  def extrapolate_relationship_config({data_key, {view, :include}}) do
+    {data_key, data_key, view, true}
+  end
+  def extrapolate_relationship_config({rewrite_key, {data_key, view}}) do
+    {rewrite_key, data_key, view, false}
+  end
+  def extrapolate_relationship_config({data_key, view}) do
+    {data_key, data_key, view, false}
+  end
+
+
   defp include_view(valid_includes, key) when is_list(valid_includes) do
     valid_includes
     |> Keyword.get(key)
@@ -180,7 +189,9 @@ defmodule JSONAPI.Serializer do
 
   defp include_view(view, _key), do: generate_view_tuple(view)
 
+  defp generate_view_tuple({_rewrite_key, view, :include}), do: {view, :include}
   defp generate_view_tuple({view, :include}), do: {view, :include}
+  defp generate_view_tuple({_rewrite_key, view}), do: {view, :include}
   defp generate_view_tuple(view) when is_atom(view), do: {view, :include}
 
   @spec data_loaded?(map() | list()) :: boolean()
@@ -262,10 +273,14 @@ defmodule JSONAPI.Serializer do
   defp get_default_includes(view) do
     rels = view.relationships()
 
-    Enum.filter(rels, fn
-      {_k, {_v, :include}} -> true
-      _ -> false
-    end)
+    Enum.filter(rels, &include_rel_by_default/1)
+  end
+
+  defp include_rel_by_default(rel_config) do
+    {_rel_key, _data_key, _view, include_by_default}
+      = extrapolate_relationship_config(rel_config)
+
+    include_by_default
   end
 
   defp get_query_includes(view, query_includes) do
