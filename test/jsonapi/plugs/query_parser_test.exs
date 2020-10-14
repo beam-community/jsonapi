@@ -36,11 +36,10 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   setup do
+    previous_env = System.get_env()
     Application.put_env(:jsonapi, :field_transformation, :underscore)
 
-    on_exit(fn ->
-      Application.delete_env(:jsonapi, :field_transformation)
-    end)
+    on_exit(fn -> System.put_env(previous_env) end)
 
     {:ok, []}
   end
