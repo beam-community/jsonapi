@@ -124,6 +124,18 @@ defmodule JSONAPI.SerializerTest do
     end
   end
 
+  defmodule CommentView2 do
+    use JSONAPI.View, type: "comment"
+
+    def fields, do: [:text]
+
+    def relationships do
+      # renames "user" data property to "commenter" JSON:API relationship
+      [commenter: {:user1, JSONAPI.SerializerTest.UserView, :include},
+      other: {:user2, JSONAPI.SerializerTest.UserView}]
+    end
+  end
+
   defmodule NotIncludedView do
     use JSONAPI.View
 
@@ -323,6 +335,42 @@ defmodule JSONAPI.SerializerTest do
     encoded = Serializer.serialize(PostView, [], Plug.Conn.fetch_query_params(%Plug.Conn{}))
 
     assert encoded[:links][:self] == "http://www.example.com/mytype"
+  end
+
+  test "serialize will rename relationships" do
+    data = %{
+      id: 1,
+      text: "hello world",
+      user1: %{
+        id: 2,
+        username: "hi",
+        first_name: "hello",
+        last_name: "world"
+      },
+      user2: %{
+        id: 3,
+        username: "hi",
+        first_name: "hello",
+        last_name: "world"
+      }
+    }
+
+    conn =
+      %Plug.Conn{
+        assigns: %{
+          jsonapi_query: %Config{}
+        }
+      }
+      |> Plug.Conn.fetch_query_params()
+
+    encoded = Serializer.serialize(CommentView2, data, conn)
+
+    assert encoded.data.relationships.commenter != nil
+    assert encoded.data.relationships.other != nil
+    refute Map.has_key?(encoded.data.relationships, :user1)
+    refute Map.has_key?(encoded.data.relationships, :user2)
+
+    assert Enum.count(encoded.included) == 1
   end
 
   test "serialize handles including from the query" do

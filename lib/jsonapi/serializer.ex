@@ -80,28 +80,30 @@ defmodule JSONAPI.Serializer do
   @spec encode_relationships(Plug.Conn.t(), serialized_doc(), tuple(), list()) :: tuple()
   def encode_relationships(conn, doc, {view, data, _, _} = view_info, options) do
     view.relationships()
-    |> Enum.filter(&data_loaded?(Map.get(data, elem(&1, 0))))
+    |> Enum.filter(&data_loaded?(Map.get(data, get_data_key(&1))))
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2, options))
   end
 
-  @spec build_relationships(Plug.Conn.t(), tuple(), tuple(), tuple(), list()) :: tuple()
+  defp get_data_key({rewrite_key, {data_key, _, :include}}), do: data_key
+  defp get_data_key({data_key, {_, :include}}), do: data_key
+  defp get_data_key({rewrite_key, {data_key, _}}), do: data_key
+  defp get_data_key({data_key, _}), do: data_key
+
+  @spec build_relationships(Plug.Conn.t(), tuple(), term(), term(), any(), tuple(), list()) :: tuple()
   def build_relationships(
         conn,
         {view, data, query_includes, valid_includes},
-        {key, include_view},
+        rewrite_key,
+        data_key,
+        rel_view,
         acc,
         options
       ) do
-    rel_view =
-      case include_view do
-        {view, :include} -> view
-        view -> view
-      end
 
-    rel_data = Map.get(data, key)
+    rel_data = Map.get(data, data_key)
 
     # Build the relationship url
-    rel_key = transform_fields(key)
+    rel_key = transform_fields(rewrite_key)
     rel_url = view.url_for_rel(data, rel_key, conn)
 
     # Build the relationship
@@ -112,14 +114,14 @@ defmodule JSONAPI.Serializer do
         encode_relation({rel_view, rel_data, rel_url, conn})
       )
 
-    valid_include_view = include_view(valid_includes, key)
+    valid_include_view = include_view(valid_includes, rewrite_key)
 
     if {rel_view, :include} == valid_include_view && data_loaded?(rel_data) do
       rel_query_includes =
         if is_list(query_includes) do
           query_includes
           |> Enum.reduce([], fn
-            {^key, value}, acc -> acc ++ [value]
+            {^rewrite_key, value}, acc -> acc ++ [value]
             _, acc -> acc
           end)
           |> List.flatten()
@@ -134,6 +136,40 @@ defmodule JSONAPI.Serializer do
     else
       {nil, acc}
     end
+  end
+
+  @spec build_relationships(Plug.Conn.t(), tuple(), tuple(), tuple(), list()) :: tuple()
+  def build_relationships(
+        conn,
+        {_view, _data, _query_includes, _valid_includes} = view_info,
+        {key, view_config},
+        acc,
+        options
+      ) do
+    # promote the data key to also be the rewrite key for the relationship:
+    {rewrite_key, data_key, view} = case view_config do
+      {data_key, view, :include} ->
+        {key, data_key, view}
+
+      {view, :include} ->
+        {key, key, view}
+
+      {data_key, view} ->
+        {key, data_key, view}
+
+      view ->
+        {key, key, view}
+    end
+
+    build_relationships(
+      conn,
+      view_info,
+      rewrite_key,
+      data_key,
+      view,
+      acc,
+      options
+    )
   end
 
   defp include_view(valid_includes, key) when is_list(valid_includes) do
