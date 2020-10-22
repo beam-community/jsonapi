@@ -165,6 +165,15 @@ defmodule JSONAPI.Utils.String do
       iex> expand_fields(%{"attributes" => %{"corgiName" => "Wardel"}}, &underscore/1)
       %{"attributes" => %{"corgi_name" => "Wardel"}}
 
+      iex> expand_fields(%{"attributes" => ["foo-bar"]}, &underscore/1)
+      %{"attributes" => ["foo-bar"]}
+
+      iex> expand_fields(%{"foo-bar" => [1, 2]}, &underscore/1)
+      %{"foo_bar" => [1, 2]}
+
+      iex> expand_fields(%{"foo-bar" => ["foo-bar"]}, &camelize/1)
+      %{"fooBar" => ["foo-bar"]}
+
       iex> expand_fields([%{"fooBar" => "a"}, %{"fooBar" => "b"}], &underscore/1)
       [%{"foo_bar" => "a"}, %{"foo_bar" => "b"}]
 
@@ -186,7 +195,7 @@ defmodule JSONAPI.Utils.String do
 
   @spec expand_fields(list, function) :: list
   def expand_fields(values, fun) when is_list(values) do
-    Enum.map(values, &expand_fields(&1, fun))
+    Enum.map(values, fn v -> if is_map(v), do: expand_fields(v, fun), else: v end)
   end
 
   @spec expand_fields(tuple, function) :: tuple
