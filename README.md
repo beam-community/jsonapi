@@ -31,7 +31,7 @@ of the JSON:API spec.
 
 ### Installation
 
-Add the following line to your `mix.deps` file with the desired verison to install `jsonapi`.
+Add the following line to your `mix.deps` file with the desired version to install `jsonapi`.
 
 ```elixir
 defp deps do [
