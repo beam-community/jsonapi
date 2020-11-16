@@ -56,7 +56,7 @@ defmodule JSONAPI.QueryParser do
 
   The final result should allow you to build a query quickly and with little overhead.
 
-  ## Spare Fieldsets
+  ## Sparse Fieldsets
 
   Sparse fieldsets are supported. By default your response will include all
   available fields. Note that the query to your database is left to you. Should
