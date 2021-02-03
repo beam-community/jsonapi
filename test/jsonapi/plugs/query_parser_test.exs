@@ -82,6 +82,7 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_include(config, "comments,author").include == [:comments, :author]
     assert parse_include(config, "comments.user").include == [comments: :user]
     assert parse_include(config, "best_friends").include == [:best_friends]
+    assert parse_include(config, "author.top-posts").include == [author: :top_posts]
   end
 
   test "parse_include/2 errors with invalid includes" do
@@ -99,11 +100,7 @@ defmodule JSONAPI.QueryParserTest do
       parse_include(config, "comments.author.user")
     end
 
-    assert_raise InvalidQuery, "invalid include, author.top-posts for type mytype", fn ->
-      assert parse_include(config, "author.top-posts")
-    end
-
-    assert_raise InvalidQuery, "invalid include, fake-rel for type mytype", fn ->
+    assert_raise InvalidQuery, "invalid include, fake_rel for type mytype", fn ->
       assert parse_include(config, "fake-rel")
     end
   end
