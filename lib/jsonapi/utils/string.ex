@@ -165,6 +165,9 @@ defmodule JSONAPI.Utils.String do
       iex> expand_fields(%{"attributes" => %{"corgiName" => "Wardel"}}, &underscore/1)
       %{"attributes" => %{"corgi_name" => "Wardel"}}
 
+      iex> expand_fields(%{"attributes" => %{"corgiName" => ["Wardel"]}}, &underscore/1)
+      %{"attributes" => %{"corgi_name" => ["Wardel"]}}
+
       iex> expand_fields([%{"fooBar" => "a"}, %{"fooBar" => "b"}], &underscore/1)
       [%{"foo_bar" => "a"}, %{"foo_bar" => "b"}]
 
@@ -190,8 +193,13 @@ defmodule JSONAPI.Utils.String do
   end
 
   @spec expand_fields(tuple, function) :: tuple
-  def expand_fields({key, value}, fun) when is_map(value) or is_list(value) do
+  def expand_fields({key, value}, fun) when is_map(value) do
     {fun.(key), expand_fields(value, fun)}
+  end
+
+  @spec expand_fields(tuple, function) :: tuple
+  def expand_fields({key, value}, fun) when is_list(value) do
+    {fun.(key), maybe_expand_fields(value, fun)}
   end
 
   def expand_fields({key, value}, fun) do
@@ -201,6 +209,13 @@ defmodule JSONAPI.Utils.String do
   @spec expand_fields(String.t(), function) :: map
   def expand_fields(value, fun) do
     fun.(value)
+  end
+
+  defp maybe_expand_fields(values, fun) when is_list(values) do
+    Enum.map(values, fn
+      string when is_binary(string) -> string
+      value -> expand_fields(value, fun)
+    end)
   end
 
   @doc """
