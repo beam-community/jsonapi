@@ -168,6 +168,9 @@ defmodule JSONAPI.Utils.String do
       iex> expand_fields(%{"attributes" => %{"corgiName" => ["Wardel"]}}, &underscore/1)
       %{"attributes" => %{"corgi_name" => ["Wardel"]}}
 
+      iex> expand_fields(%{"attributes" => %{"someField" => ["SomeValue", %{"nestedField" => "Value"}]}}, &underscore/1)
+      %{"attributes" => %{"some_field" => ["SomeValue", %{"nested_field" => "Value"}]}}
+
       iex> expand_fields([%{"fooBar" => "a"}, %{"fooBar" => "b"}], &underscore/1)
       [%{"foo_bar" => "a"}, %{"foo_bar" => "b"}]
 
