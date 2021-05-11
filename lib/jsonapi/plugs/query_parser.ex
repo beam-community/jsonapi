@@ -250,7 +250,7 @@ defmodule JSONAPI.QueryParser do
 
   @spec get_view_for_type(module(), String.t()) :: module() | no_return()
   def get_view_for_type(view, type) do
-    case Enum.find(view.relationships, fn relationship ->
+    case Enum.find(view.relationships(), fn relationship ->
            is_field_valid_for_relationship(relationship, type)
          end) do
       {_, view} -> view
