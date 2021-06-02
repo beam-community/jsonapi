@@ -199,8 +199,12 @@ defmodule JSONAPI.Utils.String do
   end
 
   @spec expand_fields(String.t(), function) :: map
-  def expand_fields(value, fun) do
+  def expand_fields(value, fun) when is_binary(value) or is_atom(value) do
     fun.(value)
+  end
+
+  def expand_fields(value, _fun) do
+    value
   end
 
   @doc """
