@@ -200,7 +200,6 @@ defmodule JSONAPI.Utils.String do
     {fun.(key), expand_fields(value, fun)}
   end
 
-  @spec expand_fields(tuple, function) :: tuple
   def expand_fields({key, value}, fun) when is_list(value) do
     {fun.(key), maybe_expand_fields(value, fun)}
   end
