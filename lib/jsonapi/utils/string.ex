@@ -91,6 +91,9 @@ defmodule JSONAPI.Utils.String do
       iex> camelize("_top__posts_")
       "_top__posts_"
 
+      iex> camelize("")
+      ""
+
   """
   @spec camelize(atom) :: String.t()
   def camelize(value) when is_atom(value) do
@@ -100,6 +103,8 @@ defmodule JSONAPI.Utils.String do
   end
 
   @spec camelize(String.t()) :: String.t()
+  def camelize(value) when value == "", do: value
+
   def camelize(value) when is_binary(value) do
     with words <-
            Regex.split(
