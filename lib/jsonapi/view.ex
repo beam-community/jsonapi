@@ -217,20 +217,27 @@ defmodule JSONAPI.View do
       def index(models, conn, _params, meta \\ nil, options \\ []),
         do: serialize(__MODULE__, models, conn, meta, options)
 
-      def path_for(data) when is_nil(data) or is_list(data),
-        do: URI.to_string(%URI{path: path() || type()})
+      def path_for(_data), do: path() || type()
 
-      def path_for(data),
-        do: URI.to_string(%URI{path: Enum.join([path() || type(), id(data)], "/")})
+      def url_for(data, nil = _conn) when is_nil(data) or is_list(data),
+        do: URI.to_string(%URI{path: Enum.join([namespace(), path_for(data)], "/")})
 
       def url_for(data, nil = _conn),
-        do: URI.to_string(%URI{path: Enum.join([namespace(), path_for(data)], "/")})
+        do: URI.to_string(%URI{path: Enum.join([namespace(), path_for(data), id(data)], "/")})
+
+      def url_for(data, %Plug.Conn{} = conn) when is_nil(data) or is_list(data) do
+        URI.to_string(%URI{
+          scheme: scheme(conn),
+          host: host(conn),
+          path: Enum.join([namespace(), path_for(data)], "/")
+        })
+      end
 
       def url_for(data, %Plug.Conn{} = conn) do
         URI.to_string(%URI{
           scheme: scheme(conn),
           host: host(conn),
-          path: Enum.join([namespace(), path_for(data)], "/")
+          path: Enum.join([namespace(), path_for(data), id(data)], "/")
         })
       end
 
