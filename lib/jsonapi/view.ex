@@ -117,6 +117,7 @@ defmodule JSONAPI.View do
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)
     {namespace, opts} = Keyword.pop(opts, :namespace)
+    {path, opts} = Keyword.pop(opts, :path)
     {paginator, _opts} = Keyword.pop(opts, :paginator)
 
     # credo:disable-for-next-line Credo.Check.Refactor.LongQuoteBlocks
@@ -126,6 +127,7 @@ defmodule JSONAPI.View do
 
       @resource_type unquote(type)
       @namespace unquote(namespace)
+      @path unquote(path)
       @paginator unquote(paginator)
 
       def id(nil), do: nil
@@ -143,6 +145,8 @@ defmodule JSONAPI.View do
       else
         def namespace, do: Application.get_env(:jsonapi, :namespace, "")
       end
+
+      def path, do: @path
 
       def pagination_links(data, conn, page, options) do
         paginator = Application.get_env(:jsonapi, :paginator, @paginator)
@@ -213,18 +217,21 @@ defmodule JSONAPI.View do
       def index(models, conn, _params, meta \\ nil, options \\ []),
         do: serialize(__MODULE__, models, conn, meta, options)
 
-      def url_for(nil, nil), do: "#{namespace()}/#{type()}"
+      def path_for(data) when is_nil(data) or is_list(data),
+        do: URI.to_string(%URI{path: path() || type()})
 
-      def url_for(data, nil) when is_list(data), do: "#{namespace()}/#{type()}"
+      def path_for(data),
+        do: URI.to_string(%URI{path: Enum.join([path() || type(), id(data)], "/")})
 
-      def url_for(data, nil), do: "#{namespace()}/#{type()}/#{id(data)}"
-
-      def url_for(data, %Plug.Conn{} = conn) when is_list(data) or is_nil(data) do
-        "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}"
-      end
+      def url_for(data, nil = _conn),
+        do: URI.to_string(%URI{path: Enum.join([namespace(), path_for(data)], "/")})
 
       def url_for(data, %Plug.Conn{} = conn) do
-        "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}/#{id(data)}"
+        URI.to_string(%URI{
+          scheme: scheme(conn),
+          host: host(conn),
+          path: Enum.join([namespace(), path_for(data)], "/")
+        })
       end
 
       def url_for_rel(data, rel_type, conn) do
@@ -283,6 +290,7 @@ defmodule JSONAPI.View do
                      meta: 2,
                      relationships: 0,
                      type: 0,
+                     path_for: 1,
                      url_for: 2,
                      url_for_rel: 3
     end
