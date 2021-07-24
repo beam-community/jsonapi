@@ -157,10 +157,12 @@ defmodule JSONAPI.View do
       @path unquote(path)
       @paginator unquote(paginator)
 
+      @impl View
       def id(nil), do: nil
       def id(%{__struct__: Ecto.Association.NotLoaded}), do: nil
       def id(%{id: id}), do: to_string(id)
 
+      @impl View
       def attributes(data, conn) do
         visible_fields = View.visible_fields(__MODULE__, data, conn)
 
@@ -175,20 +177,26 @@ defmodule JSONAPI.View do
         end)
       end
 
+      @impl View
       def fields, do: raise("Need to implement fields/0")
 
+      @impl View
       def hidden(_data), do: []
 
+      @impl View
       def links(_data, _conn), do: %{}
 
+      @impl View
       def meta(_data, _conn), do: nil
 
+      @impl View
       if @namespace do
         def namespace, do: @namespace
       else
         def namespace, do: Application.get_env(:jsonapi, :namespace, "")
       end
 
+      @impl View
       def pagination_links(data, conn, page, options) do
         paginator = Application.get_env(:jsonapi, :paginator, @paginator)
 
@@ -199,25 +207,32 @@ defmodule JSONAPI.View do
         end
       end
 
+      @impl View
       def path, do: @path
 
+      @impl View
       def relationships, do: []
 
+      @impl View
       if @resource_type do
         def type, do: @resource_type
       else
         def type, do: raise("Need to implement type/0")
       end
 
+      @impl View
       def url_for(data, conn),
         do: View.url_for(__MODULE__, data, conn)
 
+      @impl View
       def url_for_pagination(data, conn, pagination_params),
         do: View.url_for_pagination(__MODULE__, data, conn, pagination_params)
 
+      @impl View
       def url_for_rel(data, rel_type, conn),
         do: View.url_for_rel(__MODULE__, data, rel_type, conn)
 
+      @impl View
       def visible_fields(data, conn),
         do: View.visible_fields(__MODULE__, data, conn)
 
