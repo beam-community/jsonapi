@@ -154,11 +154,13 @@ defmodule JSONAPI.Serializer do
 
   @spec encode_relation(tuple()) :: map()
   def encode_relation({rel_view, rel_data, _rel_url, _conn} = info) do
-    data = %{
-      data: encode_rel_data(rel_view, rel_data)
-    }
+    case encode_rel_data(rel_view, rel_data) do
+      nil ->
+        nil
 
-    merge_related_links(data, info, remove_links?())
+      rel_data ->
+        merge_related_links(%{data: rel_data}, info, remove_links?())
+    end
   end
 
   defp merge_base_links(%{links: links} = doc, data, view, conn) do

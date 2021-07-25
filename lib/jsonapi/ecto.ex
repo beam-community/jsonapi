@@ -12,7 +12,7 @@ defmodule JSONAPI.Ecto do
   def assoc_loaded?(association) do
     case association do
       %{__struct__: Ecto.Association.NotLoaded} -> false
-      nil -> false
+      %JSONAPI.Relationships.NotLoaded{} -> false
       _ -> true
     end
   end
