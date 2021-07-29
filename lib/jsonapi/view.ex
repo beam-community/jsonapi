@@ -133,7 +133,7 @@ defmodule JSONAPI.View do
   @callback namespace() :: String.t()
   @callback pagination_links(data(), Conn.t(), Paginator.page(), Paginator.options()) ::
               Paginator.links()
-  @callback path() :: String.t()
+  @callback path() :: String.t() | nil
   @callback relationships() :: [{atom(), t() | {t(), :include}}]
   @callback type() :: resource_type()
   @callback url_for(data(), Conn.t() | nil) :: String.t()
