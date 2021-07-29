@@ -237,10 +237,10 @@ defmodule JSONAPI.View do
         do: View.visible_fields(__MODULE__, data, conn)
 
       defoverridable View
- 
+
       def index(models, conn, _params, meta \\ nil, options \\ []),
         do: Serializer.serialize(__MODULE__, models, conn, meta, options)
- 
+
       def show(model, conn, _params, meta \\ nil, options \\ []),
         do: Serializer.serialize(__MODULE__, model, conn, meta, options)
 
