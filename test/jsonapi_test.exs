@@ -344,6 +344,23 @@ defmodule JSONAPITest do
                "first-character" => "H"
              } == attributes
     end
+
+    test "handles empty sparse fields properly" do
+      conn =
+        :get
+        |> conn("/posts?include=other_user.company&fields[mytype]=")
+        |> Plug.Conn.assign(:data, [@default_data])
+        |> Plug.Conn.fetch_query_params()
+        |> MyPostPlug.call([])
+
+      assert %{
+               "data" => [
+                 %{"attributes" => attributes}
+               ]
+             } = Jason.decode!(conn.resp_body)
+
+      assert %{} == attributes
+    end
   end
 
   test "omits explicit nil meta values as per http://jsonapi.org/format/#document-meta" do
