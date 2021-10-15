@@ -136,14 +136,14 @@ defmodule JSONAPI.QueryParser do
       requested_fields =
         try do
           value
-          |> String.split(",")
+          |> String.split(",", trim: true)
           |> Enum.map(&underscore/1)
           |> Enum.into(MapSet.new(), &String.to_existing_atom/1)
         rescue
           ArgumentError -> raise_invalid_field_names(value, config.view.type())
         end
 
-      unless MapSet.subset?(requested_fields, valid_fields) do
+      unless MapSet.size(requested_fields) == 0 and MapSet.subset?(requested_fields, valid_fields) do
         bad_fields =
           requested_fields
           |> MapSet.difference(valid_fields)
