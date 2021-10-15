@@ -136,7 +136,7 @@ defmodule JSONAPI.QueryParser do
       requested_fields =
         try do
           value
-          |> String.split(",", trim: true)
+          |> String.split(",")
           |> Enum.map(&underscore/1)
           |> Enum.into(MapSet.new(), &String.to_existing_atom/1)
         rescue
