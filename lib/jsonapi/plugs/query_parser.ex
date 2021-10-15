@@ -137,20 +137,24 @@ defmodule JSONAPI.QueryParser do
         try do
           value
           |> String.split(",")
+          |> Enum.filter(& &1 !== "")
           |> Enum.map(&underscore/1)
           |> Enum.into(MapSet.new(), &String.to_existing_atom/1)
         rescue
           ArgumentError -> raise_invalid_field_names(value, config.view.type())
         end
 
-      unless MapSet.size(requested_fields) == 0 and MapSet.subset?(requested_fields, valid_fields) do
-        bad_fields =
-          requested_fields
-          |> MapSet.difference(valid_fields)
-          |> MapSet.to_list()
-          |> Enum.join(",")
+      unless MapSet.subset?(requested_fields, valid_fields) do
+        # no fields if empty - https://jsonapi.org/format/#fetching-sparse-fieldsets
+        if MapSet.size(requested_fields) != 0 do
+          bad_fields =
+            requested_fields
+            |> MapSet.difference(valid_fields)
+            |> MapSet.to_list()
+            |> Enum.join(",")
 
-        raise_invalid_field_names(bad_fields, config.view.type())
+          raise_invalid_field_names(bad_fields, config.view.type())
+        end
       end
 
       %{acc | fields: Map.put(acc.fields, type, MapSet.to_list(requested_fields))}
