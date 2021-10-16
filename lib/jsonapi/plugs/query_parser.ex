@@ -144,9 +144,10 @@ defmodule JSONAPI.QueryParser do
           ArgumentError -> raise_invalid_field_names(value, config.view.type())
         end
 
-      unless MapSet.subset?(requested_fields, valid_fields) do
+      size = MapSet.size(requested_fields)
+      case MapSet.subset?(requested_fields, valid_fields) do
         # no fields if empty - https://jsonapi.org/format/#fetching-sparse-fieldsets
-        if MapSet.size(requested_fields) != 0 do
+        false when size > 0 ->
           bad_fields =
             requested_fields
             |> MapSet.difference(valid_fields)
@@ -154,10 +155,9 @@ defmodule JSONAPI.QueryParser do
             |> Enum.join(",")
 
           raise_invalid_field_names(bad_fields, config.view.type())
-        end
+        _ -> 
+          %{acc | fields: Map.put(acc.fields, type, MapSet.to_list(requested_fields))}
       end
-
-      %{acc | fields: Map.put(acc.fields, type, MapSet.to_list(requested_fields))}
     end)
   end
 
