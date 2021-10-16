@@ -145,6 +145,7 @@ defmodule JSONAPI.QueryParser do
         end
 
       size = MapSet.size(requested_fields)
+
       case MapSet.subset?(requested_fields, valid_fields) do
         # no fields if empty - https://jsonapi.org/format/#fetching-sparse-fieldsets
         false when size > 0 ->
@@ -155,7 +156,8 @@ defmodule JSONAPI.QueryParser do
             |> Enum.join(",")
 
           raise_invalid_field_names(bad_fields, config.view.type())
-        _ -> 
+
+        _ ->
           %{acc | fields: Map.put(acc.fields, type, MapSet.to_list(requested_fields))}
       end
     end)
