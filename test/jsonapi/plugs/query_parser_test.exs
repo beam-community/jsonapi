@@ -110,6 +110,11 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_fields(config, %{"mytype" => "id,text"}).fields == %{"mytype" => [:id, :text]}
   end
 
+  test "parse_fields/2 turns an empty fields map into an empty list" do
+    config = struct(Config, view: MyView)
+    assert parse_fields(config, %{"mytype" => ""}).fields == %{"mytype" => []}
+  end
+
   test "parse_fields/2 raises on invalid parsing" do
     config = struct(Config, view: MyView)
 
