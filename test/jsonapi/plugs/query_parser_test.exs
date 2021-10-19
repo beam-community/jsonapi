@@ -83,6 +83,7 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_include(config, "comments.user").include == [comments: :user]
     assert parse_include(config, "best_friends").include == [:best_friends]
     assert parse_include(config, "author.top-posts").include == [author: :top_posts]
+    assert parse_include(config, "").include == []
   end
 
   test "parse_include/2 errors with invalid includes" do

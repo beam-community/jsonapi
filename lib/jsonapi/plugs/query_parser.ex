@@ -201,6 +201,7 @@ defmodule JSONAPI.QueryParser do
     includes =
       str
       |> String.split(",")
+      |> Enum.filter(&(&1 !== ""))
       |> Enum.map(&underscore/1)
 
     Enum.reduce(includes, [], fn inc, acc ->
