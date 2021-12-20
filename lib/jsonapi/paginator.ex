@@ -5,9 +5,11 @@ defmodule JSONAPI.Paginator do
 
   alias Plug.Conn
 
+  @type options :: Keyword.t()
+
   @type page :: map()
 
-  @type options :: Keyword.t()
+  @type params :: %{String.t() => String.t()}
 
   @type links :: %{
           first: String.t() | nil,
