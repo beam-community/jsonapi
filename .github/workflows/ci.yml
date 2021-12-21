@@ -1,64 +1,16 @@
 name: Continuous Integration
 
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
   push:
     branches:
-      - 'master'
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
-  test:
-    env:
-      MIX_ENV: test
-    runs-on: ubuntu-latest
-    name: Test (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
-    strategy:
-      matrix:
-        elixir: ['1.12', '1.11', '1.10']
-        # All of the above can use this version. For details see: https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
-        otp: [24, 23, 22]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: erlef/setup-beam@v1
-        with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
-      - run: mix deps.get
-      - run: mix test
-
-  lint:
-    runs-on: ubuntu-latest
-    name: Linting
-    strategy:
-      matrix:
-        elixir: ['1.12']
-        # All of the above can use this version. For details see: https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
-        otp: [24]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: erlef/setup-beam@v1
-        with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
-      - uses: actions/cache@v1
-        env:
-          cache-name: mix
-        with:
-          path: ~/.mix
-          key: cache-${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
-          restore-keys: |
-             cache-${{ runner.os }}-${{ env.cache-name }}-
-      - uses: actions/cache@v1
-        env:
-          cache-name: build
-        with:
-          path: _build
-          key: cache-${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
-          restore-keys: |
-             cache-${{ runner.os }}-${{ env.cache-name }}-
-      - run: mix deps.get
-      - run: mix compile --warnings-as-errors
-      - run: mix format --check-formatted
-      - run: mix credo --strict
-      - run: mix dialyzer --halt-exit-status
+  qa:
+    uses: straw-hat-team/github-actions-workflows/.github/workflows/elixir-quality-assurance.yml@v1.0.0
+    with:
+      elixir-version: '1.12'
+      otp-version: '24'

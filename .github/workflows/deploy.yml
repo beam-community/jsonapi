@@ -1,0 +1,14 @@
+name: Publish to Hex.pm
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  hex-publish:
+    uses: straw-hat-team/github-actions-workflows/.github/workflows/elixir-hex-publish.yml@v1.0.0
+    with:
+      elixir-version: '1.12'
+      otp-version: '24'
+    secrets:
+      HEX_API_KEY: ${{ secrets.HEXPM_SECRET }}
