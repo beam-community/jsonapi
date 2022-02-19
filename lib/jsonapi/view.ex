@@ -245,11 +245,17 @@ defmodule JSONAPI.View do
         do: Serializer.serialize(__MODULE__, model, conn, meta, options)
 
       if Code.ensure_loaded?(Phoenix) do
+        def render("show.json", %{data: data, conn: conn, meta: meta, options: options}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta, options)
+
         def render("show.json", %{data: data, conn: conn, meta: meta}),
           do: Serializer.serialize(__MODULE__, data, conn, meta)
 
         def render("show.json", %{data: data, conn: conn}),
           do: Serializer.serialize(__MODULE__, data, conn)
+
+        def render("index.json", %{data: data, conn: conn, meta: meta, options: options}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta, options)
 
         def render("index.json", %{data: data, conn: conn, meta: meta}),
           do: Serializer.serialize(__MODULE__, data, conn, meta)
