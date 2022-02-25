@@ -118,7 +118,8 @@ defmodule JSONAPI.View do
   @type t :: module()
   @type data :: any()
   @type field :: atom()
-  @type links :: %{atom() => String.t()}
+  @type link_object :: %{required(:href) => String.t(), optional(:meta) => meta()}
+  @type links :: %{atom() => String.t() | link_object()}
   @type meta :: %{atom() => String.t()}
   @type options :: keyword()
   @type resource_id :: String.t()
@@ -244,6 +245,15 @@ defmodule JSONAPI.View do
       def show(model, conn, _params, meta \\ nil, options \\ []),
         do: Serializer.serialize(__MODULE__, model, conn, meta, options)
 
+      def update(model, conn, _params, meta \\ nil, options \\ []),
+        do: Serializer.serialize(__MODULE__, model, conn, meta, options)
+
+      def delete(model, conn, _params, meta \\ nil, options \\ []),
+        do: Serializer.serialize(__MODULE__, model, conn, meta, options)
+
+      def create(model, conn, _params, meta \\ nil, options \\ []),
+        do: Serializer.serialize(__MODULE__, model, conn, meta, options)
+
       if Code.ensure_loaded?(Phoenix) do
         def render("show.json", %{data: data, conn: conn, meta: meta, options: options}),
           do: Serializer.serialize(__MODULE__, data, conn, meta, options)
@@ -261,6 +271,33 @@ defmodule JSONAPI.View do
           do: Serializer.serialize(__MODULE__, data, conn, meta)
 
         def render("index.json", %{data: data, conn: conn}),
+          do: Serializer.serialize(__MODULE__, data, conn)
+
+        def render("create.json", %{data: data, conn: conn, meta: meta, options: options}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta, options)
+
+        def render("create.json", %{data: data, conn: conn, meta: meta}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta)
+
+        def render("create.json", %{data: data, conn: conn}),
+          do: Serializer.serialize(__MODULE__, data, conn)
+
+        def render("update.json", %{data: data, conn: conn, meta: meta, options: options}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta, options)
+
+        def render("update.json", %{data: data, conn: conn, meta: meta}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta)
+
+        def render("update.json", %{data: data, conn: conn}),
+          do: Serializer.serialize(__MODULE__, data, conn)
+
+        def render("delete.json", %{data: data, conn: conn, meta: meta, options: options}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta, options)
+
+        def render("delete.json", %{data: data, conn: conn, meta: meta}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta)
+
+        def render("delete.json", %{data: data, conn: conn}),
           do: Serializer.serialize(__MODULE__, data, conn)
       else
         raise ArgumentError,
