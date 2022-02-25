@@ -35,6 +35,17 @@ defmodule JSONAPITest do
     def fields, do: [:username]
     def type, do: "user"
 
+    def links(user, _conn) do
+      %{
+        profile: %{
+          href: "#{path()}/#{user.username}",
+          meta: %{
+            method: "get"
+          }
+        }
+      }
+    end
+
     def relationships do
       [company: JSONAPITest.CompanyView]
     end
