@@ -284,6 +284,7 @@ defmodule JSONAPI.View do
     URI.to_string(%URI{
       scheme: scheme(conn),
       host: host(conn),
+      port: port(conn),
       path: Enum.join([view.namespace(), path_for(view)], "/")
     })
   end
@@ -292,6 +293,7 @@ defmodule JSONAPI.View do
     URI.to_string(%URI{
       scheme: scheme(conn),
       host: host(conn),
+      port: port(conn),
       path: Enum.join([view.namespace(), path_for(view), view.id(data)], "/")
     })
   end
@@ -362,6 +364,12 @@ defmodule JSONAPI.View do
 
   defp host(%Conn{host: host}),
     do: Application.get_env(:jsonapi, :host, host)
+
+  defp port(%Conn{port: 0} = conn),
+    do: port(%{conn | port: URI.default_port(scheme(conn))})
+
+  defp port(%Conn{port: port}),
+    do: Application.get_env(:jsonapi, :port, port)
 
   defp scheme(%Conn{scheme: scheme}),
     do: Application.get_env(:jsonapi, :scheme, to_string(scheme))
