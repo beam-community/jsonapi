@@ -8,7 +8,7 @@ defmodule JSONAPI.Mixfile do
       package: package(),
       compilers: compilers(Mix.env()),
       description: description(),
-      elixir: "~> 1.9",
+      elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
@@ -40,6 +40,7 @@ defmodule JSONAPI.Mixfile do
 
   defp dialyzer do
     [
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
       plt_add_deps: :app_tree
     ]
   end
