@@ -89,6 +89,7 @@ defmodule JSONAPI.ViewTest do
       assert PostView.url_for([], nil) == "/api/posts"
       assert PostView.url_for(%{id: 1}, nil) == "/api/posts/1"
       assert PostView.url_for([], %Plug.Conn{}) == "http://www.example.com/api/posts"
+      assert PostView.url_for([], %Plug.Conn{port: 123}) == "http://www.example.com:123/api/posts"
       assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.example.com/api/posts/1"
 
       assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
@@ -142,6 +143,29 @@ defmodule JSONAPI.ViewTest do
 
       assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
                "ftp://www.example.com/api/posts/1/relationships/comments"
+    end
+  end
+
+  describe "url_for/2 when port configured" do
+    setup do
+      Application.put_env(:jsonapi, :port, 42)
+
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :port)
+      end)
+
+      {:ok, []}
+    end
+
+    test "uses configured port instead of that on Conn" do
+      assert PostView.url_for([], %Plug.Conn{}) == "http://www.example.com:42/api/posts"
+      assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.example.com:42/api/posts/1"
+
+      assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
+               "http://www.example.com:42/api/posts/relationships/comments"
+
+      assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
+               "http://www.example.com:42/api/posts/1/relationships/comments"
     end
   end
 
