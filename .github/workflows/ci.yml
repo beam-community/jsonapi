@@ -12,18 +12,23 @@ jobs:
     env:
       MIX_ENV: test
     runs-on: ubuntu-latest
-    name: Test (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
+    name: Test (OTP ${{ matrix.otp }} / Elixir ${{ matrix.elixir }})
     strategy:
       matrix:
-        elixir: ['1.12', '1.11', '1.10']
+        elixir: ['1.13', '1.12', '1.11', '1.10']
         # All of the above can use this version. For details see: https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
-        otp: [24, 23, 22]
+        otp: [25, 24, 23, 22]
+        exclude:
+          - {otp: '24', elixir: '1.10'}
+          - {otp: '25', elixir: '1.10'}
+          - {otp: '25', elixir: '1.11'}
+          - {otp: '25', elixir: '1.12'}
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
       - run: mix deps.get
       - run: mix test
 
@@ -32,31 +37,23 @@ jobs:
     name: Linting
     strategy:
       matrix:
-        elixir: ['1.12']
-        # All of the above can use this version. For details see: https://hexdocs.pm/elixir/compatibility-and-deprecations.html#compatibility-between-elixir-and-erlang-otp
-        otp: [24]
+        elixir: ['1.13']
+        otp: [25]
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
-      - uses: actions/cache@v1
-        env:
-          cache-name: mix
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+      - name: PLT cache
+        uses: actions/cache@v2
         with:
-          path: ~/.mix
-          key: cache-${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
+          key: |
+            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
           restore-keys: |
-             cache-${{ runner.os }}-${{ env.cache-name }}-
-      - uses: actions/cache@v1
-        env:
-          cache-name: build
-        with:
-          path: _build
-          key: cache-${{ runner.os }}-${{ env.cache-name }}-${{ matrix.otp }}-${{ matrix.elixir }}
-          restore-keys: |
-             cache-${{ runner.os }}-${{ env.cache-name }}-
+            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
+          path: |
+            priv/plts
       - run: mix deps.get
       - run: mix compile --warnings-as-errors
       - run: mix format --check-formatted
