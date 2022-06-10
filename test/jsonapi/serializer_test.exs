@@ -133,9 +133,11 @@ defmodule JSONAPI.SerializerTest do
       # renames "user1" data property to "commenter" JSON:API relationship (and specifies default inclusion)
       # renames "user2" to "witness"
       # leaves "user3" name alone
-      [commenter: {:user1, JSONAPI.SerializerTest.UserView, :include},
-      witness: {:user2, JSONAPI.SerializerTest.UserView},
-      user3: JSONAPI.SerializerTest.UserView]
+      [
+        commenter: {:user1, JSONAPI.SerializerTest.UserView, :include},
+        witness: {:user2, JSONAPI.SerializerTest.UserView},
+        user3: JSONAPI.SerializerTest.UserView
+      ]
     end
   end
 
@@ -753,9 +755,9 @@ defmodule JSONAPI.SerializerTest do
       |> Enum.map(&Serializer.extrapolate_relationship_config/1)
 
     assert configs == [
-      {:author, :author, JSONAPI.SerializerTest.UserView, true},
-      {:best_comments, :best_comments, JSONAPI.SerializerTest.CommentView, true}
-    ]
+             {:author, :author, JSONAPI.SerializerTest.UserView, true},
+             {:best_comments, :best_comments, JSONAPI.SerializerTest.CommentView, true}
+           ]
   end
 
   test "extrapolates relationship config with rewritten name" do
@@ -764,9 +766,9 @@ defmodule JSONAPI.SerializerTest do
       |> Enum.map(&Serializer.extrapolate_relationship_config/1)
 
     assert configs == [
-      {:commenter, :user1, JSONAPI.SerializerTest.UserView, true},
-      {:witness, :user2, JSONAPI.SerializerTest.UserView, false},
-      {:user3, :user3, JSONAPI.SerializerTest.UserView, false}
-    ]
+             {:commenter, :user1, JSONAPI.SerializerTest.UserView, true},
+             {:witness, :user2, JSONAPI.SerializerTest.UserView, false},
+             {:user3, :user3, JSONAPI.SerializerTest.UserView, false}
+           ]
   end
 end

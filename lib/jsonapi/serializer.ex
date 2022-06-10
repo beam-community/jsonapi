@@ -85,7 +85,8 @@ defmodule JSONAPI.Serializer do
 
   defp get_data_key(rel_config), do: elem(extrapolate_relationship_config(rel_config), 1)
 
-  @spec build_relationships(Conn.t(), tuple(), term(), term(), module(), tuple(), list()) :: tuple()
+  @spec build_relationships(Conn.t(), tuple(), term(), term(), module(), tuple(), list()) ::
+          tuple()
   def build_relationships(
         conn,
         {parent_view, parent_data, query_includes, valid_includes},
@@ -95,7 +96,6 @@ defmodule JSONAPI.Serializer do
         acc,
         options
       ) do
-
     # Build the relationship url
     rel_key = transform_fields(relationship_name)
     rel_url = parent_view.url_for_rel(parent_data, rel_key, conn)
@@ -140,9 +140,7 @@ defmodule JSONAPI.Serializer do
         acc,
         options
       ) do
-
-    {rewrite_key, data_key, rel_view, _include}
-      = extrapolate_relationship_config(rel_config)
+    {rewrite_key, data_key, rel_view, _include} = extrapolate_relationship_config(rel_config)
 
     rel_data = Map.get(data, data_key)
 
@@ -169,16 +167,18 @@ defmodule JSONAPI.Serializer do
   def extrapolate_relationship_config({rewrite_key, {data_key, view, :include}}) do
     {rewrite_key, data_key, view, true}
   end
+
   def extrapolate_relationship_config({data_key, {view, :include}}) do
     {data_key, data_key, view, true}
   end
+
   def extrapolate_relationship_config({rewrite_key, {data_key, view}}) do
     {rewrite_key, data_key, view, false}
   end
+
   def extrapolate_relationship_config({data_key, view}) do
     {data_key, data_key, view, false}
   end
-
 
   defp include_view(valid_includes, key) when is_list(valid_includes) do
     valid_includes
@@ -280,8 +280,7 @@ defmodule JSONAPI.Serializer do
   end
 
   defp include_rel_by_default(rel_config) do
-    {_rel_key, _data_key, _view, include_by_default}
-      = extrapolate_relationship_config(rel_config)
+    {_rel_key, _data_key, _view, include_by_default} = extrapolate_relationship_config(rel_config)
 
     include_by_default
   end
