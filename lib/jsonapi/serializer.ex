@@ -3,14 +3,12 @@ defmodule JSONAPI.Serializer do
   Serialize a map of data into a properly formatted JSON API response object
   """
 
-  import JSONAPI.Ecto, only: [assoc_loaded?: 1]
-
-  alias JSONAPI.{Config, Utils}
-  alias Utils.String, as: JString
+  alias JSONAPI.{Config, Utils, View}
+  alias Plug.Conn
 
   require Logger
 
-  @typep serialized_doc :: map()
+  @type document :: map()
 
   @doc """
   Takes a view, data and a optional plug connection and returns a fully JSONAPI Serialized document.
@@ -19,11 +17,12 @@ defmodule JSONAPI.Serializer do
   Please refer to `JSONAPI.View` for more information. If you are in interested in relationships
   and includes you may also want to reference the `JSONAPI.QueryParser`.
   """
-  @spec serialize(module(), term(), Plug.Conn.t() | nil, map() | nil, list()) :: serialized_doc()
+  @spec serialize(View.t(), View.data(), Conn.t() | nil, View.meta() | nil, View.options()) ::
+          document()
   def serialize(view, data, conn \\ nil, meta \\ nil, options \\ []) do
     {query_includes, query_page} =
       case conn do
-        %Plug.Conn{assigns: %{jsonapi_query: %Config{include: include, page: page}}} ->
+        %Conn{assigns: %{jsonapi_query: %Config{include: include, page: page}}} ->
           {include, page}
 
         _ ->
@@ -77,7 +76,7 @@ defmodule JSONAPI.Serializer do
     encode_relationships(conn, doc, {view, data, query_includes, valid_includes}, options)
   end
 
-  @spec encode_relationships(Plug.Conn.t(), serialized_doc(), tuple(), list()) :: tuple()
+  @spec encode_relationships(Conn.t(), document(), tuple(), list()) :: tuple()
   def encode_relationships(conn, doc, {view, data, _, _} = view_info, options) do
     view.relationships()
     |> Enum.filter(&data_loaded?(Map.get(data, get_data_key(&1))))
@@ -86,7 +85,7 @@ defmodule JSONAPI.Serializer do
 
   defp get_data_key(rel_config), do: elem(extrapolate_relationship_config(rel_config), 1)
 
-  @spec build_relationships(Plug.Conn.t(), tuple(), term(), term(), module(), tuple(), list()) :: tuple()
+  @spec build_relationships(Conn.t(), tuple(), term(), term(), module(), tuple(), list()) :: tuple()
   def build_relationships(
         conn,
         {parent_view, parent_data, query_includes, valid_includes},
@@ -133,7 +132,7 @@ defmodule JSONAPI.Serializer do
     end
   end
 
-  @spec build_relationships(Plug.Conn.t(), tuple(), tuple(), tuple(), list()) :: tuple()
+  @spec build_relationships(Conn.t(), tuple(), tuple(), tuple(), list()) :: tuple()
   def build_relationships(
         conn,
         {_parent_view, data, _query_includes, _valid_includes} = parent_info,
@@ -265,6 +264,10 @@ defmodule JSONAPI.Serializer do
     |> Enum.uniq()
   end
 
+  defp assoc_loaded?(nil), do: false
+  defp assoc_loaded?(%{__struct__: Ecto.Association.NotLoaded}), do: false
+  defp assoc_loaded?(_association), do: true
+
   defp get_includes(view, query_includes) do
     includes = get_default_includes(view) ++ get_query_includes(view, query_includes)
     Enum.uniq(includes)
@@ -297,9 +300,9 @@ defmodule JSONAPI.Serializer do
   defp remove_links?, do: Application.get_env(:jsonapi, :remove_links, false)
 
   defp transform_fields(fields) do
-    case JString.field_transformation() do
-      :camelize -> JString.expand_fields(fields, &JString.camelize/1)
-      :dasherize -> JString.expand_fields(fields, &JString.dasherize/1)
+    case Utils.String.field_transformation() do
+      :camelize -> Utils.String.expand_fields(fields, &Utils.String.camelize/1)
+      :dasherize -> Utils.String.expand_fields(fields, &Utils.String.dasherize/1)
       _ -> fields
     end
   end

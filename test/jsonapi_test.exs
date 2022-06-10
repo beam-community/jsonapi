@@ -191,6 +191,45 @@ defmodule JSONAPITest do
     assert Map.has_key?(json, "links")
   end
 
+  test "handles empty includes properly" do
+    conn =
+      :get
+      |> conn("/posts?include=")
+      |> Plug.Conn.assign(:data, [@default_data])
+      |> Plug.Conn.fetch_query_params()
+      |> MyPostPlug.call([])
+
+    json = conn.resp_body |> Jason.decode!()
+
+    assert Map.has_key?(json, "data")
+    data_list = Map.get(json, "data")
+
+    assert Enum.count(data_list) == 1
+    [data | _] = data_list
+    assert Map.get(data, "type") == "mytype"
+    assert Map.get(data, "id") == "1"
+
+    relationships = Map.get(data, "relationships")
+    assert map_size(relationships) == 2
+    assert Enum.sort(Map.keys(relationships)) == ["author", "other_user"]
+    author_rel = Map.get(relationships, "author")
+
+    assert get_in(author_rel, ["data", "type"]) == "user"
+    assert get_in(author_rel, ["data", "id"]) == "2"
+
+    other_user = Map.get(relationships, "other_user")
+
+    # not included
+    assert get_in(other_user, ["data", "type"]) == "user"
+    assert get_in(other_user, ["data", "id"]) == "3"
+
+    assert Map.has_key?(json, "included")
+    included = Map.get(json, "included")
+    assert is_list(included)
+    # author is atuomatically included
+    assert Enum.count(included) == 1
+  end
+
   test "handles deep nested includes properly" do
     data = [
       %{
@@ -343,6 +382,23 @@ defmodule JSONAPITest do
                "text" => "Hello",
                "first-character" => "H"
              } == attributes
+    end
+
+    test "handles empty sparse fields properly" do
+      conn =
+        :get
+        |> conn("/posts?include=other_user.company&fields[mytype]=")
+        |> Plug.Conn.assign(:data, [@default_data])
+        |> Plug.Conn.fetch_query_params()
+        |> MyPostPlug.call([])
+
+      assert %{
+               "data" => [
+                 %{"attributes" => attributes}
+               ]
+             } = Jason.decode!(conn.resp_body)
+
+      assert %{} == attributes
     end
   end
 

@@ -16,7 +16,7 @@ defmodule JSONAPI.Config do
           data: nil | map,
           fields: map,
           filter: keyword,
-          include: keyword,
+          include: [atom | {atom, any}],
           opts: nil | keyword,
           sort: nil | keyword,
           view: any,

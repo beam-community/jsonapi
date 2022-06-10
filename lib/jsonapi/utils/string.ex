@@ -91,6 +91,9 @@ defmodule JSONAPI.Utils.String do
       iex> camelize("_top__posts_")
       "_top__posts_"
 
+      iex> camelize("")
+      ""
+
   """
   @spec camelize(atom) :: String.t()
   def camelize(value) when is_atom(value) do
@@ -100,6 +103,8 @@ defmodule JSONAPI.Utils.String do
   end
 
   @spec camelize(String.t()) :: String.t()
+  def camelize(value) when value == "", do: value
+
   def camelize(value) when is_binary(value) do
     with words <-
            Regex.split(
@@ -165,6 +170,12 @@ defmodule JSONAPI.Utils.String do
       iex> expand_fields(%{"attributes" => %{"corgiName" => "Wardel"}}, &underscore/1)
       %{"attributes" => %{"corgi_name" => "Wardel"}}
 
+      iex> expand_fields(%{"attributes" => %{"corgiName" => ["Wardel"]}}, &underscore/1)
+      %{"attributes" => %{"corgi_name" => ["Wardel"]}}
+
+      iex> expand_fields(%{"attributes" => %{"someField" => ["SomeValue", %{"nestedField" => "Value"}]}}, &underscore/1)
+      %{"attributes" => %{"some_field" => ["SomeValue", %{"nested_field" => "Value"}]}}
+
       iex> expand_fields([%{"fooBar" => "a"}, %{"fooBar" => "b"}], &underscore/1)
       [%{"foo_bar" => "a"}, %{"foo_bar" => "b"}]
 
@@ -176,6 +187,10 @@ defmodule JSONAPI.Utils.String do
 
       iex> expand_fields(%{"foo_attributes" => [%{"foo_bar" => "a"}, %{"foo_bar" => "b"}]}, &camelize/1)
       %{"fooAttributes" => [%{"fooBar" => "a"}, %{"fooBar" => "b"}]}
+
+      iex> expand_fields(%{"foo_attributes" => [%{"foo_bar" => [1, 2]}]}, &camelize/1)
+      %{"fooAttributes" => [%{"fooBar" => [1, 2]}]}
+
   """
   @spec expand_fields(map, function) :: map
   def expand_fields(%{__struct__: _} = value, _fun), do: value
@@ -190,17 +205,32 @@ defmodule JSONAPI.Utils.String do
   end
 
   @spec expand_fields(tuple, function) :: tuple
-  def expand_fields({key, value}, fun) when is_map(value) or is_list(value) do
+  def expand_fields({key, value}, fun) when is_map(value) do
     {fun.(key), expand_fields(value, fun)}
+  end
+
+  def expand_fields({key, value}, fun) when is_list(value) do
+    {fun.(key), maybe_expand_fields(value, fun)}
   end
 
   def expand_fields({key, value}, fun) do
     {fun.(key), value}
   end
 
-  @spec expand_fields(String.t(), function) :: map
-  def expand_fields(value, fun) do
+  @spec expand_fields(String.t() | atom(), function) :: String.t()
+  def expand_fields(value, fun) when is_binary(value) or is_atom(value) do
     fun.(value)
+  end
+
+  def expand_fields(value, _fun) do
+    value
+  end
+
+  defp maybe_expand_fields(values, fun) when is_list(values) do
+    Enum.map(values, fn
+      string when is_binary(string) -> string
+      value -> expand_fields(value, fun)
+    end)
   end
 
   @doc """

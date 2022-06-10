@@ -56,7 +56,7 @@ defmodule JSONAPI.QueryParser do
 
   The final result should allow you to build a query quickly and with little overhead.
 
-  ## Spare Fieldsets
+  ## Sparse Fieldsets
 
   Sparse fieldsets are supported. By default your response will include all
   available fields. Note that the query to your database is left to you. Should
@@ -137,23 +137,29 @@ defmodule JSONAPI.QueryParser do
         try do
           value
           |> String.split(",")
+          |> Enum.filter(&(&1 !== ""))
           |> Enum.map(&underscore/1)
           |> Enum.into(MapSet.new(), &String.to_existing_atom/1)
         rescue
           ArgumentError -> raise_invalid_field_names(value, config.view.type())
         end
 
-      unless MapSet.subset?(requested_fields, valid_fields) do
-        bad_fields =
-          requested_fields
-          |> MapSet.difference(valid_fields)
-          |> MapSet.to_list()
-          |> Enum.join(",")
+      size = MapSet.size(requested_fields)
 
-        raise_invalid_field_names(bad_fields, config.view.type())
+      case MapSet.subset?(requested_fields, valid_fields) do
+        # no fields if empty - https://jsonapi.org/format/#fetching-sparse-fieldsets
+        false when size > 0 ->
+          bad_fields =
+            requested_fields
+            |> MapSet.difference(valid_fields)
+            |> MapSet.to_list()
+            |> Enum.join(",")
+
+          raise_invalid_field_names(bad_fields, config.view.type())
+
+        _ ->
+          %{acc | fields: Map.put(acc.fields, type, MapSet.to_list(requested_fields))}
       end
-
-      %{acc | fields: Map.put(acc.fields, type, MapSet.to_list(requested_fields))}
     end)
   end
 
@@ -191,7 +197,12 @@ defmodule JSONAPI.QueryParser do
 
   def handle_include(str, config) when is_binary(str) do
     valid_includes = get_base_relationships(config.view)
-    includes = String.split(str, ",")
+
+    includes =
+      str
+      |> String.split(",")
+      |> Enum.filter(&(&1 !== ""))
+      |> Enum.map(&underscore/1)
 
     Enum.reduce(includes, [], fn inc, acc ->
       if inc =~ ~r/\w+\.\w+/ do
@@ -246,7 +257,7 @@ defmodule JSONAPI.QueryParser do
 
   @spec get_view_for_type(module(), String.t()) :: module() | no_return()
   def get_view_for_type(view, type) do
-    case Enum.find(view.relationships, fn relationship ->
+    case Enum.find(view.relationships(), fn relationship ->
            is_field_valid_for_relationship(relationship, type)
          end) do
       {_, view} -> view

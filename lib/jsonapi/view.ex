@@ -112,79 +112,59 @@ defmodule JSONAPI.View do
   default style for presentation in names is to be underscored and not dashed.
   """
 
+  alias JSONAPI.{Paginator, Utils}
   alias Plug.Conn
+
+  @type t :: module()
+  @type data :: any()
+  @type field :: atom()
+  @type links :: %{atom() => String.t()}
+  @type meta :: %{atom() => String.t()}
+  @type options :: keyword()
+  @type resource_id :: String.t()
+  @type resource_type :: String.t()
+
+  @callback attributes(data(), Conn.t() | nil) :: map()
+  @callback id(data()) :: resource_id() | nil
+  @callback fields() :: [field()]
+  @callback hidden(data()) :: [field()]
+  @callback links(data(), Conn.t()) :: links()
+  @callback meta(data(), Conn.t()) :: meta() | nil
+  @callback namespace() :: String.t()
+  @callback pagination_links(data(), Conn.t(), Paginator.page(), Paginator.options()) ::
+              Paginator.links()
+  @callback path() :: String.t() | nil
+  @callback relationships() :: [{atom(), t() | {t(), :include}}]
+  @callback type() :: resource_type()
+  @callback url_for(data(), Conn.t() | nil) :: String.t()
+  @callback url_for_pagination(data(), Conn.t(), Paginator.params()) :: String.t()
+  @callback url_for_rel(term(), String.t(), Conn.t() | nil) :: String.t()
+  @callback visible_fields(data(), Conn.t() | nil) :: list(atom)
 
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)
     {namespace, opts} = Keyword.pop(opts, :namespace)
+    {path, opts} = Keyword.pop(opts, :path)
     {paginator, _opts} = Keyword.pop(opts, :paginator)
 
-    # credo:disable-for-next-line Credo.Check.Refactor.LongQuoteBlocks
     quote do
-      import JSONAPI.Utils.List, only: [to_list_of_query_string_components: 1]
-      import JSONAPI.Serializer, only: [serialize: 5]
+      alias JSONAPI.{Serializer, View}
+
+      @behaviour View
 
       @resource_type unquote(type)
       @namespace unquote(namespace)
+      @path unquote(path)
       @paginator unquote(paginator)
 
+      @impl View
       def id(nil), do: nil
       def id(%{__struct__: Ecto.Association.NotLoaded}), do: nil
       def id(%{id: id}), do: to_string(id)
 
-      if @resource_type do
-        def type, do: @resource_type
-      else
-        def type, do: raise("Need to implement type/0")
-      end
-
-      if @namespace do
-        def namespace, do: @namespace
-      else
-        def namespace, do: Application.get_env(:jsonapi, :namespace, "")
-      end
-
-      def pagination_links(data, conn, page, options) do
-        paginator = Application.get_env(:jsonapi, :paginator, @paginator)
-
-        if Code.ensure_loaded?(paginator) && function_exported?(paginator, :paginate, 5) do
-          paginator.paginate(data, __MODULE__, conn, page, options)
-        else
-          %{}
-        end
-      end
-
-      defp requested_fields_for_type(%Conn{assigns: %{jsonapi_query: %{fields: fields}}} = conn) do
-        fields[type()]
-      end
-
-      defp requested_fields_for_type(_conn), do: nil
-
-      defp net_fields_for_type(requested_fields, fields) when requested_fields in [nil, %{}],
-        do: fields
-
-      defp net_fields_for_type(requested_fields, fields) do
-        fields
-        |> MapSet.new()
-        |> MapSet.intersection(MapSet.new(requested_fields))
-        |> MapSet.to_list()
-      end
-
-      @spec visible_fields(map(), conn :: nil | Conn.t()) :: list(atom)
-      def visible_fields(data, conn) do
-        all_fields =
-          conn
-          |> requested_fields_for_type()
-          |> net_fields_for_type(fields())
-
-        hidden_fields = hidden(data)
-
-        all_fields -- hidden_fields
-      end
-
-      @spec attributes(map(), conn :: nil | Conn.t()) :: map()
+      @impl View
       def attributes(data, conn) do
-        visible_fields = visible_fields(data, conn)
+        visible_fields = View.visible_fields(__MODULE__, data, conn)
 
         Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
           value =
@@ -197,94 +177,202 @@ defmodule JSONAPI.View do
         end)
       end
 
-      def links(_data, _conn), do: %{}
-
-      def meta(_data, _conn), do: nil
-
-      def relationships, do: []
-
+      @impl View
       def fields, do: raise("Need to implement fields/0")
 
-      def hidden(data), do: []
+      @impl View
+      def hidden(_data), do: []
 
-      def show(model, conn, _params, meta \\ nil, options \\ []),
-        do: serialize(__MODULE__, model, conn, meta, options)
+      @impl View
+      def links(_data, _conn), do: %{}
+
+      @impl View
+      def meta(_data, _conn), do: nil
+
+      @impl View
+      if @namespace do
+        def namespace, do: @namespace
+      else
+        def namespace, do: Application.get_env(:jsonapi, :namespace, "")
+      end
+
+      @impl View
+      def pagination_links(data, conn, page, options) do
+        paginator = Application.get_env(:jsonapi, :paginator, @paginator)
+
+        if Code.ensure_loaded?(paginator) && function_exported?(paginator, :paginate, 5) do
+          paginator.paginate(data, __MODULE__, conn, page, options)
+        else
+          %{}
+        end
+      end
+
+      @impl View
+      def path, do: @path
+
+      @impl View
+      def relationships, do: []
+
+      @impl View
+      if @resource_type do
+        def type, do: @resource_type
+      else
+        def type, do: raise("Need to implement type/0")
+      end
+
+      @impl View
+      def url_for(data, conn),
+        do: View.url_for(__MODULE__, data, conn)
+
+      @impl View
+      def url_for_pagination(data, conn, pagination_params),
+        do: View.url_for_pagination(__MODULE__, data, conn, pagination_params)
+
+      @impl View
+      def url_for_rel(data, rel_type, conn),
+        do: View.url_for_rel(__MODULE__, data, rel_type, conn)
+
+      @impl View
+      def visible_fields(data, conn),
+        do: View.visible_fields(__MODULE__, data, conn)
+
+      defoverridable View
 
       def index(models, conn, _params, meta \\ nil, options \\ []),
-        do: serialize(__MODULE__, models, conn, meta, options)
+        do: Serializer.serialize(__MODULE__, models, conn, meta, options)
 
-      def url_for(nil, nil), do: "#{namespace()}/#{type()}"
-
-      def url_for(data, nil) when is_list(data), do: "#{namespace()}/#{type()}"
-
-      def url_for(data, nil), do: "#{namespace()}/#{type()}/#{id(data)}"
-
-      def url_for(data, %Plug.Conn{} = conn) when is_list(data) or is_nil(data) do
-        "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}"
-      end
-
-      def url_for(data, %Plug.Conn{} = conn) do
-        "#{scheme(conn)}://#{host(conn)}#{namespace()}/#{type()}/#{id(data)}"
-      end
-
-      def url_for_rel(data, rel_type, conn) do
-        "#{url_for(data, conn)}/relationships/#{rel_type}"
-      end
-
-      def url_for_pagination(data, %{query_params: query_params} = conn, nil = _pagination_attrs) do
-        query_params
-        |> to_list_of_query_string_components()
-        |> URI.encode_query()
-        |> prepare_url(data, conn)
-      end
-
-      def url_for_pagination(data, %{query_params: query_params} = conn, pagination_attrs) do
-        query_params = Map.put(query_params, "page", pagination_attrs)
-
-        url_for_pagination(data, %{conn | query_params: query_params}, nil)
-      end
-
-      defp prepare_url("", data, conn), do: url_for(data, conn)
-
-      defp prepare_url(query, data, conn), do: "#{url_for(data, conn)}?#{query}"
+      def show(model, conn, _params, meta \\ nil, options \\ []),
+        do: Serializer.serialize(__MODULE__, model, conn, meta, options)
 
       if Code.ensure_loaded?(Phoenix) do
-        def render("show.json", %{data: data, conn: conn, params: params, meta: meta}),
-          do: show(data, conn, params, meta)
+        def render("show.json", %{data: data, conn: conn, meta: meta, options: options}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta, options)
 
         def render("show.json", %{data: data, conn: conn, meta: meta}),
-          do: show(data, conn, conn.params, meta)
+          do: Serializer.serialize(__MODULE__, data, conn, meta)
 
-        def render("show.json", %{data: data, conn: conn}), do: show(data, conn, conn.params)
+        def render("show.json", %{data: data, conn: conn}),
+          do: Serializer.serialize(__MODULE__, data, conn)
 
-        def render("index.json", %{data: data, conn: conn, params: params, meta: meta}),
-          do: index(data, conn, params, meta)
+        def render("index.json", %{data: data, conn: conn, meta: meta, options: options}),
+          do: Serializer.serialize(__MODULE__, data, conn, meta, options)
 
         def render("index.json", %{data: data, conn: conn, meta: meta}),
-          do: index(data, conn, conn.params, meta)
+          do: Serializer.serialize(__MODULE__, data, conn, meta)
 
-        def render("index.json", %{data: data, conn: conn}), do: index(data, conn, conn.params)
+        def render("index.json", %{data: data, conn: conn}),
+          do: Serializer.serialize(__MODULE__, data, conn)
       else
         raise ArgumentError,
               "Attempted to call function that depends on Phoenix. " <>
                 "Make sure Phoenix is part of your dependencies"
       end
-
-      defp host(conn), do: Application.get_env(:jsonapi, :host, conn.host)
-
-      defp scheme(conn), do: Application.get_env(:jsonapi, :scheme, to_string(conn.scheme))
-
-      defoverridable attributes: 2,
-                     links: 2,
-                     pagination_links: 4,
-                     fields: 0,
-                     hidden: 1,
-                     id: 1,
-                     meta: 2,
-                     relationships: 0,
-                     type: 0,
-                     url_for: 2,
-                     url_for_rel: 3
     end
   end
+
+  @spec url_for(t(), term(), Conn.t() | nil) :: String.t()
+  def url_for(view, data, nil = _conn) when is_nil(data) or is_list(data),
+    do: URI.to_string(%URI{path: Enum.join([view.namespace(), path_for(view)], "/")})
+
+  def url_for(view, data, nil = _conn) do
+    URI.to_string(%URI{
+      path: Enum.join([view.namespace(), path_for(view), view.id(data)], "/")
+    })
+  end
+
+  def url_for(view, data, %Plug.Conn{} = conn) when is_nil(data) or is_list(data) do
+    URI.to_string(%URI{
+      scheme: scheme(conn),
+      host: host(conn),
+      port: port(conn),
+      path: Enum.join([view.namespace(), path_for(view)], "/")
+    })
+  end
+
+  def url_for(view, data, %Plug.Conn{} = conn) do
+    URI.to_string(%URI{
+      scheme: scheme(conn),
+      host: host(conn),
+      port: port(conn),
+      path: Enum.join([view.namespace(), path_for(view), view.id(data)], "/")
+    })
+  end
+
+  @spec url_for_rel(t(), data(), resource_type(), Conn.t() | nil) :: String.t()
+  def url_for_rel(view, data, rel_type, conn) do
+    "#{url_for(view, data, conn)}/relationships/#{rel_type}"
+  end
+
+  @spec url_for_rel(t(), data(), Conn.query_params(), Paginator.params()) :: String.t()
+  def url_for_pagination(
+        view,
+        data,
+        %{query_params: query_params} = conn,
+        nil = _pagination_params
+      ) do
+    query =
+      query_params
+      |> Utils.List.to_list_of_query_string_components()
+      |> URI.encode_query()
+
+    prepare_url(view, query, data, conn)
+  end
+
+  def url_for_pagination(view, data, %{query_params: query_params} = conn, pagination_params) do
+    query_params = Map.put(query_params, "page", pagination_params)
+
+    url_for_pagination(view, data, %{conn | query_params: query_params}, nil)
+  end
+
+  @spec visible_fields(t(), data(), Conn.t() | nil) :: list(atom)
+  def visible_fields(view, data, conn) do
+    all_fields =
+      view
+      |> requested_fields_for_type(conn)
+      |> net_fields_for_type(view.fields())
+
+    hidden_fields = view.hidden(data)
+
+    all_fields -- hidden_fields
+  end
+
+  defp net_fields_for_type(requested_fields, fields) when requested_fields in [nil, %{}],
+    do: fields
+
+  defp net_fields_for_type(requested_fields, fields) do
+    fields
+    |> MapSet.new()
+    |> MapSet.intersection(MapSet.new(requested_fields))
+    |> MapSet.to_list()
+  end
+
+  defp prepare_url(view, "", data, conn), do: url_for(view, data, conn)
+
+  defp prepare_url(view, query, data, conn) do
+    view
+    |> url_for(data, conn)
+    |> URI.parse()
+    |> struct(query: query)
+    |> URI.to_string()
+  end
+
+  defp requested_fields_for_type(view, %Conn{assigns: %{jsonapi_query: %{fields: fields}}}) do
+    fields[view.type()]
+  end
+
+  defp requested_fields_for_type(_view, _conn), do: nil
+
+  defp host(%Conn{host: host}),
+    do: Application.get_env(:jsonapi, :host, host)
+
+  defp port(%Conn{port: 0} = conn),
+    do: port(%{conn | port: URI.default_port(scheme(conn))})
+
+  defp port(%Conn{port: port}),
+    do: Application.get_env(:jsonapi, :port, port)
+
+  defp scheme(%Conn{scheme: scheme}),
+    do: Application.get_env(:jsonapi, :scheme, to_string(scheme))
+
+  defp path_for(view), do: view.path() || view.type()
 end
