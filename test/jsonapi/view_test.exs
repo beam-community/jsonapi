@@ -50,7 +50,7 @@ defmodule JSONAPI.ViewTest do
 
     def fields, do: [:static_fun, :static_field, :dynamic_1, :dynamic_2]
 
-    def static_fun, do: "static_fun!"
+    def static_fun(_data, _conn), do: "static_fun/2"
 
     def get_field(field, _data, _conn), do: "#{field}!"
   end
@@ -304,14 +304,14 @@ defmodule JSONAPI.ViewTest do
   end
 
   test "attributes/2 can return dynamic fields" do
-    data = %{static_field: "static_field!"}
+    data = %{static_field: "static_field from the map"}
     conn = %Plug.Conn{assigns: %{jsonapi_query: %JSONAPI.Config{}}}
 
     assert %{
              dynamic_1: "dynamic_1!",
              dynamic_2: "dynamic_2!",
              static_field: "static_field!",
-             static_fun: "static_fun!"
+             static_fun: "static_fun/2"
            } == DynamicView.attributes(data, conn)
   end
 end
