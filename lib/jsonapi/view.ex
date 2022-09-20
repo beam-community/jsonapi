@@ -73,6 +73,21 @@ defmodule JSONAPI.View do
   In order to use [sparse fieldsets](https://jsonapi.org/format/#fetching-sparse-fieldsets)
   you must include the `JSONAPI.QueryParser` plug.
 
+  If you want to fetch fields from the given data *dynamically*, you can use the
+  `c:get_field/3` callback.
+
+      defmodule UserView do
+        use JSONAPI.View
+
+        def fields, do: [:id, :username, :email]
+
+        def type, do: "user"
+
+        def get_field(field, data, _conn) do
+          Map.fetch!(data, field)
+        end
+      end
+
   ## Relationships
 
   Currently the relationships callback expects that a map is returned
