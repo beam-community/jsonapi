@@ -43,6 +43,18 @@ defmodule JSONAPI.ViewTest do
     use JSONAPI.View, type: "cars", namespace: ""
   end
 
+  defmodule DynamicView do
+    use JSONAPI.View
+
+    def type, do: "dyns"
+
+    def fields, do: [:static_fun, :static_field, :dynamic_1, :dynamic_2]
+
+    def static_fun, do: "static_fun!"
+
+    def get_field(field, _data, _conn), do: "#{field}!"
+  end
+
   setup do
     Application.put_env(:jsonapi, :field_transformation, :underscore)
     Application.put_env(:jsonapi, :namespace, "/other-api")
@@ -289,5 +301,17 @@ defmodule JSONAPI.ViewTest do
     conn = %Plug.Conn{assigns: %{jsonapi_query: config}}
 
     assert %{body: "Chunky"} == PostView.attributes(data, conn)
+  end
+
+  test "attributes/2 can return dynamic fields" do
+    data = %{static_field: "static_field!"}
+    conn = %Plug.Conn{assigns: %{jsonapi_query: %JSONAPI.Config{}}}
+
+    assert %{
+             dynamic_1: "dynamic_1!",
+             dynamic_2: "dynamic_2!",
+             static_field: "static_field!",
+             static_fun: "static_fun!"
+           } == DynamicView.attributes(data, conn)
   end
 end

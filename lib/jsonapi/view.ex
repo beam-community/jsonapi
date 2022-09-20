@@ -127,6 +127,7 @@ defmodule JSONAPI.View do
   @callback attributes(data(), Conn.t() | nil) :: map()
   @callback id(data()) :: resource_id() | nil
   @callback fields() :: [field()]
+  @callback get_field(field(), data(), Conn.t()) :: any()
   @callback hidden(data()) :: [field()]
   @callback links(data(), Conn.t()) :: links()
   @callback meta(data(), Conn.t()) :: meta() | nil
@@ -140,6 +141,8 @@ defmodule JSONAPI.View do
   @callback url_for_pagination(data(), Conn.t(), Paginator.params()) :: String.t()
   @callback url_for_rel(term(), String.t(), Conn.t() | nil) :: String.t()
   @callback visible_fields(data(), Conn.t() | nil) :: list(atom)
+
+  @optional_callbacks [get_field: 3]
 
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)
@@ -168,9 +171,15 @@ defmodule JSONAPI.View do
 
         Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
           value =
-            case function_exported?(__MODULE__, field, 2) do
-              true -> apply(__MODULE__, field, [data, conn])
-              false -> Map.get(data, field)
+            cond do
+              function_exported?(__MODULE__, field, 2) ->
+                apply(__MODULE__, field, [data, conn])
+
+              function_exported?(__MODULE__, :get_field, 3) ->
+                apply(__MODULE__, :get_field, [field, data, conn])
+
+              true ->
+                Map.get(data, field)
             end
 
           Map.put(intermediate_map, field, value)
