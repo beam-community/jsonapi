@@ -99,7 +99,7 @@ defmodule JSONAPI.View do
   the serializer to *always* include if its loaded.
 
   ## Options
-    * `:host` (binary) - Allows the `host` to be overrided for generated URLs. Defaults to `host` of the supplied `conn`.
+    * `:host` (binary) - Allows the `host` to be overridden for generated URLs. Defaults to `host` of the supplied `conn`.
 
     * `:scheme` (atom) - Enables configuration of the HTTP scheme for generated URLS.  Defaults to `scheme` from the provided `conn`.
 
