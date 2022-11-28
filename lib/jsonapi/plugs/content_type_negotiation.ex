@@ -52,7 +52,7 @@ defmodule JSONAPI.ContentTypeNegotiation do
         add_header_to_resp(conn)
 
       validate_header(content_type) == false ->
-        send_error(conn, 415)
+        send_error(conn, incorrect_content_type())
 
       validate_header(accepts) == false ->
         send_error(conn, 406)
