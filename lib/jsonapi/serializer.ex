@@ -153,11 +153,16 @@ defmodule JSONAPI.Serializer do
 
   @spec encode_relation(tuple()) :: map()
   def encode_relation({rel_view, rel_data, _rel_url, _conn} = info) do
+    encoded_data = encode_rel_data(rel_view, rel_data)
+
     data = %{
-      data: encode_rel_data(rel_view, rel_data)
+      data: encoded_data
     }
 
-    merge_related_links(data, info, remove_links?())
+    case encoded_data do
+    nil -> data
+    _ -> merge_related_links(data, info, remove_links?())
+    end
   end
 
   defp merge_base_links(%{links: links} = doc, data, view, conn) do
@@ -202,10 +207,17 @@ defmodule JSONAPI.Serializer do
   end
 
   def encode_rel_data(view, data) do
-    %{
-      type: view.type(),
-      id: view.id(data)
-    }
+    transformed_data = view.relationship_data(data)
+
+    case transformed_data do
+    nil ->
+      nil
+    _ ->
+      %{
+        type: view.type(),
+        id: view.id(transformed_data)
+      }
+    end
   end
 
   # Flatten and unique all the included objects

@@ -117,6 +117,7 @@ defmodule JSONAPI.View do
 
   @type t :: module()
   @type data :: any()
+  @type transformed_data :: any()
   @type field :: atom()
   @type links :: %{atom() => String.t()}
   @type meta :: %{atom() => String.t()}
@@ -130,6 +131,7 @@ defmodule JSONAPI.View do
   @callback hidden(data()) :: [field()]
   @callback links(data(), Conn.t()) :: links()
   @callback meta(data(), Conn.t()) :: meta() | nil
+  @callback relationship_data(data()) :: transformed_data() | nil
   @callback namespace() :: String.t()
   @callback pagination_links(data(), Conn.t(), Paginator.page(), Paginator.options()) ::
               Paginator.links()
@@ -188,6 +190,9 @@ defmodule JSONAPI.View do
 
       @impl View
       def meta(_data, _conn), do: nil
+
+      @impl View
+      def relationship_data(data), do: data
 
       @impl View
       if @namespace do
