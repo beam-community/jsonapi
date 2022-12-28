@@ -94,6 +94,9 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
 
     assert conn.halted
     assert 415 == conn.status
+
+    assert conn.resp_body =~
+             ~s|The content-type header must use the media type 'application/vnd.api+json'|
   end
 
   test "halts and returns an error if content-type header contains other media type params" do

@@ -83,6 +83,16 @@ defmodule JSONAPI.ErrorView do
     |> serialize_error
   end
 
+  @spec incorrect_content_type :: map()
+  def incorrect_content_type do
+    detail =
+      "The content-type header must use the media type '#{JSONAPI.mime_type()}'.  #{@crud_message}"
+
+    "Incorrect content-type"
+    |> build_error(415, detail)
+    |> serialize_error
+  end
+
   @spec send_error(Plug.Conn.t(), term()) :: term()
   def send_error(conn, %{errors: [%{status: status}]} = error),
     do: send_error(conn, status, error)
