@@ -64,10 +64,14 @@ defmodule JSONAPI.Mixfile do
         "Mitchell Henke",
         "Jake Robers",
         "Sean Callan",
-        "James Herdman"
+        "James Herdman",
+        "Mathew Polzin"
       ],
       licenses: ["MIT"],
-      links: %{github: "https://github.com/jeregrine/jsonapi", docs: "http://hexdocs.pm/jsonapi/"}
+      links: %{
+        github: "https://github.com/beam-community/jsonapi",
+        docs: "http://hexdocs.pm/jsonapi/"
+      }
     ]
   end
 
