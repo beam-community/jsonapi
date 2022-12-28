@@ -11,7 +11,7 @@ jobs:
   test:
     env:
       MIX_ENV: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Test (OTP ${{ matrix.otp }} / Elixir ${{ matrix.elixir }})
     strategy:
       matrix:
@@ -33,7 +33,7 @@ jobs:
       - run: mix test
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Linting
     strategy:
       matrix:
