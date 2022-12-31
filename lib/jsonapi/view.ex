@@ -73,6 +73,21 @@ defmodule JSONAPI.View do
   In order to use [sparse fieldsets](https://jsonapi.org/format/#fetching-sparse-fieldsets)
   you must include the `JSONAPI.QueryParser` plug.
 
+  If you want to fetch fields from the given data *dynamically*, you can use the
+  `c:get_field/3` callback.
+
+      defmodule UserView do
+        use JSONAPI.View
+
+        def fields, do: [:id, :username, :email]
+
+        def type, do: "user"
+
+        def get_field(field, data, _conn) do
+          Map.fetch!(data, field)
+        end
+      end
+
   ## Relationships
 
   Currently the relationships callback expects that a map is returned
@@ -99,7 +114,7 @@ defmodule JSONAPI.View do
   the serializer to *always* include if its loaded.
 
   ## Options
-    * `:host` (binary) - Allows the `host` to be overrided for generated URLs. Defaults to `host` of the supplied `conn`.
+    * `:host` (binary) - Allows the `host` to be overridden for generated URLs. Defaults to `host` of the supplied `conn`.
 
     * `:scheme` (atom) - Enables configuration of the HTTP scheme for generated URLS.  Defaults to `scheme` from the provided `conn`.
 
@@ -127,6 +142,7 @@ defmodule JSONAPI.View do
   @callback attributes(data(), Conn.t() | nil) :: map()
   @callback id(data()) :: resource_id() | nil
   @callback fields() :: [field()]
+  @callback get_field(field(), data(), Conn.t()) :: any()
   @callback hidden(data()) :: [field()]
   @callback links(data(), Conn.t()) :: links()
   @callback meta(data(), Conn.t()) :: meta() | nil
@@ -140,6 +156,8 @@ defmodule JSONAPI.View do
   @callback url_for_pagination(data(), Conn.t(), Paginator.params()) :: String.t()
   @callback url_for_rel(term(), String.t(), Conn.t() | nil) :: String.t()
   @callback visible_fields(data(), Conn.t() | nil) :: list(atom)
+
+  @optional_callbacks [get_field: 3]
 
   defmacro __using__(opts \\ []) do
     {type, opts} = Keyword.pop(opts, :type)
@@ -168,9 +186,15 @@ defmodule JSONAPI.View do
 
         Enum.reduce(visible_fields, %{}, fn field, intermediate_map ->
           value =
-            case function_exported?(__MODULE__, field, 2) do
-              true -> apply(__MODULE__, field, [data, conn])
-              false -> Map.get(data, field)
+            cond do
+              function_exported?(__MODULE__, field, 2) ->
+                apply(__MODULE__, field, [data, conn])
+
+              function_exported?(__MODULE__, :get_field, 3) ->
+                apply(__MODULE__, :get_field, [field, data, conn])
+
+              true ->
+                Map.get(data, field)
             end
 
           Map.put(intermediate_map, field, value)
