@@ -4,10 +4,10 @@ defmodule JSONAPI.UnderscoreParameters do
   this to your API's pipeline to aid in dealing with incoming parameters such as query
   params or data.
 
-  By default the newly underscored params will replace the existing `params` field of the
-  `Plug.Conn` struct, but leave the `query_params` and `body_params` untouched.  If you
-  are using the `JSONAPI.QueryParser` and need to have the `query_params` on the
-  `Plug.Conn` updated, set the `replace_query_params` option to `true`.
+  By default the newly underscored params will only replace the existing `params` field
+  of the `Plug.Conn` struct, but leave the `query_params` and `body_params` untouched.
+  If you are using the `JSONAPI.QueryParser` and need to also have the `query_params` on
+  the `Plug.Conn` updated, set the `replace_query_params` option to `true`.
 
   Note that this Plug will only underscore parameters when the request's content
   type is for a JSON:API request (i.e. "application/vnd.api+json"). All other
