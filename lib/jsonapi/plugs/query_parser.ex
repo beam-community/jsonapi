@@ -7,9 +7,9 @@ defmodule JSONAPI.QueryParser do
   import JSONAPI.Utils.String, only: [underscore: 1]
 
   @moduledoc """
-  Implements a fully JSONAPI V1 spec for parsing a complex query string and
-  returning Elixir datastructures. The purpose is to validate and encode incoming
-  queries and fail quickly.
+  Implements a fully JSONAPI V1 spec for parsing a complex query string via the
+  `query_params` field from a `Plug.Conn` struct and returning Elixir datastructures.
+  The purpose is to validate and encode incoming queries and fail quickly.
 
   Primarialy this handles:
     * [sorts](http://jsonapi.org/format/#fetching-sorting)
@@ -72,7 +72,8 @@ defmodule JSONAPI.QueryParser do
 
   Note that if your API is returning dasherized fields (e.g. `"dog-breed": "Corgi"`)
   we recommend that you include the `JSONAPI.UnderscoreParameters` Plug in your
-  API's pipeline. This will underscore fields for easier operations in your code.
+  API's pipeline with the `replace_query_params` option set to `true`. This will
+  underscore fields for easier operations in your code.
 
   For more details please see `JSONAPI.UnderscoreParameters`.
   """
