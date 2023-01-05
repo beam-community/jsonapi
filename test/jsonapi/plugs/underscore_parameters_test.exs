@@ -117,9 +117,13 @@ defmodule JSONAPI.UnderscoreParametersTest do
       assert UnderscoreParameters.init(replace_query_params: true)
       assert UnderscoreParameters.init(replace_query_params: false)
 
-      # This is not allowed
+      # These are not allowed
       assert_raise ArgumentError, fn ->
         UnderscoreParameters.init(replace_query_params: 1)
+      end
+
+      assert_raise ArgumentError, fn ->
+        UnderscoreParameters.init(foo: "bar", replace_query_params: 1)
       end
     end
   end
