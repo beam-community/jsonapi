@@ -156,10 +156,7 @@ defmodule JSONAPI.QueryParserTest do
 
   test "integrates with UnderscoreParameters to filter dasherized fields" do
     # The incoming request has a dasherized filter name
-    conn =
-      :get
-      |> conn("?filter[favorite-food]=pizza")
-      |> put_req_header("content-type", JSONAPI.mime_type())
+    conn = conn(:get, "?filter[favorite-food]=pizza")
 
     # The filter in the controller is expecting an underscored filter name
     config = struct(Config, view: MyView, opts: [filter: ["favorite_food"]])

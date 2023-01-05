@@ -70,10 +70,7 @@ defmodule JSONAPI.UnderscoreParametersTest do
     end
 
     test ":replace_query_params option replaces in the Conn's query_params" do
-      conn =
-        :get
-        |> conn("?filter[favorite-food]=pizza")
-        |> put_req_header("content-type", JSONAPI.mime_type())
+      conn = conn(:get, "?filter[favorite-food]=pizza")
 
       # Before: filter name is dasherized
       assert %{"favorite-food" => _} = fetch_query_params(conn).query_params["filter"]
