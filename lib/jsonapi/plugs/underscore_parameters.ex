@@ -88,16 +88,16 @@ defmodule JSONAPI.UnderscoreParameters do
   def call(%Plug.Conn{params: params} = conn, opts) do
     content_type = get_req_header(conn, "content-type")
 
-    conn =
-      if opts[:replace_query_params] == true do
-        query_params = fetch_query_params(conn).query_params
-        new_query_params = JString.expand_fields(query_params, &JString.underscore/1)
-        Map.put(conn, :query_params, new_query_params)
-      else
-        conn
-      end
-
     if JSONAPI.mime_type() in content_type do
+      conn =
+        if opts[:replace_query_params] do
+          query_params = fetch_query_params(conn).query_params
+          new_query_params = JString.expand_fields(query_params, &JString.underscore/1)
+          Map.put(conn, :query_params, new_query_params)
+        else
+          conn
+        end
+
       new_params = JString.expand_fields(params, &JString.underscore/1)
       Map.put(conn, :params, new_params)
     else
