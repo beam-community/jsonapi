@@ -1,5 +1,7 @@
 defmodule JSONAPI.QueryParserTest do
   use ExUnit.Case
+  use Plug.Test
+
   import JSONAPI.QueryParser
   alias JSONAPI.Exceptions.InvalidQuery
   alias JSONAPI.Config
@@ -150,5 +152,24 @@ defmodule JSONAPI.QueryParserTest do
     assert_raise InvalidQuery, "invalid fields, cupcake for type mytype", fn ->
       get_view_for_type(MyView, "cupcake")
     end
+  end
+
+  test "integrates with UnderscoreParameters to filter dasherized fields" do
+    # The incoming request has a dasherized filter name
+    conn =
+      :get
+      |> conn("?filter[favorite-food]=pizza")
+      |> put_req_header("content-type", JSONAPI.mime_type())
+
+    # The filter in the controller is expecting an underscored filter name
+    config = struct(Config, view: MyView, opts: [filter: ["favorite_food"]])
+
+    conn =
+      conn
+      |> JSONAPI.UnderscoreParameters.call(replace_query_params: true)
+      |> JSONAPI.QueryParser.call(config)
+
+    # Ensure the underscored file name is present in the parsed filters
+    assert [favorite_food: _] = conn.assigns.jsonapi_query.filter
   end
 end
