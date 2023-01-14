@@ -124,6 +124,23 @@ defmodule JSONAPI.SerializerTest do
     end
   end
 
+  defmodule CommentaryView do
+    use JSONAPI.View, type: "comment"
+
+    def fields, do: [:text]
+
+    def relationships do
+      # renames "user1" data property to "commenter" JSON:API relationship (and specifies default inclusion)
+      # renames "user2" to "witness"
+      # leaves "user3" name alone
+      [
+        commenter: {:user1, JSONAPI.SerializerTest.UserView, :include},
+        witness: {:user2, JSONAPI.SerializerTest.UserView},
+        user3: JSONAPI.SerializerTest.UserView
+      ]
+    end
+  end
+
   defmodule NotIncludedView do
     use JSONAPI.View
 
@@ -323,6 +340,49 @@ defmodule JSONAPI.SerializerTest do
     encoded = Serializer.serialize(PostView, [], Plug.Conn.fetch_query_params(%Plug.Conn{}))
 
     assert encoded[:links][:self] == "http://www.example.com/mytype"
+  end
+
+  test "serialize will rename relationships" do
+    data = %{
+      id: 1,
+      text: "hello world",
+      user1: %{
+        id: 2,
+        username: "hi",
+        first_name: "hello",
+        last_name: "world"
+      },
+      user2: %{
+        id: 3,
+        username: "hi",
+        first_name: "hello",
+        last_name: "world"
+      },
+      user3: %{
+        id: 4,
+        username: "hi",
+        first_name: "hello",
+        last_name: "world"
+      }
+    }
+
+    conn =
+      %Plug.Conn{
+        assigns: %{
+          jsonapi_query: %Config{}
+        }
+      }
+      |> Plug.Conn.fetch_query_params()
+
+    encoded = Serializer.serialize(CommentaryView, data, conn)
+
+    assert encoded.data.relationships.commenter != nil
+    assert encoded.data.relationships.witness != nil
+    assert encoded.data.relationships.user3 != nil
+    refute Map.has_key?(encoded.data.relationships, :user1)
+    refute Map.has_key?(encoded.data.relationships, :user2)
+
+    assert Enum.count(encoded.included) == 1
   end
 
   test "serialize handles including from the query" do
@@ -678,5 +738,37 @@ defmodule JSONAPI.SerializerTest do
 
     assert List.first(encoded[:data])[:links][:self] ==
              "http://www.example.com/mytype/1"
+  end
+
+  test "extrapolates relationship config simplest case" do
+    config =
+      IndustryView.relationships()
+      |> List.first()
+      |> Serializer.extrapolate_relationship_config()
+
+    assert config == {:tags, :tags, JSONAPI.SerializerTest.TagView, false}
+  end
+
+  test "extrapolates relationship config with default include" do
+    configs =
+      PostView.relationships()
+      |> Enum.map(&Serializer.extrapolate_relationship_config/1)
+
+    assert configs == [
+             {:author, :author, JSONAPI.SerializerTest.UserView, true},
+             {:best_comments, :best_comments, JSONAPI.SerializerTest.CommentView, true}
+           ]
+  end
+
+  test "extrapolates relationship config with rewritten name" do
+    configs =
+      CommentaryView.relationships()
+      |> Enum.map(&Serializer.extrapolate_relationship_config/1)
+
+    assert configs == [
+             {:commenter, :user1, JSONAPI.SerializerTest.UserView, true},
+             {:witness, :user2, JSONAPI.SerializerTest.UserView, false},
+             {:user3, :user3, JSONAPI.SerializerTest.UserView, false}
+           ]
   end
 end

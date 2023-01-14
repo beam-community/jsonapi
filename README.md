@@ -84,6 +84,25 @@ or `"index.json"` normally.
 If you'd like to use this without Phoenix simply use the `JSONAPI.View` and call
 `JSONAPI.Serializer.serialize(MyApp.PostView, data, conn, meta)`.
 
+## Renaming relationships
+If a relationship has a different name in the backend than you would like it to in your API,
+you can rewrite its name in the `JSONAPI.View`. You pair the view with the name of the relationship
+used in the data (e.g. Ecto schema) to achieve this. Note that you can use a triple instead 
+of a pair to add the instruction to always include the relation if desired.
+
+```elixir
+defmodule MyApp.PostView do
+  use JSONAPI.View, type: "posts"
+
+  def relationships do
+    # The `author` will be exposed as `creator` and the `comments` will be 
+    # exposed as `critiques` (for some reason).
+    [creator: {:author, MyApp.UserView, :include},
+     critiques: {:comments, MyApp.CommentView}]
+  end
+end
+```
+
 ## Parsing and validating a JSONAPI Request
 
 In your controller you may add
