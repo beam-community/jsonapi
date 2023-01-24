@@ -92,7 +92,7 @@ defmodule JSONAPI.UnderscoreParameters do
       conn =
         if opts[:replace_query_params] do
           query_params = fetch_query_params(conn).query_params
-          new_query_params = JString.expand_fields(query_params, &JString.underscore/1)
+          new_query_params = replace_query_params(query_params)
           Map.put(conn, :query_params, new_query_params)
         else
           conn
@@ -102,6 +102,21 @@ defmodule JSONAPI.UnderscoreParameters do
       Map.put(conn, :params, new_params)
     else
       conn
+    end
+  end
+
+  defp replace_query_params(query_params) do
+    # Underscore the keys of all of the query parameters
+    underscored_query_params = JString.expand_fields(query_params, &JString.underscore/1)
+
+    # If the fields[...] query parameter is present, only underscore its values, but not its keys
+    case Map.fetch(query_params, "fields") do
+      {:ok, fields} when is_map(fields) ->
+        fields = Map.new(fields, fn {k, v} -> {k, JString.underscore(v)} end)
+        Map.put(underscored_query_params, "fields", fields)
+
+      _else ->
+        underscored_query_params
     end
   end
 end

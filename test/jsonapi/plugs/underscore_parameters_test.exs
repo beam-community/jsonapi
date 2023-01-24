@@ -69,7 +69,7 @@ defmodule JSONAPI.UnderscoreParametersTest do
              } = UnderscoreParameters.call(conn, [])
     end
 
-    test ":replace_query_params option replaces in the Conn's query_params" do
+    test ":replace_query_params option replaces filter[...] keys in the Conn's query_params" do
       conn =
         :get
         |> conn("?filter[favorite-food]=pizza")
@@ -85,6 +85,28 @@ defmodule JSONAPI.UnderscoreParametersTest do
       # After (without option): filter name remains dasherized
       updated_conn = UnderscoreParameters.call(conn, [])
       assert %{"favorite-food" => _} = fetch_query_params(updated_conn).query_params["filter"]
+    end
+
+    test ":replace_query_params option replaces fields[...] values in the Conn's query_params" do
+      conn =
+        :get
+        |> conn("?fields[favorite-food]=is-fried")
+        |> put_req_header("content-type", JSONAPI.mime_type())
+
+      # Before: key and value are dasherized
+      assert %{"favorite-food" => "is-fried"} = fetch_query_params(conn).query_params["fields"]
+
+      # After: key is unchanged and value is underscored
+      updated_conn = UnderscoreParameters.call(conn, replace_query_params: true)
+
+      assert %{"favorite-food" => "is_fried"} =
+               fetch_query_params(updated_conn).query_params["fields"]
+
+      # After (without option): key and value remain dasherized
+      updated_conn = UnderscoreParameters.call(conn, [])
+
+      assert %{"favorite-food" => "is-fried"} =
+               fetch_query_params(updated_conn).query_params["fields"]
     end
 
     test "does not transform when the content type is not for json:api" do
