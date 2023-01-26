@@ -89,6 +89,8 @@ defmodule JSONAPI.UnderscoreParameters do
     content_type = get_req_header(conn, "content-type")
 
     if JSONAPI.mime_type() in content_type do
+      # In version 2.0, when this block is no longer conditional and applies every time, ensure
+      # that we apply the same treatment to the query_params and "regular" params.
       conn =
         if opts[:replace_query_params] do
           query_params = fetch_query_params(conn).query_params
