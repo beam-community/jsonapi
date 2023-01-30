@@ -294,6 +294,46 @@ defmodule JSONAPI.SerializerTest do
     assert Enum.count(encoded[:included]) == 1
   end
 
+  test "serialize handles NotLoaded relationships" do
+    data = %{
+      id: 1,
+      text: "Hello",
+      body: "Hello world",
+      author_id: 2,
+      author: %{
+        __struct__: Ecto.Association.NotLoaded,
+        __field__: :author,
+        __cardinality__: :one
+      },
+      best_comments: %{
+        __struct__: Ecto.Association.NotLoaded,
+        __field__: :best_comments,
+        __cardinality__: :many
+      }
+    }
+
+    relationships = Serializer.serialize(PostView, data, nil)[:data][:relationships]
+
+    assert relationships == %{
+             author: %{
+               data: %{
+                 id: 2,
+                 type: "user"
+               },
+               links: %{
+                 related: "/user/2",
+                 self: "/mytype/1/relationships/author"
+               }
+             },
+             best_comments: %{
+               links: %{
+                 related: "/comment/",
+                 self: "/mytype/1/relationships/best_comments"
+               }
+             }
+           }
+  end
+
   test "serialize handles a nil relationship" do
     data = %{
       id: 1,
