@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.5.0 (2023-01-25)
+
+### What's Changed
+
+#### Improvements
+
+* Integration between UnderscoreParameters and QueryParser by @TylerPachal in https://github.com/beam-community/jsonapi/pull/282
+* Response body for content type error by @TylerPachal in https://github.com/beam-community/jsonapi/pull/276
+* Fix typos by @kianmeng in https://github.com/beam-community/jsonapi/pull/275
+* Add c:JSONAPI.View.get_field/3 by @whatyouhide in https://github.com/beam-community/jsonapi/pull/273
+* Support renaming of relationships by @mattpolzin in https://github.com/beam-community/jsonapi/pull/270
+
+### New Contributors
+
+* @kianmeng made their first contribution in https://github.com/beam-community/jsonapi/pull/275
+* @whatyouhide made their first contribution in https://github.com/beam-community/jsonapi/pull/273
+* @TylerPachal made their first contribution in https://github.com/beam-community/jsonapi/pull/276
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.4.0...v1.5.0
+
+## 1.4.0 (2022-11-05)
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.3.0...v1.4.0
+
 ## 1.3.0 (2020-03-21)
 
 ### Added
