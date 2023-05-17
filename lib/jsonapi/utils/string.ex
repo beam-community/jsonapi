@@ -112,16 +112,15 @@ defmodule JSONAPI.Utils.String do
     with words <-
            Regex.split(
              ~r{(?<=[a-zA-Z0-9])[-_](?=[a-zA-Z0-9])},
-             to_string(value)
+             to_string(value),
+             trim: true
            ) do
-      tokens = Enum.filter(words, &(&1 != ""))
+      case words do
+        # If there is only one word, leave it as-is
+        [word] ->
+          word
 
-      case tokens do
-        # If there is only one token, leave it as-is
-        [token] ->
-          token
-
-        # If there are multiple tokens, perform the camelizing
+        # If there are multiple words, perform the camelizing
         [h | t] ->
           [String.downcase(h) | camelize_list(t)]
           |> Enum.join()
