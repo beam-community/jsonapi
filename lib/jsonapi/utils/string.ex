@@ -94,6 +94,9 @@ defmodule JSONAPI.Utils.String do
       iex> camelize("")
       ""
 
+      iex> camelize("alreadyCamelized")
+      "alreadyCamelized"
+
   """
   @spec camelize(atom) :: String.t()
   def camelize(value) when is_atom(value) do
@@ -109,12 +112,19 @@ defmodule JSONAPI.Utils.String do
     with words <-
            Regex.split(
              ~r{(?<=[a-zA-Z0-9])[-_](?=[a-zA-Z0-9])},
-             to_string(value)
+             to_string(value),
+             trim: true
            ) do
-      [h | t] = words |> Enum.filter(&(&1 != ""))
+      case words do
+        # If there is only one word, leave it as-is
+        [word] ->
+          word
 
-      [String.downcase(h) | camelize_list(t)]
-      |> Enum.join()
+        # If there are multiple words, perform the camelizing
+        [h | t] ->
+          [String.downcase(h) | camelize_list(t)]
+          |> Enum.join()
+      end
     end
   end
 
