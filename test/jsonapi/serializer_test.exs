@@ -83,6 +83,14 @@ defmodule JSONAPI.SerializerTest do
     end
   end
 
+  defmodule ExternalUserView do
+    use JSONAPI.View, type: "euser"
+
+    def id(attribute), do: attribute
+
+    def fields, do: []
+  end
+
   defmodule CompanyView do
     use JSONAPI.View
 
@@ -133,10 +141,12 @@ defmodule JSONAPI.SerializerTest do
       # renames "user1" data property to "commenter" JSON:API relationship (and specifies default inclusion)
       # renames "user2" to "witness"
       # leaves "user3" name alone
+      # handles "user4" by looking at the "external_user" property (some other service's user)
       [
         commenter: {:user1, JSONAPI.SerializerTest.UserView, :include},
         witness: {:user2, JSONAPI.SerializerTest.UserView},
-        user3: JSONAPI.SerializerTest.UserView
+        user3: JSONAPI.SerializerTest.UserView,
+        user4: {:external_user, JSONAPI.SerializerTest.ExternalUserView}
       ]
     end
   end
@@ -346,6 +356,7 @@ defmodule JSONAPI.SerializerTest do
     data = %{
       id: 1,
       text: "hello world",
+      external_user: "b29b5bb0-38d6-206a-29dd-a1db3452156b",
       user1: %{
         id: 2,
         username: "hi",
@@ -379,6 +390,8 @@ defmodule JSONAPI.SerializerTest do
     assert encoded.data.relationships.commenter != nil
     assert encoded.data.relationships.witness != nil
     assert encoded.data.relationships.user3 != nil
+    assert encoded.data.relationships.user4 != nil
+    assert encoded.data.relationships.user4.data.id == "b29b5bb0-38d6-206a-29dd-a1db3452156b"
     refute Map.has_key?(encoded.data.relationships, :user1)
     refute Map.has_key?(encoded.data.relationships, :user2)
 
@@ -768,7 +781,8 @@ defmodule JSONAPI.SerializerTest do
     assert configs == [
              {:commenter, :user1, JSONAPI.SerializerTest.UserView, true},
              {:witness, :user2, JSONAPI.SerializerTest.UserView, false},
-             {:user3, :user3, JSONAPI.SerializerTest.UserView, false}
+             {:user3, :user3, JSONAPI.SerializerTest.UserView, false},
+             {:user4, :external_user, JSONAPI.SerializerTest.ExternalUserView, false}
            ]
   end
 end
