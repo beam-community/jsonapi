@@ -136,6 +136,157 @@ defmodule JSONAPI.FormatRequiredTest do
     refute conn.halted
   end
 
+  test "halts and returns an error for a specified relationships param missing an object value" do
+    conn =
+      :post
+      |> conn(
+        "/example",
+        Jason.encode!(%{data: %{type: "example", attributes: %{}, relationships: nil}})
+      )
+      |> call_plug
+
+    assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
+
+    assert %{
+             "source" => %{"pointer" => "/data/relationships"},
+             "title" => "Relationships parameter is not an object",
+             "detail" =>
+               "Check out https://jsonapi.org/format/#document-resource-object-relationships for more info."
+           } = error
+  end
+
+  test "halts and returns an error for relationship objects missing a data member" do
+    conn =
+      :post
+      |> conn(
+        "/example",
+        Jason.encode!(%{
+          data: %{
+            type: "example",
+            attributes: %{},
+            relationships: %{comment: %{id: "some-identifier"}}
+          }
+        })
+      )
+      |> call_plug
+
+    assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
+
+    assert %{
+             "source" => %{"pointer" => "/data/relationships/comment/data"},
+             "title" => "Missing data parameter in relationship"
+           } = error
+  end
+
+  test "halts and returns an error for relationship objects with a resource linkage missing a type member" do
+    conn =
+      :post
+      |> conn(
+        "/example",
+        Jason.encode!(%{
+          data: %{
+            type: "example",
+            attributes: %{},
+            relationships: %{comment: %{data: %{id: "some-identifier"}}}
+          }
+        })
+      )
+      |> call_plug
+
+    assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
+
+    assert %{
+             "source" => %{"pointer" => "/data/relationships/comment/data/type"},
+             "title" => "Missing type in relationship data parameter"
+           } = error
+  end
+
+  test "halts and returns an error for relationship objects with a resource linkage missing an id member" do
+    conn =
+      :post
+      |> conn(
+        "/example",
+        Jason.encode!(%{
+          data: %{
+            type: "example",
+            attributes: %{},
+            relationships: %{comment: %{data: %{type: "comment"}}}
+          }
+        })
+      )
+      |> call_plug
+
+    assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
+
+    assert %{
+             "source" => %{"pointer" => "/data/relationships/comment/data/id"},
+             "title" => "Missing id in relationship data parameter"
+           } = error
+  end
+
+  test "halts and returns an error for relationship objects with a resource linkage missing both type and id members" do
+    conn =
+      :post
+      |> conn(
+        "/example",
+        Jason.encode!(%{
+          data: %{
+            type: "example",
+            attributes: %{},
+            relationships: %{comment: %{data: %{}}}
+          }
+        })
+      )
+      |> call_plug
+
+    assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => errors} = Jason.decode!(conn.resp_body)
+
+    error_titles = Enum.map(errors, fn error -> Map.fetch!(error, "title") end)
+    assert "Missing id in relationship data parameter" in error_titles
+    assert "Missing type in relationship data parameter" in error_titles
+
+    error_pointers = Enum.map(errors, fn error -> get_in(error, ["source", "pointer"]) end)
+    assert "/data/relationships/comment/data/id" in error_pointers
+    assert "/data/relationships/comment/data/type" in error_pointers
+  end
+
+  test "accepts a relationships object with well-formed resource linkages" do
+    conn =
+      :post
+      |> conn(
+        "/example",
+        Jason.encode!(%{
+          data: %{
+            type: "example",
+            attributes: %{},
+            relationships: %{
+              comment: %{data: %{type: "comment", id: "some-identifier"}},
+              post: %{data: nil},
+              reviews: %{data: []}
+            }
+          }
+        })
+      )
+      |> call_plug
+
+    refute conn.halted
+  end
+
   test "passes request through" do
     conn =
       :post
