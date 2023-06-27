@@ -5,6 +5,7 @@ defmodule JSONAPI.ErrorView do
   import Plug.Conn, only: [send_resp: 3, halt: 1, put_resp_content_type: 2]
 
   @crud_message "Check out http://jsonapi.org/format/#crud for more info."
+  @relationship_resource_linkage_message "Check out https://jsonapi.org/format/#document-resource-object-linkage for more info."
 
   @spec build_error(binary(), pos_integer(), binary() | nil, binary() | nil) :: map()
   def build_error(title, status, detail, pointer \\ nil, meta \\ nil) do
@@ -93,12 +94,57 @@ defmodule JSONAPI.ErrorView do
     |> serialize_error
   end
 
+  @spec relationships_create_missing_object :: map()
+  def relationships_create_missing_object do
+    "Relationships parameter is not an object"
+    |> build_error(
+      400,
+      "Check out https://jsonapi.org/format/#document-resource-object-relationships for more info.",
+      "/data/relationships"
+    )
+    |> serialize_error
+  end
+
+  @spec missing_relationship_data_param_error(binary()) :: map()
+  def missing_relationship_data_param_error(relationship_name) do
+    "Missing data parameter in relationship"
+    |> build_error(
+      400,
+      "Check out https://jsonapi.org/format/#crud-creating for more info.",
+      "/data/relationships/#{relationship_name}/data"
+    )
+  end
+
+  @spec missing_relationship_data_id_param_error(binary()) :: map()
+  def missing_relationship_data_id_param_error(relationship_name) do
+    "Missing id in relationship data parameter"
+    |> build_error(
+      400,
+      @relationship_resource_linkage_message,
+      "/data/relationships/#{relationship_name}/data/id"
+    )
+  end
+
+  @spec missing_relationship_data_type_param_error(binary()) :: map()
+  def missing_relationship_data_type_param_error(relationship_name) do
+    "Missing type in relationship data parameter"
+    |> build_error(
+      400,
+      @relationship_resource_linkage_message,
+      "/data/relationships/#{relationship_name}/data/type"
+    )
+  end
+
   @spec send_error(Plug.Conn.t(), term()) :: term()
   def send_error(conn, %{errors: [%{status: status}]} = error),
     do: send_error(conn, status, error)
 
   def send_error(conn, %{errors: errors} = error) when is_list(errors) do
-    status = Enum.max_by(errors, &Map.get(&1, :status))
+    status =
+      errors
+      |> Enum.max_by(&Map.get(&1, :status))
+      |> Map.get(:status)
+
     send_error(conn, status, error)
   end
 
@@ -122,8 +168,18 @@ defmodule JSONAPI.ErrorView do
 
   @spec serialize_error(map()) :: map()
   def serialize_error(error) do
-    error = Map.take(error, [:detail, :id, :links, :meta, :source, :status, :title])
+    error = extract_error(error)
     %{errors: [error]}
+  end
+
+  @spec serialize_errors(list()) :: map()
+  def serialize_errors(errors) do
+    extracted = Enum.map(errors, &extract_error/1)
+    %{errors: extracted}
+  end
+
+  defp extract_error(error) do
+    Map.take(error, [:detail, :id, :links, :meta, :source, :status, :title])
   end
 
   defp append_field(error, _field, nil), do: error
