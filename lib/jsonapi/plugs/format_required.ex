@@ -49,6 +49,9 @@ defmodule JSONAPI.FormatRequired do
 
         {_relationship_name, %{"data" => _}}, acc ->
           # Allow things other than resource identifier objects per https://jsonapi.org/format/#document-resource-object-linkage
+          # - null for empty to-one relationships.
+          # - an empty array ([]) for empty to-many relationships.
+          # - an array of resource identifier objects for non-empty to-many relationships.
           acc
 
         {relationship_name, _}, acc ->
