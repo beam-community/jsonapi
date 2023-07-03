@@ -136,12 +136,36 @@ defmodule JSONAPI.FormatRequiredTest do
     refute conn.halted
   end
 
-  test "halts and returns an error for a specified relationships param missing an object value" do
+  test "halts and returns an error for a specified relationships param missing an object value ON POST" do
     conn =
       :post
       |> conn(
         "/example",
         Jason.encode!(%{data: %{type: "example", attributes: %{}, relationships: nil}})
+      )
+      |> call_plug
+
+    assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
+
+    assert %{
+             "source" => %{"pointer" => "/data/relationships"},
+             "title" => "Relationships parameter is not an object",
+             "detail" =>
+               "Check out https://jsonapi.org/format/#document-resource-object-relationships for more info."
+           } = error
+  end
+
+  test "halts and returns an error for a specified relationships param missing an object value ON PATCH" do
+    conn =
+      :patch
+      |> conn(
+        "/example/some-id",
+        Jason.encode!(%{
+          data: %{id: "some-id", type: "example", attributes: %{}, relationships: nil}
+        })
       )
       |> call_plug
 
