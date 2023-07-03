@@ -25,8 +25,9 @@ jobs:
           - { otp: "25", elixir: "1.12" }
           - { otp: "22", elixir: "1.14" }
     steps:
-      - uses: actions/checkout@v2
-      - uses: erlef/setup-beam@v1
+      - uses: actions/checkout@v3
+      - id: beam
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
@@ -34,20 +35,21 @@ jobs:
       - run: mix test
 
   lint:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Linting
     strategy:
       matrix:
         elixir: ["1.13"]
         otp: [25]
     steps:
-      - uses: actions/checkout@v2
-      - uses: erlef/setup-beam@v1
+      - uses: actions/checkout@v3
+      - id: beam
+        uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
       - name: PLT cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: |
             ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
@@ -59,4 +61,4 @@ jobs:
       - run: mix compile --warnings-as-errors
       - run: mix format --check-formatted
       - run: mix credo --strict
-      - run: mix dialyzer --halt-exit-status
+      - run: mix dialyzer
