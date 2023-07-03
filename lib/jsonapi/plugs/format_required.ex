@@ -35,16 +35,16 @@ defmodule JSONAPI.FormatRequired do
           acc
 
         {relationship_name, %{"data" => %{"type" => _type}}}, acc ->
-          error = missing_relationship_data_id_param_error(relationship_name)
+          error = missing_relationship_data_id_param_error_attrs(relationship_name)
           [error | acc]
 
         {relationship_name, %{"data" => %{"id" => _type}}}, acc ->
-          error = missing_relationship_data_type_param_error(relationship_name)
+          error = missing_relationship_data_type_param_error_attrs(relationship_name)
           [error | acc]
 
         {relationship_name, %{"data" => %{}}}, acc ->
-          id_error = missing_relationship_data_id_param_error(relationship_name)
-          type_error = missing_relationship_data_type_param_error(relationship_name)
+          id_error = missing_relationship_data_id_param_error_attrs(relationship_name)
+          type_error = missing_relationship_data_type_param_error_attrs(relationship_name)
           [id_error | [type_error | acc]]
 
         {_relationship_name, %{"data" => _}}, acc ->
@@ -52,7 +52,7 @@ defmodule JSONAPI.FormatRequired do
           acc
 
         {relationship_name, _}, acc ->
-          error = missing_relationship_data_param_error(relationship_name)
+          error = missing_relationship_data_param_error_attrs(relationship_name)
           [error | acc]
       end)
 

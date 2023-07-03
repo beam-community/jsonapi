@@ -7,7 +7,9 @@ defmodule JSONAPI.ErrorView do
   @crud_message "Check out http://jsonapi.org/format/#crud for more info."
   @relationship_resource_linkage_message "Check out https://jsonapi.org/format/#document-resource-object-linkage for more info."
 
-  @spec build_error(binary(), pos_integer(), binary() | nil, binary() | nil) :: map()
+  @type error_attrs :: map()
+
+  @spec build_error(binary(), pos_integer(), binary() | nil, binary() | nil) :: error_attrs()
   def build_error(title, status, detail, pointer \\ nil, meta \\ nil) do
     error = %{
       detail: detail,
@@ -105,8 +107,8 @@ defmodule JSONAPI.ErrorView do
     |> serialize_error
   end
 
-  @spec missing_relationship_data_param_error(binary()) :: map()
-  def missing_relationship_data_param_error(relationship_name) do
+  @spec missing_relationship_data_param_error_attrs(binary()) :: error_attrs()
+  def missing_relationship_data_param_error_attrs(relationship_name) do
     "Missing data member in relationship"
     |> build_error(
       400,
@@ -115,8 +117,8 @@ defmodule JSONAPI.ErrorView do
     )
   end
 
-  @spec missing_relationship_data_id_param_error(binary()) :: map()
-  def missing_relationship_data_id_param_error(relationship_name) do
+  @spec missing_relationship_data_id_param_error_attrs(binary()) :: error_attrs()
+  def missing_relationship_data_id_param_error_attrs(relationship_name) do
     "Missing id in relationship data parameter"
     |> build_error(
       400,
@@ -125,8 +127,8 @@ defmodule JSONAPI.ErrorView do
     )
   end
 
-  @spec missing_relationship_data_type_param_error(binary()) :: map()
-  def missing_relationship_data_type_param_error(relationship_name) do
+  @spec missing_relationship_data_type_param_error_attrs(binary()) :: error_attrs()
+  def missing_relationship_data_type_param_error_attrs(relationship_name) do
     "Missing type in relationship data parameter"
     |> build_error(
       400,
@@ -166,7 +168,7 @@ defmodule JSONAPI.ErrorView do
     |> halt
   end
 
-  @spec serialize_error(map()) :: map()
+  @spec serialize_error(error_attrs()) :: map()
   def serialize_error(error) do
     error = extract_error(error)
     %{errors: [error]}
