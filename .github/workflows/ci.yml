@@ -11,7 +11,7 @@ jobs:
   test:
     env:
       MIX_ENV: test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Test (OTP ${{ matrix.otp }} / Elixir ${{ matrix.elixir }})
     strategy:
       matrix:
@@ -24,7 +24,7 @@ jobs:
           - { otp: "25", elixir: "1.11" }
           - { otp: "25", elixir: "1.12" }
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp }}
@@ -33,20 +33,20 @@ jobs:
       - run: mix test
 
   lint:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Linting
     strategy:
       matrix:
         elixir: ["1.13"]
         otp: [25]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
       - name: PLT cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: |
             ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
@@ -58,4 +58,4 @@ jobs:
       - run: mix compile --warnings-as-errors
       - run: mix format --check-formatted
       - run: mix credo --strict
-      - run: mix dialyzer --halt-exit-status
+      - run: mix dialyzer
