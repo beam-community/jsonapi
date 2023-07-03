@@ -1,5 +1,15 @@
 # Changelog
 
+## NEXT
+...
+
+## 1.6.2 (2023-07-03)
+
+### What's Changed
+* Error handling fixed per https://github.com/beam-community/jsonapi/issues/294.
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.6.1...1.6.2
+
 ## 1.6.1 (2023-06-26)
 
 ### What's Changed
