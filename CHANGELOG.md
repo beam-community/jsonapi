@@ -1,5 +1,41 @@
 # Changelog
 
+## NEXT
+...
+
+## 1.6.2 (2023-07-03)
+
+### What's Changed
+* Error handling fixed per https://github.com/beam-community/jsonapi/issues/294.
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.6.1...1.6.2
+
+## 1.6.1 (2023-06-26)
+
+### What's Changed
+The features of #270 were broken in two ways that this release fixes.
+
+1. The `@spec` for the `relationships` `callback` for `JSONAPI.View` actually did not allow for the various new structures a `relationships` `callback` is allowed to return under the above PR.
+2. The PR was intended to support (among other more general purposes) remapping of an `attribute` field to a `relationship` -- this is niche, but sometimes quite useful. The above PR and its tests failed to fully realize that goal by missing one small detail (lost in a merge conflict resolution, as it turns out).
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.6.0...1.6.1
+
+## 1.6.0 (2023-06-12)
+
+### What's Changed
+* Add support for a JSON:API includes allowlist. by @mattpolzin in https://github.com/beam-community/jsonapi/pull/292
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.5.1...1.6.0
+
+## 1.5.1 (2023-05-19)
+
+### What's Changed
+* Change camelize behavior by @TylerPachal in https://github.com/beam-community/jsonapi/pull/293
+
+Specifically, already-camilized strings will no longer be turned to all-lowercase by the `:camelize` transformation; they will be left alone.
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.5.0...1.5.1
+
 ## 1.5.0 (2023-01-25)
 
 ### What's Changed
