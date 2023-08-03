@@ -18,6 +18,8 @@ defmodule JSONAPI.Utils.List do
       iex> to_list_of_query_string_components(%{"filters" => %{"age" => 18, "name" => "John"}})
       [{"filters[age]", 18}, {"filters[name]", "John"}]
 
+      iex> to_list_of_query_string_components(%{"filter" => %{"age" => 18, "car" => %{"make" => "honda", "model" => "civic"}}})
+      [{"filter[age]", 18}, {"filter[car][make]", "honda"}, {"filter[car][model]", "civic"}]
   """
   @spec to_list_of_query_string_components(map()) :: list(tuple())
   def to_list_of_query_string_components(map) when is_map(map) do
@@ -29,7 +31,9 @@ defmodule JSONAPI.Utils.List do
   end
 
   defp do_to_list_of_query_string_components({key, value}) when is_map(value) do
-    Enum.flat_map(value, fn {k, v} -> to_list_of_two_elem_tuple("#{key}[#{k}]", v) end)
+    Enum.flat_map(value, fn {k, v} ->
+      do_to_list_of_query_string_components({"#{key}[#{k}]", v})
+    end)
   end
 
   defp do_to_list_of_query_string_components({key, value}),
