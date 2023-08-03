@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## 1.6.3 (2023-08-03)
+
+### What's Changed
+* Nested query filter fixes by @TylerPachal in https://github.com/beam-community/jsonapi/pull/302
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.6.2...1.6.3
+
 ## 1.6.2 (2023-07-03)
 
 ### What's Changed
