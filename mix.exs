@@ -4,7 +4,7 @@ defmodule JSONAPI.Mixfile do
   def project do
     [
       app: :jsonapi,
-      version: "1.6.2",
+      version: "1.6.3",
       package: package(),
       compilers: compilers(Mix.env()),
       description: description(),
@@ -12,7 +12,7 @@ defmodule JSONAPI.Mixfile do
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
-      source_url: "https://github.com/jeregrine/jsonapi",
+      source_url: "https://github.com/beam-community/jsonapi",
       deps: deps(),
       dialyzer: dialyzer(),
       docs: [
