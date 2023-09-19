@@ -19,6 +19,27 @@ defmodule JSONAPI.SerializerTest do
     end
   end
 
+  defmodule PostViewWithLinks do
+    use JSONAPI.View
+
+    def fields, do: [:text, :body, :full_description, :inserted_at]
+    def meta(data, _conn), do: %{meta_text: "meta_#{data[:text]}"}
+    def type, do: "mytype"
+
+    def relationships do
+      [
+        author: {JSONAPI.SerializerTest.UserView, :include},
+        best_comments: {JSONAPI.SerializerTest.CommentView, :include}
+      ]
+    end
+
+    def links(_data, _conn) do
+      %{
+        self: "https://website.com/api/posts/1"
+      }
+    end
+  end
+
   defmodule PageBasedPaginator do
     @moduledoc """
     Page based pagination strategy
@@ -838,33 +859,66 @@ defmodule JSONAPI.SerializerTest do
     assert included == []
   end
 
-  test "serialize does not include links if remove_links is configured" do
-    data = %{
-      id: 1,
-      text: "Hello",
-      body: "Hello world",
-      full_description: "This_is_my_description",
-      author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
-      best_comments: [
-        %{
-          id: 5,
-          text: "greatest comment ever",
-          user: %{id: 4, username: "jack", last_name: "bronds"}
-        }
-      ]
-    }
+  describe "when configured to not add auto links" do
+    setup do
+      Application.put_env(:jsonapi, :add_auto_links, false)
 
-    Application.put_env(:jsonapi, :remove_links, true)
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :add_auto_links)
+      end)
 
-    encoded = Serializer.serialize(PostView, data, nil)
+      {:ok, []}
+    end
 
-    relationships = encoded[:data][:relationships]
+    test "serialize does not include auto links" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        body: "Hello world",
+        full_description: "This_is_my_description",
+        author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+        best_comments: [
+          %{
+            id: 5,
+            text: "greatest comment ever",
+            user: %{id: 4, username: "jack", last_name: "bronds"}
+          }
+        ]
+      }
 
-    refute relationships[:links]
-    refute encoded[:data][:links]
-    refute encoded[:links]
+      encoded = Serializer.serialize(PostView, data, nil)
 
-    Application.delete_env(:jsonapi, :remove_links)
+      relationships = encoded[:data][:relationships]
+
+      refute relationships[:links]
+      refute encoded[:data][:links]
+      refute encoded[:links]
+    end
+
+    test "serialize still adds custom links" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        body: "Hello world",
+        full_description: "This_is_my_description",
+        author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+        best_comments: [
+          %{
+            id: 5,
+            text: "greatest comment ever",
+            user: %{id: 4, username: "jack", last_name: "bronds"}
+          }
+        ]
+      }
+
+      encoded = Serializer.serialize(PostViewWithLinks, data, nil)
+
+      relationships = encoded[:data][:relationships]
+
+      refute relationships[:links]
+      assert encoded[:data][:links][:self] == "https://website.com/api/posts/1"
+      refute encoded[:links]
+    end
   end
 
   test "serialize includes pagination links if page-based pagination is requested" do
@@ -905,9 +959,13 @@ defmodule JSONAPI.SerializerTest do
   test "serialize can include arbitrary, user-defined, links" do
     data = %{id: 1}
 
-    assert %{
-             links: links
-           } = Serializer.serialize(ExpensiveResourceView, data, nil)
+    assert %{data: resp, links: links} = Serializer.serialize(ExpensiveResourceView, data, nil)
+
+    assert %{links: resource_links} = resp
+
+    assert links == %{
+             self: "/expensive-resource/#{data.id}"
+           }
 
     expected_links = %{
       self: "/expensive-resource/#{data.id}",
@@ -920,7 +978,7 @@ defmodule JSONAPI.SerializerTest do
       }
     }
 
-    assert expected_links == links
+    assert expected_links == resource_links
   end
 
   test "serialize returns a null data if it receives a null data" do

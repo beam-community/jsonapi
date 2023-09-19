@@ -200,6 +200,7 @@ config :jsonapi,
   field_transformation: :underscore,
   remove_links: false,
   serialize_nil_relationships: false,
+  add_auto_links: false,
   json_library: Jason,
   paginator: nil
 ```
@@ -224,6 +225,8 @@ config :jsonapi,
   are `nil` will be omitted during serialization. Setting this to `true` will
   serialize these relationships, provided they are loaded on the resource.
   Defaults to `false`.
+- **add_auto_links**. `links` data can optionally be auto-added by
+  setting the configuration above to `true`. Defaults to `true`.
 - **json_library**. Defaults to [Jason](https://hex.pm/packages/jason).
 - **paginator**. Module implementing pagination links generation. Defaults to `nil`.
 
