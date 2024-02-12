@@ -588,9 +588,14 @@ defmodule JSONAPI.SerializerTest do
         id: 1,
         text: "Hello",
         inserted_at: NaiveDateTime.utc_now(),
-        body: "Hello world",
+        body: %{data: "Hello world", data_attr: "foo"},
         full_description: "This_is_my_description",
-        author: %{id: 2, username: "jbonds", first_name: "jerry", last_name: "bonds"},
+        author: %{
+          id: 2,
+          username: "jbonds",
+          first_name: %{data: "jerry", data_attr: "foo"},
+          last_name: "bonds"
+        },
         best_comments: [
           %{
             id: 5,
@@ -607,20 +612,72 @@ defmodule JSONAPI.SerializerTest do
       included = encoded[:included]
 
       assert attributes["full-description"] == data[:full_description]
+      assert attributes["body"]["data-attr"] == "foo"
       assert attributes["inserted-at"] == data[:inserted_at]
 
-      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "2" end)[:attributes][
-               "last-name"
-             ] == "bonds"
+      author2 = Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "2" end)
+      assert author2 != nil
+      assert author2[:attributes]["first-name"]["data-attr"] == "foo"
+      assert author2[:attributes]["last-name"] == "bonds"
 
-      assert Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "4" end)[:attributes][
-               "last-name"
-             ] == "bronds"
+      author4 = Enum.find(included, fn i -> i[:type] == "user" && i[:id] == "4" end)
+      assert author4 != nil
+      assert author4[:attributes]["last-name"] == "bronds"
 
       assert List.first(relationships["best-comments"][:data])[:id] == "5"
 
       assert relationships["best-comments"][:links][:self] ==
                "/mytype/1/relationships/best-comments"
+    end
+  end
+
+  describe "when configured to dasherize fields non-recursively" do
+    setup do
+      Application.put_env(:jsonapi, :field_transformation, :dasherize_shallow)
+
+      on_exit(fn ->
+        Application.delete_env(:jsonapi, :field_transformation)
+      end)
+
+      {:ok, []}
+    end
+
+    test "serialize properly dasherizes attribute and relationship keys only" do
+      data = %{
+        id: 1,
+        text: "Hello",
+        inserted_at: NaiveDateTime.utc_now(),
+        body: %{data: "Some data", data_attr: "foo"},
+        full_description: "This_is_my_description",
+        author: %{
+          id: 2,
+          username: "jbonds",
+          first_name: %{data: "jerry", data_attr: "foo"},
+          last_name: "bonds"
+        },
+        best_comments: [
+          %{
+            id: 5,
+            text: %{data: "greatest comment ever", data_attr: "foo"},
+            user: %{id: 4, username: "jack", last_name: "bronds"}
+          }
+        ]
+      }
+
+      encoded = Serializer.serialize(PostView, data, nil)
+
+      attributes = encoded[:data][:attributes]
+      included = encoded[:included]
+
+      assert attributes["full-description"] == data[:full_description]
+      assert attributes["body"]["data_attr"] == "foo"
+      assert attributes["inserted-at"] == data[:inserted_at]
+
+      author = Enum.find(included, &(&1[:type] == "user" && &1[:id] == "2"))
+      assert author != nil
+      assert author[:attributes]["last-name"] == "bonds"
+      assert author[:attributes]["first-name"]["data"] == "jerry"
+      assert author[:attributes]["first-name"]["data_attr"] == "foo"
     end
   end
 

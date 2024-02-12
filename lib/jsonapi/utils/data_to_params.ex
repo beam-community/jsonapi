@@ -110,7 +110,9 @@ defmodule JSONAPI.Utils.DataToParams do
   defp transform_fields(fields) do
     case JString.field_transformation() do
       :camelize -> JString.expand_fields(fields, &JString.camelize/1)
+      :camelize_shallow -> JString.expand_fields(fields, &JString.camelize/1)
       :dasherize -> JString.expand_fields(fields, &JString.dasherize/1)
+      :dasherize_shallow -> JString.expand_fields(fields, &JString.dasherize/1)
       _ -> fields
     end
   end

@@ -25,7 +25,6 @@ defmodule JSONAPI.Mixfile do
   end
 
   # Use Phoenix compiler depending on environment.
-  defp compilers(:test), do: [:phoenix] ++ Mix.compilers()
   defp compilers(_), do: Mix.compilers()
 
   # Specifies which paths to compile per environment.

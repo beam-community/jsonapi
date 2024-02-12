@@ -302,6 +302,8 @@ defmodule JSONAPI.Serializer do
     case Utils.String.field_transformation() do
       :camelize -> Utils.String.expand_fields(fields, &Utils.String.camelize/1)
       :dasherize -> Utils.String.expand_fields(fields, &Utils.String.dasherize/1)
+      :camelize_shallow -> Utils.String.expand_root_keys(fields, &Utils.String.camelize/1)
+      :dasherize_shallow -> Utils.String.expand_root_keys(fields, &Utils.String.dasherize/1)
       _ -> fields
     end
   end
