@@ -3,7 +3,13 @@ defmodule JSONAPI.Utils.String do
   String manipulation helpers.
   """
 
-  @allowed_transformations [:camelize, :dasherize, :underscore]
+  @allowed_transformations [
+    :camelize,
+    :dasherize,
+    :underscore,
+    :camelize_shallow,
+    :dasherize_shallow
+  ]
 
   @doc """
   Replace dashes between words in `value` with underscores
@@ -236,6 +242,27 @@ defmodule JSONAPI.Utils.String do
     value
   end
 
+  @doc """
+  Like `JSONAPI.Utils.String.expand_fields/2`, but only uses the given function to transform the
+  keys of a top-level map. Other values are transformed with `to_string/1`.
+
+  ## Examples
+
+      iex> expand_root_keys(%{"foo-bar" => %{"bar-baz" => "x"}}, &underscore/1)
+      %{"foo_bar" => %{"bar-baz" => "x"}}
+
+      iex> expand_root_keys(%{"foo-bar" => [:x, %{"bar-baz" => "y"}]}, &underscore/1)
+      %{"foo_bar" => ["x", %{"bar-baz" => "y"}]}
+
+  """
+  def expand_root_keys(map, fun) when is_map(map) do
+    Enum.into(map, %{}, fn {key, value} ->
+      {fun.(key), expand_fields(value, &to_string/1)}
+    end)
+  end
+
+  def expand_root_keys(value, _fun), do: expand_fields(value, &to_string/1)
+
   defp maybe_expand_fields(values, fun) when is_list(values) do
     Enum.map(values, fn
       string when is_binary(string) -> string
@@ -248,7 +275,8 @@ defmodule JSONAPI.Utils.String do
   using camlized fields (e.g. "goodDog", versus "good_dog").  However, we don't hold a strong
   opinion, so feel free to customize it how you would like (e.g. "good-dog", versus "good_dog").
 
-  This library currently supports camelized, dashed and underscored fields.
+  This library currently supports camelized, dashed and underscored fields. Shallow variants
+  exist that only transform top-level field keys.
 
   ## Configuration examples
 
@@ -258,10 +286,18 @@ defmodule JSONAPI.Utils.String do
   config :jsonapi, field_transformation: :camelize
   ```
 
+  ```
+  config :jsonapi, field_transformation: :camelize_shallow
+  ```
+
   Dashed fields:
 
   ```
   config :jsonapi, field_transformation: :dasherize
+  ```
+
+  ```
+  config :jsonapi, field_transformation: :dasherize_shallow
   ```
 
   Underscored fields:
