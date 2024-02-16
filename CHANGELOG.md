@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## 1.7.0 (2024-02-15)
+
+## What's Changed
+* Add options to transform field keys non-recursively (#132) by @protestContest in https://github.com/beam-community/jsonapi/pull/310
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.6.3...1.7.0
+
 ## 1.6.3 (2023-08-03)
 
 ### What's Changed
