@@ -267,6 +267,10 @@ defmodule JSONAPI.Utils.String do
     end)
   end
 
+  def expand_root_keys(key, fun) when is_binary(key) or is_atom(key) do
+    fun.(key)
+  end
+
   def expand_root_keys(value, _fun), do: expand_fields(value, &to_string/1)
 
   defp maybe_expand_fields(values, fun) when is_list(values) do

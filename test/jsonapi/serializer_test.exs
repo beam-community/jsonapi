@@ -667,11 +667,14 @@ defmodule JSONAPI.SerializerTest do
       encoded = Serializer.serialize(PostView, data, nil)
 
       attributes = encoded[:data][:attributes]
+      relationships = encoded[:data][:relationships]
       included = encoded[:included]
 
       assert attributes["full-description"] == data[:full_description]
       assert attributes["body"]["data_attr"] == "foo"
       assert attributes["inserted-at"] == data[:inserted_at]
+
+      assert Map.has_key?(relationships, "best-comments")
 
       author = Enum.find(included, &(&1[:type] == "user" && &1[:id] == "2"))
       assert author != nil
