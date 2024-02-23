@@ -3,6 +3,11 @@
 ## NEXT
 ...
 
+## 1.7.1 (2024-02-23)
+* Transform relationship keys with shallow field transformation options (#314) by @protestContest in https://github.com/beam-community/jsonapi/pull/315
+
+**Full Changelog**: https://github.com/beam-community/jsonapi/compare/1.7.0...1.7.1
+
 ## 1.7.0 (2024-02-15)
 
 ## What's Changed
