@@ -33,11 +33,14 @@ defmodule JSONAPI.Utils.String do
       iex> underscore("corgiAge")
       "corgi_age"
 
+      iex> underscore("ages-0-17")
+      "ages_0_17"
+
   """
   @spec underscore(String.t()) :: String.t()
   def underscore(value) when is_binary(value) do
     value
-    |> String.replace(~r/([a-zA-Z\d])-([a-zA-Z\d])/, "\\1_\\2")
+    |> String.replace(~r/(?<=[a-zA-Z\d])-(?=[a-zA-Z\d])/, "_")
     |> String.replace(~r/([a-z\d])([A-Z])/, "\\1_\\2")
     |> String.downcase()
   end
@@ -65,6 +68,9 @@ defmodule JSONAPI.Utils.String do
       iex> dasherize("_top__posts_")
       "_top__posts_"
 
+      iex> dasherize("ages_0_17")
+      "ages-0-17"
+
   """
   @spec dasherize(atom) :: String.t()
   def dasherize(value) when is_atom(value) do
@@ -75,7 +81,7 @@ defmodule JSONAPI.Utils.String do
 
   @spec dasherize(String.t()) :: String.t()
   def dasherize(value) when is_binary(value) do
-    String.replace(value, ~r/([a-zA-Z0-9])_([a-zA-Z0-9])/, "\\1-\\2")
+    String.replace(value, ~r/(?<=[a-zA-Z0-9])_(?=[a-zA-Z0-9])/, "-")
   end
 
   @doc """
