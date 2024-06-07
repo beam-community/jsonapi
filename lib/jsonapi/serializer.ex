@@ -66,13 +66,12 @@ defmodule JSONAPI.Serializer do
       relationships: %{}
     }
 
-    doc = custom_merge_links(encoded_data, view.links(data, conn))
     # doc = merge_links(encoded_data, data, view, conn, nil, remove_links?(), options)
 
     doc =
       case view.meta(data, conn) do
-        nil -> doc
-        meta -> Map.put(doc, :meta, meta)
+        nil -> encoded_data
+        meta -> Map.put(encoded_data, :meta, meta)
       end
 
     encode_relationships(conn, doc, {view, data, query_includes, valid_includes}, options)
