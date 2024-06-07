@@ -9,8 +9,7 @@ defmodule JSONAPI.Config do
             include: [],
             opts: nil,
             sort: nil,
-            view: nil,
-            page: %{}
+            view: nil
 
   @type t :: %__MODULE__{
           data: nil | map,
@@ -19,7 +18,6 @@ defmodule JSONAPI.Config do
           include: [atom | {atom, any}],
           opts: nil | keyword,
           sort: nil | keyword,
-          view: any,
-          page: nil | map
+          view: any
         }
 end
