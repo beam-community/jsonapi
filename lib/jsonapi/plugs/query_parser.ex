@@ -102,15 +102,14 @@ defmodule JSONAPI.QueryParser do
       |> parse_include(query_params_config_struct.include)
       |> parse_filter(query_params_config_struct.filter)
       |> parse_sort(query_params_config_struct.sort)
-
-    # |> parse_pagination(query_params_config_struct.page)
+      |> parse_pagination(query_params_config_struct.page)
 
     Conn.assign(conn, :jsonapi_query, config)
   end
 
   def parse_pagination(config, map) when map_size(map) == 0, do: config
 
-  # def parse_pagination(%Config{} = config, page), do: Map.put(config, :page, page)
+  def parse_pagination(%Config{} = config, page), do: Map.put(config, :page, page)
 
   @spec parse_filter(Config.t(), keyword()) :: Config.t()
   def parse_filter(config, map) when map_size(map) == 0, do: config
