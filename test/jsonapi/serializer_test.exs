@@ -1,7 +1,7 @@
 defmodule JSONAPI.SerializerTest do
   use ExUnit.Case, async: false
 
-  alias JSONAPI.{Config, QueryParser, Serializer}
+  alias JSONAPI.{Config, Serializer}
 
   defmodule PostView do
     use JSONAPI.View
@@ -16,60 +16,6 @@ defmodule JSONAPI.SerializerTest do
         best_comments: {JSONAPI.SerializerTest.CommentView, :include}
       ]
     end
-  end
-
-  defmodule PageBasedPaginator do
-    @moduledoc """
-    Page based pagination strategy
-    """
-
-    @behaviour JSONAPI.Paginator
-
-    @impl true
-    def paginate(data, view, conn, page, options) do
-      number =
-        page
-        |> Map.get("page", "0")
-        |> String.to_integer()
-
-      size =
-        page
-        |> Map.get("size", "0")
-        |> String.to_integer()
-
-      total_pages =
-        options
-        |> Keyword.get(:total_pages, 0)
-
-      %{
-        first: view.url_for_pagination(data, conn, %{page | "page" => "1"}),
-        last: view.url_for_pagination(data, conn, %{page | "page" => total_pages}),
-        next: next_link(data, view, conn, number, size, total_pages),
-        prev: previous_link(data, view, conn, number, size),
-        self: view.url_for_pagination(data, conn, %{size: size, page: number})
-      }
-    end
-
-    defp next_link(data, view, conn, page, size, total_pages)
-         when page < total_pages,
-         do: view.url_for_pagination(data, conn, %{size: size, page: page + 1})
-
-    defp next_link(_data, _view, _conn, _page, _size, _total_pages),
-      do: nil
-
-    defp previous_link(data, view, conn, page, size)
-         when page > 1,
-         do: view.url_for_pagination(data, conn, %{size: size, page: page - 1})
-
-    defp previous_link(_data, _view, _conn, _page, _size),
-      do: nil
-  end
-
-  defmodule PaginatedPostView do
-    use JSONAPI.View, paginator: PageBasedPaginator
-
-    def fields, do: [:text, :body, :full_description, :inserted_at]
-    def type, do: "mytype"
   end
 
   defmodule UserView do
@@ -169,9 +115,9 @@ defmodule JSONAPI.SerializerTest do
 
     def type, do: "expensive-resource"
 
-    def links(nil, _conn), do: %{}
+    def links(nil, _conn, _page_params), do: nil
 
-    def links(data, _conn) do
+    def links(data, _conn, _page_params) do
       %{
         queue: "/expensive-resource/queue/#{data.id}",
         promotions: %{
@@ -224,12 +170,10 @@ defmodule JSONAPI.SerializerTest do
     }
 
     encoded = Serializer.serialize(PostView, data, nil)
-    assert encoded[:links][:self] == PostView.url_for(data, nil)
 
     encoded_data = encoded[:data]
     assert encoded_data[:id] == PostView.id(data)
     assert encoded_data[:type] == PostView.type()
-    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
 
     assert %{meta_text: "meta_Hello"} = encoded_data[:meta]
 
@@ -237,7 +181,6 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:text] == data[:text]
     assert attributes[:body] == data[:body]
 
-    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
     assert map_size(encoded_data[:relationships]) == 2
 
     assert Enum.count(encoded[:included]) == 4
@@ -271,7 +214,6 @@ defmodule JSONAPI.SerializerTest do
       assert attributes[:text] == data[:text]
       assert attributes[:body] == data[:body]
 
-      assert enc[:links][:self] == PostView.url_for(data, conn)
       assert map_size(enc[:relationships]) == 2
     end)
 
@@ -297,7 +239,6 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:text] == data[:text]
     assert attributes[:body] == data[:body]
 
-    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
     assert map_size(encoded_data[:relationships]) == 2
     assert encoded_data[:relationships][:best_comments][:data] == []
 
@@ -323,33 +264,9 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:text] == data[:text]
     assert attributes[:body] == data[:body]
 
-    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
     assert map_size(encoded_data[:relationships]) == 1
 
     assert Enum.count(encoded[:included]) == 1
-  end
-
-  test "serialize handles a relationship self link on a show request" do
-    data = %{
-      id: 1,
-      text: "Hello",
-      body: "Hello world",
-      author: %{id: 2, username: "jason"},
-      best_comments: []
-    }
-
-    encoded = Serializer.serialize(PostView, data, nil)
-
-    encoded_data = encoded[:data]
-
-    assert encoded_data[:relationships][:author][:links][:self] ==
-             "/mytype/1/relationships/author"
-  end
-
-  test "serialize handles a relationship self link on an index request" do
-    encoded = Serializer.serialize(PostView, [], Plug.Conn.fetch_query_params(%Plug.Conn{}))
-
-    assert encoded[:links][:self] == "http://www.example.com/mytype"
   end
 
   test "serialize will rename relationships" do
@@ -422,9 +339,6 @@ defmodule JSONAPI.SerializerTest do
 
     encoded = Serializer.serialize(PostView, data, conn)
 
-    assert encoded.data.relationships.author.links.self ==
-             "http://www.example.com/mytype/1/relationships/author"
-
     assert Enum.count(encoded.included) == 4
   end
 
@@ -449,9 +363,6 @@ defmodule JSONAPI.SerializerTest do
 
     encoded = Serializer.serialize(UserView, data, conn)
 
-    assert encoded.data.relationships.company.links.self ==
-             "http://www.example.com/user/1/relationships/company"
-
     assert Enum.count(encoded.included) == 1
   end
 
@@ -475,9 +386,6 @@ defmodule JSONAPI.SerializerTest do
       |> Plug.Conn.fetch_query_params()
 
     encoded = Serializer.serialize(UserView, data, conn)
-
-    assert encoded.data.relationships.company.links.self ==
-             "http://www.example.com/user/1/relationships/company"
 
     assert Enum.count(encoded.included) == 2
   end
@@ -513,9 +421,6 @@ defmodule JSONAPI.SerializerTest do
       |> Plug.Conn.fetch_query_params()
 
     encoded = Serializer.serialize(UserView, data, conn)
-
-    assert encoded.data.relationships.company.links.self ==
-             "http://www.example.com/user/1/relationships/company"
 
     assert Enum.count(encoded.included) == 4
   end
@@ -566,9 +471,6 @@ defmodule JSONAPI.SerializerTest do
              ] == "bronds"
 
       assert List.first(relationships["bestComments"][:data])[:id] == "5"
-
-      assert relationships["bestComments"][:links][:self] ==
-               "/mytype/1/relationships/bestComments"
     end
   end
 
@@ -625,9 +527,6 @@ defmodule JSONAPI.SerializerTest do
       assert author4[:attributes]["last-name"] == "bronds"
 
       assert List.first(relationships["best-comments"][:data])[:id] == "5"
-
-      assert relationships["best-comments"][:links][:self] ==
-               "/mytype/1/relationships/best-comments"
     end
   end
 
@@ -727,31 +626,6 @@ defmodule JSONAPI.SerializerTest do
     Application.delete_env(:jsonapi, :remove_links)
   end
 
-  test "serialize includes pagination links if page-based pagination is requested" do
-    data = [%{id: 1}]
-    view = PaginatedPostView
-
-    conn =
-      :get
-      |> Plug.Test.conn("/mytype?page[page]=2&page[size]=1")
-      |> QueryParser.call(%Config{view: view, opts: []})
-      |> Plug.Conn.fetch_query_params()
-
-    encoded =
-      Serializer.serialize(PaginatedPostView, data, conn, nil, total_pages: 3, total_items: 3)
-
-    page = conn.assigns.jsonapi_query.page
-    first = view.url_for_pagination(data, conn, %{page | "page" => 1})
-    last = view.url_for_pagination(data, conn, %{page | "page" => 3})
-    self = view.url_for_pagination(data, conn, page)
-
-    assert encoded[:links][:first] == first
-    assert encoded[:links][:last] == last
-    assert encoded[:links][:next] == last
-    assert encoded[:links][:prev] == first
-    assert encoded[:links][:self] == self
-  end
-
   test "serialize does not include pagination links if they are not defined" do
     data = [%{id: 1}]
 
@@ -770,7 +644,6 @@ defmodule JSONAPI.SerializerTest do
            } = Serializer.serialize(ExpensiveResourceView, data, nil)
 
     expected_links = %{
-      self: "/expensive-resource/#{data.id}",
       queue: "/expensive-resource/queue/#{data.id}",
       promotions: %{
         href: "/promotions?rel=#{data.id}",
@@ -785,32 +658,10 @@ defmodule JSONAPI.SerializerTest do
 
   test "serialize returns a null data if it receives a null data" do
     assert %{
-             data: data,
-             links: links
+             data: data
            } = Serializer.serialize(ExpensiveResourceView, nil, nil)
 
     assert nil == data
-    assert %{self: "/expensive-resource"} == links
-  end
-
-  test "serialize handles query parameters in self links" do
-    data = [%{id: 1}]
-    view = PaginatedPostView
-
-    conn =
-      :get
-      |> Plug.Test.conn("/mytype?page[page]=2&page[size]=1")
-      |> QueryParser.call(%Config{view: view, opts: []})
-      |> Plug.Conn.fetch_query_params()
-
-    encoded =
-      Serializer.serialize(PaginatedPostView, data, conn, nil, total_pages: 3, total_items: 3)
-
-    assert encoded[:links][:self] ==
-             "http://www.example.com/mytype?page%5Bpage%5D=2&page%5Bsize%5D=1"
-
-    assert List.first(encoded[:data])[:links][:self] ==
-             "http://www.example.com/mytype/1"
   end
 
   test "extrapolates relationship config simplest case" do
