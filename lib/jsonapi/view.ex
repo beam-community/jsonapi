@@ -33,7 +33,7 @@ defmodule JSONAPI.View do
       end
 
       defmodule DogView do
-        use JSONAPI.View, namespace: "/pupperz-api"
+        use JSONAPI.View
       end
 
   You can now call `UserView.show(user, conn, conn.params)` and it will render
@@ -112,19 +112,6 @@ defmodule JSONAPI.View do
   If you always want to include a relationship. First make sure its always preloaded
   and then use the `[user: {UserView, :include}]` syntax in your `includes` function. This tells
   the serializer to *always* include if its loaded.
-
-  ## Options
-    * `:host` (binary) - Allows the `host` to be overridden for generated URLs. Defaults to `host` of the supplied `conn`.
-
-    * `:scheme` (atom) - Enables configuration of the HTTP scheme for generated URLS.  Defaults to `scheme` from the provided `conn`.
-
-    * `:namespace` (binary) - Allows the namespace of a given resource. This may be
-      configured globally or overridden on the View itself. Note that if you have
-      a globally defined namespace and need to *remove* the namespace for a
-      resource, set the namespace to a blank String.
-
-  The default behaviour for `host` and `scheme` is to derive it from the `conn` provided, while the
-  default style for presentation in names is to be underscored and not dashed.
   """
 
   alias Plug.Conn
@@ -143,28 +130,18 @@ defmodule JSONAPI.View do
   @callback fields() :: [field()]
   @callback get_field(field(), data(), Conn.t()) :: any()
   @callback hidden(data()) :: [field()]
-  @callback links(data(), Conn.t()) :: links() | nil
+  @callback links(data(), Conn.t(), map() | nil) :: links() | nil
   @callback meta(data(), Conn.t()) :: meta() | nil
-  # @callback namespace() :: String.t()
-  # @callback pagination_links(data(), Conn.t(), Paginator.page(), Paginator.options()) ::
-  #             Paginator.links()
-  # @callback path() :: String.t() | nil
   @callback relationships() :: [
               {atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}
             ]
   @callback type() :: resource_type()
-  # @callback url_for(data(), Conn.t() | nil) :: String.t()
-  # @callback url_for_pagination(data(), Conn.t(), Paginator.params()) :: String.t()
-  # @callback url_for_rel(term(), String.t(), Conn.t() | nil) :: String.t()
   @callback visible_fields(data(), Conn.t() | nil) :: list(atom)
 
   @optional_callbacks [get_field: 3]
 
   defmacro __using__(opts \\ []) do
-    type = Keyword.fetch!(opts, :type)
-    # {namespace, _opts} = Keyword.pop(opts, :namespace)
-    # {path, _opts} = Keyword.pop(opts, :path)
-    # {paginator, _opts} = Keyword.pop(opts, :paginator)
+    {type, _opts} = Keyword.pop(opts, :type)
 
     quote do
       alias JSONAPI.{Serializer, View}
@@ -172,9 +149,6 @@ defmodule JSONAPI.View do
       @behaviour View
 
       @resource_type unquote(type)
-      # @namespace unquote(namespace)
-      # @path unquote(path)
-      # @paginator unquote(paginator)
 
       @impl View
       def id(nil), do: nil
@@ -200,7 +174,6 @@ defmodule JSONAPI.View do
 
           Map.put(intermediate_map, field, value)
         end)
-        |> IO.inspect(label: "attributes")
       end
 
       @impl View
@@ -210,31 +183,10 @@ defmodule JSONAPI.View do
       def hidden(_data), do: []
 
       @impl View
-      def links(_data, _conn), do: nil
+      def links(_data, _conn, _query_page), do: nil
 
       @impl View
       def meta(_data, _conn), do: nil
-
-      # @impl View
-      # if @namespace do
-      #   def namespace, do: @namespace
-      # else
-      #   def namespace, do: Application.get_env(:jsonapi, :namespace, "")
-      # end
-
-      # @impl View
-      # def pagination_links(data, conn, page, options) do
-      #   paginator = Application.get_env(:jsonapi, :paginator, @paginator)
-
-      #   if Code.ensure_loaded?(paginator) && function_exported?(paginator, :paginate, 5) do
-      #     paginator.paginate(data, __MODULE__, conn, page, options)
-      #   else
-      #     %{}
-      #   end
-      # end
-
-      # @impl View
-      # def path, do: @path
 
       @impl View
       def relationships, do: []
@@ -245,18 +197,6 @@ defmodule JSONAPI.View do
       else
         def type, do: raise("Need to implement type/0")
       end
-
-      # @impl View
-      # def url_for(data, conn),
-      #   do: View.url_for(__MODULE__, data, conn)
-
-      # @impl View
-      # def url_for_pagination(data, conn, pagination_params),
-      #   do: View.url_for_pagination(__MODULE__, data, conn, pagination_params)
-
-      # @impl View
-      # def url_for_rel(data, rel_type, conn),
-      #   do: View.url_for_rel(__MODULE__, data, rel_type, conn)
 
       @impl View
       def visible_fields(data, conn),
@@ -296,60 +236,6 @@ defmodule JSONAPI.View do
     end
   end
 
-  # @spec url_for(t(), term(), Conn.t() | nil) :: String.t()
-  # def url_for(view, data, nil = _conn) when is_nil(data) or is_list(data),
-  #   do: URI.to_string(%URI{path: Enum.join([view.namespace(), path_for(view)], "/")})
-
-  # def url_for(view, data, nil = _conn) do
-  #   URI.to_string(%URI{
-  #     path: Enum.join([view.namespace(), path_for(view), view.id(data)], "/")
-  #   })
-  # end
-
-  # def url_for(view, data, %Plug.Conn{} = conn) when is_nil(data) or is_list(data) do
-  #   URI.to_string(%URI{
-  #     scheme: scheme(conn),
-  #     host: host(conn),
-  #     port: port(conn),
-  #     path: Enum.join([view.namespace(), path_for(view)], "/")
-  #   })
-  # end
-
-  # def url_for(view, data, %Plug.Conn{} = conn) do
-  #   URI.to_string(%URI{
-  #     scheme: scheme(conn),
-  #     host: host(conn),
-  #     port: port(conn),
-  #     path: Enum.join([view.namespace(), path_for(view), view.id(data)], "/")
-  #   })
-  # end
-
-  # @spec url_for_rel(t(), data(), resource_type(), Conn.t() | nil) :: String.t()
-  # def url_for_rel(view, data, rel_type, conn) do
-  #   "#{url_for(view, data, conn)}/relationships/#{rel_type}"
-  # end
-
-  # @spec url_for_rel(t(), data(), Conn.query_params(), Paginator.params()) :: String.t()
-  # def url_for_pagination(
-  #       view,
-  #       data,
-  #       %{query_params: query_params} = conn,
-  #       nil = _pagination_params
-  #     ) do
-  #   query =
-  #     query_params
-  #     |> Utils.List.to_list_of_query_string_components()
-  #     |> URI.encode_query()
-
-  #   prepare_url(view, query, data, conn)
-  # end
-
-  # def url_for_pagination(view, data, %{query_params: query_params} = conn, pagination_params) do
-  #   query_params = Map.put(query_params, "page", pagination_params)
-
-  #   url_for_pagination(view, data, %{conn | query_params: query_params}, nil)
-  # end
-
   @spec visible_fields(t(), data(), Conn.t() | nil) :: list(atom)
   def visible_fields(view, data, conn) do
     all_fields =
@@ -372,33 +258,9 @@ defmodule JSONAPI.View do
     |> MapSet.to_list()
   end
 
-  # defp prepare_url(view, "", data, conn), do: url_for(view, data, conn)
-
-  # defp prepare_url(view, query, data, conn) do
-  #   view
-  #   |> url_for(data, conn)
-  #   |> URI.parse()
-  #   |> struct(query: query)
-  #   |> URI.to_string()
-  # end
-
   defp requested_fields_for_type(view, %Conn{assigns: %{jsonapi_query: %{fields: fields}}}) do
     fields[view.type()]
   end
 
   defp requested_fields_for_type(_view, _conn), do: nil
-
-  # defp host(%Conn{host: host}),
-  #   do: Application.get_env(:jsonapi, :host, host)
-
-  # defp port(%Conn{port: 0} = conn),
-  #   do: port(%{conn | port: URI.default_port(scheme(conn))})
-
-  # defp port(%Conn{port: port}),
-  #   do: Application.get_env(:jsonapi, :port, port)
-
-  # defp scheme(%Conn{scheme: scheme}),
-  #   do: Application.get_env(:jsonapi, :scheme, to_string(scheme))
-
-  # defp path_for(view), do: view.path() || view.type()
 end

@@ -2,7 +2,7 @@ defmodule JSONAPI.ViewTest do
   use ExUnit.Case
 
   defmodule PostView do
-    use JSONAPI.View, type: "posts", namespace: "/api"
+    use JSONAPI.View, type: "posts"
 
     def fields do
       [:title, :body]
@@ -16,7 +16,7 @@ defmodule JSONAPI.ViewTest do
   end
 
   defmodule CommentView do
-    use JSONAPI.View, type: "comments", namespace: "/api"
+    use JSONAPI.View, type: "comments"
 
     def fields do
       [:body]
@@ -69,140 +69,6 @@ defmodule JSONAPI.ViewTest do
 
   test "type/0 when specified via using macro" do
     assert PostView.type() == "posts"
-  end
-
-  describe "namespace/0" do
-    setup do
-      Application.put_env(:jsonapi, :namespace, "/cake")
-
-      on_exit(fn ->
-        Application.delete_env(:jsonapi, :namespace)
-      end)
-
-      {:ok, []}
-    end
-
-    test "uses macro configuration first" do
-      assert PostView.namespace() == "/api"
-    end
-
-    test "uses global namespace if available" do
-      assert UserView.namespace() == "/cake"
-    end
-
-    test "can be blank" do
-      assert CarView.namespace() == ""
-    end
-  end
-
-  describe "url_for/2 when host and scheme not configured" do
-    test "url_for/2" do
-      assert PostView.url_for(nil, nil) == "/api/posts"
-      assert PostView.url_for([], nil) == "/api/posts"
-      assert PostView.url_for(%{id: 1}, nil) == "/api/posts/1"
-      assert PostView.url_for([], %Plug.Conn{}) == "http://www.example.com/api/posts"
-      assert PostView.url_for([], %Plug.Conn{port: 123}) == "http://www.example.com:123/api/posts"
-      assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.example.com/api/posts/1"
-
-      assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
-               "http://www.example.com/api/posts/relationships/comments"
-
-      assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
-               "http://www.example.com/api/posts/1/relationships/comments"
-    end
-  end
-
-  describe "url_for/2 when host configured" do
-    setup do
-      Application.put_env(:jsonapi, :host, "www.otherhost.com")
-
-      on_exit(fn ->
-        Application.delete_env(:jsonapi, :host)
-      end)
-
-      {:ok, []}
-    end
-
-    test "uses configured host instead of that on Conn" do
-      assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
-               "http://www.otherhost.com/api/posts/relationships/comments"
-
-      assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
-               "http://www.otherhost.com/api/posts/1/relationships/comments"
-
-      assert PostView.url_for([], %Plug.Conn{}) == "http://www.otherhost.com/api/posts"
-      assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.otherhost.com/api/posts/1"
-    end
-  end
-
-  describe "url_for/2 when scheme configured" do
-    setup do
-      Application.put_env(:jsonapi, :scheme, "ftp")
-
-      on_exit(fn ->
-        Application.delete_env(:jsonapi, :scheme)
-      end)
-
-      {:ok, []}
-    end
-
-    test "uses configured scheme instead of that on Conn" do
-      assert PostView.url_for([], %Plug.Conn{}) == "ftp://www.example.com/api/posts"
-      assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "ftp://www.example.com/api/posts/1"
-
-      assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
-               "ftp://www.example.com/api/posts/relationships/comments"
-
-      assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
-               "ftp://www.example.com/api/posts/1/relationships/comments"
-    end
-  end
-
-  describe "url_for/2 when port configured" do
-    setup do
-      Application.put_env(:jsonapi, :port, 42)
-
-      on_exit(fn ->
-        Application.delete_env(:jsonapi, :port)
-      end)
-
-      {:ok, []}
-    end
-
-    test "uses configured port instead of that on Conn" do
-      assert PostView.url_for([], %Plug.Conn{}) == "http://www.example.com:42/api/posts"
-      assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.example.com:42/api/posts/1"
-
-      assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
-               "http://www.example.com:42/api/posts/relationships/comments"
-
-      assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
-               "http://www.example.com:42/api/posts/1/relationships/comments"
-    end
-  end
-
-  describe "url_for_pagination/3" do
-    setup do
-      {:ok, conn: Plug.Conn.fetch_query_params(%Plug.Conn{})}
-    end
-
-    test "with pagination information", %{conn: conn} do
-      assert PostView.url_for_pagination(nil, conn, %{}) == "http://www.example.com/api/posts"
-
-      assert PostView.url_for_pagination(nil, conn, %{number: 1, size: 10}) ==
-               "http://www.example.com/api/posts?page%5Bnumber%5D=1&page%5Bsize%5D=10"
-    end
-
-    test "with query parameters", %{conn: conn} do
-      conn_with_query_params =
-        Kernel.update_in(conn.query_params, &Map.put(&1, "comments", [5, 2]))
-
-      assert PostView.url_for_pagination(nil, conn_with_query_params, %{number: 1, size: 10}) ==
-               "http://www.example.com/api/posts?comments%5B%5D=5&comments%5B%5D=2&page%5Bnumber%5D=1&page%5Bsize%5D=10"
-
-      assert PostView.url_for_pagination(nil, conn_with_query_params, %{}) ==
-               "http://www.example.com/api/posts?comments%5B%5D=5&comments%5B%5D=2"
-    end
   end
 
   test "render/2 is defined when 'Phoenix' is loaded" do

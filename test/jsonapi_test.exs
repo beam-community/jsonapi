@@ -140,8 +140,6 @@ defmodule JSONAPITest do
     [author | _] = included
     assert Map.get(author, "type") == "user"
     assert Map.get(author, "id") == "2"
-
-    assert Map.has_key?(json, "links")
   end
 
   test "handles includes properly" do
@@ -187,8 +185,6 @@ defmodule JSONAPITest do
     assert Enum.find(included, fn include ->
              Map.get(include, "type") == "user" && Map.get(include, "id") == "3"
            end)
-
-    assert Map.has_key?(json, "links")
   end
 
   test "handles empty includes properly" do
@@ -316,8 +312,6 @@ defmodule JSONAPITest do
     assert Enum.find(included, fn include ->
              Map.get(include, "type") == "tag" && Map.get(include, "id") == "4"
            end)
-
-    assert Map.has_key?(json, "links")
   end
 
   describe "with an underscored API" do
