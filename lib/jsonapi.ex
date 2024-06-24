@@ -3,6 +3,8 @@ defmodule JSONAPI do
   A module for working with the JSON API specification in Elixir
   """
 
+  @mime_type "application/vnd.api+json"
+
   @doc """
   Returns the configured JSON encoding library for JSONAPI.
   To customize the JSON library, including the following
@@ -25,8 +27,6 @@ defmodule JSONAPI do
       """)
     end
   end
-
-  @mime_type "application/vnd.api+json"
 
   @doc """
   This returns the MIME type for JSONAPIs

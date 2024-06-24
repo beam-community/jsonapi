@@ -190,7 +190,7 @@ defmodule JSONAPI.ViewTest do
       assert PostView.url_for_pagination(nil, conn, %{}) == "http://www.example.com/api/posts"
 
       assert PostView.url_for_pagination(nil, conn, %{number: 1, size: 10}) ==
-               "http://www.example.com/api/posts?page%5Bnumber%5D=1&page%5Bsize%5D=10"
+               "http://www.example.com/api/posts?page%5Bsize%5D=10&page%5Bnumber%5D=1"
     end
 
     test "with query parameters", %{conn: conn} do
@@ -198,7 +198,7 @@ defmodule JSONAPI.ViewTest do
         Kernel.update_in(conn.query_params, &Map.put(&1, "comments", [5, 2]))
 
       assert PostView.url_for_pagination(nil, conn_with_query_params, %{number: 1, size: 10}) ==
-               "http://www.example.com/api/posts?comments%5B%5D=5&comments%5B%5D=2&page%5Bnumber%5D=1&page%5Bsize%5D=10"
+               "http://www.example.com/api/posts?comments%5B%5D=5&comments%5B%5D=2&page%5Bsize%5D=10&page%5Bnumber%5D=1"
 
       assert PostView.url_for_pagination(nil, conn_with_query_params, %{}) ==
                "http://www.example.com/api/posts?comments%5B%5D=5&comments%5B%5D=2"

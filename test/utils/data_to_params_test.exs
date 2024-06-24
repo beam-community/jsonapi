@@ -1,6 +1,8 @@
 defmodule JSONAPI.DataToParamsTest do
   use ExUnit.Case
 
+  alias JSONAPI.Utils.DataToParams
+
   test "converts attributes and relationships to flattened data structure" do
     incoming = %{
       "data" => %{
@@ -23,7 +25,7 @@ defmodule JSONAPI.DataToParamsTest do
       }
     }
 
-    result = JSONAPI.Utils.DataToParams.process(incoming)
+    result = DataToParams.process(incoming)
 
     assert result == %{
              "id" => "1",
@@ -53,7 +55,7 @@ defmodule JSONAPI.DataToParamsTest do
       }
     }
 
-    result = JSONAPI.Utils.DataToParams.process(incoming)
+    result = DataToParams.process(incoming)
 
     assert result == %{
              "id" => "1",
@@ -82,7 +84,7 @@ defmodule JSONAPI.DataToParamsTest do
       }
     }
 
-    result = JSONAPI.Utils.DataToParams.process(incoming)
+    result = DataToParams.process(incoming)
 
     assert result == %{
              "id" => "1",
@@ -115,7 +117,7 @@ defmodule JSONAPI.DataToParamsTest do
       ]
     }
 
-    result = JSONAPI.Utils.DataToParams.process(incoming)
+    result = DataToParams.process(incoming)
 
     assert result == %{
              "friend" => [
@@ -182,7 +184,7 @@ defmodule JSONAPI.DataToParamsTest do
       ]
     }
 
-    result = JSONAPI.Utils.DataToParams.process(incoming)
+    result = DataToParams.process(incoming)
 
     assert result == %{
              "friend" => [
@@ -220,7 +222,7 @@ defmodule JSONAPI.DataToParamsTest do
       ]
     }
 
-    result = JSONAPI.Utils.DataToParams.process(incoming)
+    result = DataToParams.process(incoming)
 
     assert result == [
              %{"id" => "1", "type" => "user"},
@@ -239,7 +241,7 @@ defmodule JSONAPI.DataToParamsTest do
       "included" => nil
     }
 
-    result = JSONAPI.Utils.DataToParams.process(incoming)
+    result = DataToParams.process(incoming)
 
     assert result == %{
              "id" => "1",
@@ -255,7 +257,7 @@ defmodule JSONAPI.DataToParamsTest do
       }
     }
 
-    result = JSONAPI.Utils.DataToParams.process(incoming)
+    result = DataToParams.process(incoming)
 
     assert result == %{
              "id" => "1",
@@ -268,7 +270,7 @@ defmodule JSONAPI.DataToParamsTest do
       "data" => nil
     }
 
-    result = JSONAPI.Utils.DataToParams.process(incoming)
+    result = DataToParams.process(incoming)
 
     assert result == nil
   end

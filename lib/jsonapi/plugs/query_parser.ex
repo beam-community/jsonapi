@@ -1,11 +1,4 @@
 defmodule JSONAPI.QueryParser do
-  @behaviour Plug
-  alias JSONAPI.{Config, Deprecation}
-  alias JSONAPI.Exceptions.InvalidQuery
-  alias Plug.Conn
-  import JSONAPI.Utils.IncludeTree
-  import JSONAPI.Utils.String, only: [underscore: 1]
-
   @moduledoc """
   Implements a fully JSONAPI V1 spec for parsing a complex query string via the
   `query_params` field from a `Plug.Conn` struct and returning Elixir datastructures.
@@ -82,6 +75,14 @@ defmodule JSONAPI.QueryParser do
 
   For more details please see `JSONAPI.UnderscoreParameters`.
   """
+  @behaviour Plug
+
+  import JSONAPI.Utils.IncludeTree
+  import JSONAPI.Utils.String, only: [underscore: 1]
+
+  alias JSONAPI.Exceptions.InvalidQuery
+  alias JSONAPI.{Config, Deprecation}
+  alias Plug.Conn
 
   @impl Plug
   def init(opts) do
@@ -119,7 +120,7 @@ defmodule JSONAPI.QueryParser do
 
     Enum.reduce(filter, config, fn {key, val}, acc ->
       check_filter_validity!(opts_filter, key, config)
-      %{acc | filter: Keyword.put(acc.filter, String.to_atom(key), val)}
+      %{acc | filter: Keyword.put(acc.filter, String.to_existing_atom(key), val)}
     end)
   end
 
@@ -183,7 +184,7 @@ defmodule JSONAPI.QueryParser do
           raise InvalidQuery, resource: config.view.type(), param: field, param_type: :sort
         end
 
-        build_sort(direction, String.to_atom(field))
+        build_sort(direction, String.to_existing_atom(field))
       end)
       |> List.flatten()
 
@@ -210,26 +211,29 @@ defmodule JSONAPI.QueryParser do
       |> Enum.filter(&(&1 !== ""))
       |> Enum.map(&underscore/1)
 
-    Enum.reduce(includes, [], fn inc, acc ->
-      check_include_validity!(inc, config)
+    Enum.reduce(includes, [], &include_reducer(config, valid_includes, &1, &2))
+  end
 
-      if inc =~ ~r/\w+\.\w+/ do
-        acc ++ handle_nested_include(inc, valid_includes, config)
-      else
-        inc =
-          try do
-            String.to_existing_atom(inc)
-          rescue
-            ArgumentError -> raise_invalid_include_query(inc, config.view.type())
-          end
+  defp include_reducer(config, valid_includes, inc, acc) do
+    check_include_validity!(inc, config)
 
-        if Enum.any?(valid_includes, fn {key, _val} -> key == inc end) do
-          acc ++ [inc]
-        else
-          raise_invalid_include_query(inc, config.view.type())
+    if inc =~ ~r/\w+\.\w+/ do
+      acc ++ handle_nested_include(inc, valid_includes, config)
+    else
+      inc =
+        try do
+          String.to_existing_atom(inc)
+        rescue
+          ArgumentError -> raise_invalid_include_query(inc, config.view.type())
         end
+
+      # credo:disable-for-next-line
+      if Enum.any?(valid_includes, fn {key, _val} -> key == inc end) do
+        Enum.reverse([inc | acc])
+      else
+        raise_invalid_include_query(inc, config.view.type())
       end
-    end)
+    end
   end
 
   defp check_include_validity!(key, %Config{opts: opts, view: view}) do

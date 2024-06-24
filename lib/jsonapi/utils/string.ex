@@ -134,8 +134,7 @@ defmodule JSONAPI.Utils.String do
 
         # If there are multiple words, perform the camelizing
         [h | t] ->
-          [String.downcase(h) | camelize_list(t)]
-          |> Enum.join()
+          Enum.join([String.downcase(h) | camelize_list(t)])
       end
     end
   end

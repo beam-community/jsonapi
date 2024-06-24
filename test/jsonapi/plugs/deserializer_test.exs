@@ -2,6 +2,8 @@ defmodule JSONAPI.DeserializerTest do
   use ExUnit.Case
   use Plug.Test
 
+  @ct JSONAPI.mime_type()
+
   defmodule ExamplePlug do
     use Plug.Builder
     plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
@@ -13,11 +15,10 @@ defmodule JSONAPI.DeserializerTest do
     end
   end
 
-  @ct JSONAPI.mime_type()
-
   test "Ignores bodyless requests" do
     conn =
-      Plug.Test.conn("GET", "/")
+      "GET"
+      |> Plug.Test.conn("/")
       |> put_req_header("content-type", @ct)
       |> put_req_header("accept", @ct)
 
@@ -29,7 +30,8 @@ defmodule JSONAPI.DeserializerTest do
     req_body = Jason.encode!(%{"some-nonsense" => "yup"})
 
     conn =
-      Plug.Test.conn("POST", "/", req_body)
+      "POST"
+      |> Plug.Test.conn("/", req_body)
       |> put_req_header("content-type", @ct)
       |> put_req_header("accept", @ct)
 
@@ -47,7 +49,8 @@ defmodule JSONAPI.DeserializerTest do
       })
 
     conn =
-      Plug.Test.conn("POST", "/", req_body)
+      "POST"
+      |> Plug.Test.conn("/", req_body)
       |> put_req_header("content-type", @ct)
       |> put_req_header("accept", @ct)
 
@@ -85,7 +88,8 @@ defmodule JSONAPI.DeserializerTest do
       })
 
     conn =
-      Plug.Test.conn("POST", "/", req_body)
+      "POST"
+      |> Plug.Test.conn("/", req_body)
       |> put_req_header("content-type", @ct)
       |> put_req_header("accept", @ct)
 
@@ -135,7 +139,8 @@ defmodule JSONAPI.DeserializerTest do
         })
 
       conn =
-        Plug.Test.conn("POST", "/", req_body)
+        "POST"
+        |> Plug.Test.conn("/", req_body)
         |> put_req_header("content-type", @ct)
         |> put_req_header("accept", @ct)
 
@@ -192,7 +197,8 @@ defmodule JSONAPI.DeserializerTest do
         })
 
       conn =
-        Plug.Test.conn("POST", "/", req_body)
+        "POST"
+        |> Plug.Test.conn("/", req_body)
         |> put_req_header("content-type", @ct)
         |> put_req_header("accept", @ct)
 

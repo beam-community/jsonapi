@@ -109,8 +109,8 @@ defmodule JSONAPI.ErrorView do
 
   @spec missing_relationship_data_param_error_attrs(binary()) :: error_attrs()
   def missing_relationship_data_param_error_attrs(relationship_name) do
-    "Missing data member in relationship"
-    |> build_error(
+    build_error(
+      "Missing data member in relationship",
       400,
       "Check out https://jsonapi.org/format/#crud-creating and https://jsonapi.org/format/#crud-updating-resource-relationships for more info.",
       "/data/relationships/#{relationship_name}/data"
@@ -119,8 +119,8 @@ defmodule JSONAPI.ErrorView do
 
   @spec missing_relationship_data_id_param_error_attrs(binary()) :: error_attrs()
   def missing_relationship_data_id_param_error_attrs(relationship_name) do
-    "Missing id in relationship data parameter"
-    |> build_error(
+    build_error(
+      "Missing id in relationship data parameter",
       400,
       @relationship_resource_linkage_message,
       "/data/relationships/#{relationship_name}/data/id"
@@ -129,8 +129,8 @@ defmodule JSONAPI.ErrorView do
 
   @spec missing_relationship_data_type_param_error_attrs(binary()) :: error_attrs()
   def missing_relationship_data_type_param_error_attrs(relationship_name) do
-    "Missing type in relationship data parameter"
-    |> build_error(
+    build_error(
+      "Missing type in relationship data parameter",
       400,
       @relationship_resource_linkage_message,
       "/data/relationships/#{relationship_name}/data/type"

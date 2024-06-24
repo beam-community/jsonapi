@@ -2,11 +2,10 @@ defmodule JSONAPI.Serializer do
   @moduledoc """
   Serialize a map of data into a properly formatted JSON API response object
   """
+  require Logger
 
   alias JSONAPI.{Config, Utils, View}
   alias Plug.Conn
-
-  require Logger
 
   @type document :: map()
 
@@ -51,7 +50,7 @@ defmodule JSONAPI.Serializer do
   def encode_data(view, data, conn, query_includes, options) when is_list(data) do
     Enum.map_reduce(data, [], fn d, acc ->
       {to_include, encoded_data} = encode_data(view, d, conn, query_includes, options)
-      {to_include, acc ++ [encoded_data]}
+      {to_include, Enum.reverse([encoded_data | acc])}
     end)
   end
 
@@ -114,8 +113,9 @@ defmodule JSONAPI.Serializer do
       rel_query_includes =
         if is_list(query_includes) do
           query_includes
+          # credo:disable-for-next-line
           |> Enum.reduce([], fn
-            {^relationship_name, value}, acc -> acc ++ [value]
+            {^relationship_name, value}, acc -> Enum.reverse([value | acc])
             _, acc -> acc
           end)
           |> List.flatten()
@@ -126,7 +126,7 @@ defmodule JSONAPI.Serializer do
       {rel_included, encoded_rel} =
         encode_data(rel_view, rel_data, conn, rel_query_includes, options)
 
-      {rel_included ++ [encoded_rel], acc}
+      {Enum.reverse([encoded_rel | rel_included]), acc}
     else
       {nil, acc}
     end
@@ -208,15 +208,15 @@ defmodule JSONAPI.Serializer do
   end
 
   defp merge_base_links(%{links: links} = doc, data, view, conn) do
-    view_links = Map.merge(view.links(data, conn), links)
+    view_links = data |> view.links(conn) |> Map.merge(links)
     Map.merge(doc, %{links: view_links})
   end
 
   defp merge_links(doc, data, view, conn, page, false, options) when is_list(data) do
     links =
-      Map.merge(view.pagination_links(data, conn, page, options), %{
-        self: view.url_for_pagination(data, conn, page)
-      })
+      data
+      |> view.pagination_links(conn, page, options)
+      |> Map.merge(%{self: view.url_for_pagination(data, conn, page)})
 
     doc
     |> Map.merge(%{links: links})

@@ -2,9 +2,9 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
   use ExUnit.Case
   use Plug.Test
 
-  alias JSONAPI.ContentTypeNegotiation
-
   import JSONAPI, only: [mime_type: 0]
+
+  alias JSONAPI.ContentTypeNegotiation
 
   test "passes request through" do
     conn =
