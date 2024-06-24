@@ -73,12 +73,13 @@ defmodule JSONAPITest do
   defmodule MyPostPlug do
     use Plug.Builder
 
-    plug JSONAPI.QueryParser,
+    plug(JSONAPI.QueryParser,
       view: JSONAPITest.PostView,
       sort: [:text],
       filter: [:text]
+    )
 
-    plug :passthrough
+    plug(:passthrough)
 
     defp passthrough(conn, _) do
       resp =

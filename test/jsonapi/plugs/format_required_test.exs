@@ -153,8 +153,7 @@ defmodule JSONAPI.FormatRequiredTest do
     assert %{
              "source" => %{"pointer" => "/data/relationships"},
              "title" => "Relationships parameter is not an object",
-             "detail" =>
-               "Check out https://jsonapi.org/format/#document-resource-object-relationships for more info."
+             "detail" => "Check out https://jsonapi.org/format/#document-resource-object-relationships for more info."
            } = error
   end
 
@@ -177,8 +176,7 @@ defmodule JSONAPI.FormatRequiredTest do
     assert %{
              "source" => %{"pointer" => "/data/relationships"},
              "title" => "Relationships parameter is not an object",
-             "detail" =>
-               "Check out https://jsonapi.org/format/#document-resource-object-relationships for more info."
+             "detail" => "Check out https://jsonapi.org/format/#document-resource-object-relationships for more info."
            } = error
   end
 
@@ -461,12 +459,10 @@ defmodule JSONAPI.FormatRequiredTest do
     %{"errors" => [error]} = Jason.decode!(conn.resp_body)
 
     assert %{
-             "detail" =>
-               "Check out https://jsonapi.org/format/#crud-updating-to-many-relationships for more info.",
+             "detail" => "Check out https://jsonapi.org/format/#crud-updating-to-many-relationships for more info.",
              "source" => %{"pointer" => "/data"},
              "status" => "400",
-             "title" =>
-               "Data parameter has multiple Resource Identifier Objects for a non-relationship endpoint"
+             "title" => "Data parameter has multiple Resource Identifier Objects for a non-relationship endpoint"
            } = error
   end
 

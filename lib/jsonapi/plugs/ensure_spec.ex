@@ -7,8 +7,8 @@ defmodule JSONAPI.EnsureSpec do
 
   alias JSONAPI.{ContentTypeNegotiation, FormatRequired, IdRequired, ResponseContentType}
 
-  plug ContentTypeNegotiation
-  plug FormatRequired
-  plug IdRequired
-  plug ResponseContentType
+  plug(ContentTypeNegotiation)
+  plug(FormatRequired)
+  plug(IdRequired)
+  plug(ResponseContentType)
 end
