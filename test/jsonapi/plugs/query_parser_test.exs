@@ -3,8 +3,9 @@ defmodule JSONAPI.QueryParserTest do
   use Plug.Test
 
   import JSONAPI.QueryParser
-  alias JSONAPI.Exceptions.InvalidQuery
+
   alias JSONAPI.Config
+  alias JSONAPI.Exceptions.InvalidQuery
 
   defmodule MyView do
     use JSONAPI.View

@@ -392,7 +392,7 @@ defmodule JSONAPI.View do
     do: Application.get_env(:jsonapi, :host, host)
 
   defp port(%Conn{port: 0} = conn),
-    do: port(%{conn | port: URI.default_port(scheme(conn))})
+    do: port(%{conn | port: conn |> scheme() |> URI.default_port()})
 
   defp port(%Conn{port: port}),
     do: Application.get_env(:jsonapi, :port, port)

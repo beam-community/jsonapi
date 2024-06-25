@@ -73,12 +73,13 @@ defmodule JSONAPITest do
   defmodule MyPostPlug do
     use Plug.Builder
 
-    plug JSONAPI.QueryParser,
+    plug(JSONAPI.QueryParser,
       view: JSONAPITest.PostView,
       sort: [:text],
       filter: [:text]
+    )
 
-    plug :passthrough
+    plug(:passthrough)
 
     defp passthrough(conn, _) do
       resp =
@@ -109,7 +110,7 @@ defmodule JSONAPITest do
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Jason.decode!()
+    json = Jason.decode!(conn.resp_body)
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
@@ -126,7 +127,7 @@ defmodule JSONAPITest do
 
     relationships = Map.get(data, "relationships")
     assert map_size(relationships) == 2
-    assert Enum.sort(Map.keys(relationships)) == ["author", "other_user"]
+    assert relationships |> Map.keys() |> Enum.sort() == ["author", "other_user"]
     author_rel = Map.get(relationships, "author")
 
     assert get_in(author_rel, ["data", "type"]) == "user"
@@ -152,7 +153,7 @@ defmodule JSONAPITest do
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Jason.decode!()
+    json = Jason.decode!(conn.resp_body)
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
@@ -164,7 +165,7 @@ defmodule JSONAPITest do
 
     relationships = Map.get(data, "relationships")
     assert map_size(relationships) == 2
-    assert Enum.sort(Map.keys(relationships)) == ["author", "other_user"]
+    assert relationships |> Map.keys() |> Enum.sort() == ["author", "other_user"]
     author_rel = Map.get(relationships, "author")
 
     assert get_in(author_rel, ["data", "type"]) == "user"
@@ -199,7 +200,7 @@ defmodule JSONAPITest do
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Jason.decode!()
+    json = Jason.decode!(conn.resp_body)
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
@@ -211,7 +212,7 @@ defmodule JSONAPITest do
 
     relationships = Map.get(data, "relationships")
     assert map_size(relationships) == 2
-    assert Enum.sort(Map.keys(relationships)) == ["author", "other_user"]
+    assert relationships |> Map.keys() |> Enum.sort() == ["author", "other_user"]
     author_rel = Map.get(relationships, "author")
 
     assert get_in(author_rel, ["data", "type"]) == "user"
@@ -265,7 +266,7 @@ defmodule JSONAPITest do
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Jason.decode!()
+    json = Jason.decode!(conn.resp_body)
 
     assert Map.has_key?(json, "data")
     data_list = Map.get(json, "data")
@@ -277,7 +278,7 @@ defmodule JSONAPITest do
 
     relationships = Map.get(data, "relationships")
     assert map_size(relationships) == 2
-    assert Enum.sort(Map.keys(relationships)) == ["author", "other_user"]
+    assert relationships |> Map.keys() |> Enum.sort() == ["author", "other_user"]
     author_rel = Map.get(relationships, "author")
 
     assert get_in(author_rel, ["data", "type"]) == "user"
@@ -411,7 +412,7 @@ defmodule JSONAPITest do
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Jason.decode!()
+    json = Jason.decode!(conn.resp_body)
 
     refute Map.has_key?(json, "meta")
   end
@@ -424,7 +425,7 @@ defmodule JSONAPITest do
       |> Plug.Conn.fetch_query_params()
       |> MyPostPlug.call([])
 
-    json = conn.resp_body |> Jason.decode!()
+    json = Jason.decode!(conn.resp_body)
 
     refute Map.has_key?(json, "meta")
   end

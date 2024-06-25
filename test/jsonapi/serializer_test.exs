@@ -25,7 +25,7 @@ defmodule JSONAPI.SerializerTest do
 
     @behaviour JSONAPI.Paginator
 
-    @impl true
+    @impl JSONAPI.Paginator
     def paginate(data, view, conn, page, options) do
       number =
         page
@@ -38,28 +38,27 @@ defmodule JSONAPI.SerializerTest do
         |> String.to_integer()
 
       total_pages =
-        options
-        |> Keyword.get(:total_pages, 0)
+        Keyword.get(options, :total_pages, 0)
 
       %{
         first: view.url_for_pagination(data, conn, %{page | "page" => "1"}),
         last: view.url_for_pagination(data, conn, %{page | "page" => total_pages}),
         next: next_link(data, view, conn, number, size, total_pages),
         prev: previous_link(data, view, conn, number, size),
-        self: view.url_for_pagination(data, conn, %{size: size, page: number})
+        self: view.url_for_pagination(data, conn, %{"size" => size, "page" => number})
       }
     end
 
     defp next_link(data, view, conn, page, size, total_pages)
          when page < total_pages,
-         do: view.url_for_pagination(data, conn, %{size: size, page: page + 1})
+         do: view.url_for_pagination(data, conn, %{"size" => size, "page" => page + 1})
 
     defp next_link(_data, _view, _conn, _page, _size, _total_pages),
       do: nil
 
     defp previous_link(data, view, conn, page, size)
          when page > 1,
-         do: view.url_for_pagination(data, conn, %{size: size, page: page - 1})
+         do: view.url_for_pagination(data, conn, %{"size" => size, "page" => page - 1})
 
     defp previous_link(_data, _view, _conn, _page, _size),
       do: nil
@@ -378,12 +377,11 @@ defmodule JSONAPI.SerializerTest do
     }
 
     conn =
-      %Plug.Conn{
+      Plug.Conn.fetch_query_params(%Plug.Conn{
         assigns: %{
           jsonapi_query: %Config{}
         }
-      }
-      |> Plug.Conn.fetch_query_params()
+      })
 
     encoded = Serializer.serialize(CommentaryView, data, conn)
 
@@ -411,14 +409,13 @@ defmodule JSONAPI.SerializerTest do
     }
 
     conn =
-      %Plug.Conn{
+      Plug.Conn.fetch_query_params(%Plug.Conn{
         assigns: %{
           jsonapi_query: %Config{
             include: [best_comments: :user]
           }
         }
-      }
-      |> Plug.Conn.fetch_query_params()
+      })
 
     encoded = Serializer.serialize(PostView, data, conn)
 
@@ -438,14 +435,13 @@ defmodule JSONAPI.SerializerTest do
     }
 
     conn =
-      %Plug.Conn{
+      Plug.Conn.fetch_query_params(%Plug.Conn{
         assigns: %{
           jsonapi_query: %Config{
             include: [:company]
           }
         }
-      }
-      |> Plug.Conn.fetch_query_params()
+      })
 
     encoded = Serializer.serialize(UserView, data, conn)
 
@@ -465,14 +461,13 @@ defmodule JSONAPI.SerializerTest do
     }
 
     conn =
-      %Plug.Conn{
+      Plug.Conn.fetch_query_params(%Plug.Conn{
         assigns: %{
           jsonapi_query: %Config{
             include: [company: :industry]
           }
         }
-      }
-      |> Plug.Conn.fetch_query_params()
+      })
 
     encoded = Serializer.serialize(UserView, data, conn)
 
@@ -503,14 +498,13 @@ defmodule JSONAPI.SerializerTest do
     }
 
     conn =
-      %Plug.Conn{
+      Plug.Conn.fetch_query_params(%Plug.Conn{
         assigns: %{
           jsonapi_query: %Config{
             include: [company: [industry: :tags]]
           }
         }
-      }
-      |> Plug.Conn.fetch_query_params()
+      })
 
     encoded = Serializer.serialize(UserView, data, conn)
 
@@ -824,8 +818,7 @@ defmodule JSONAPI.SerializerTest do
 
   test "extrapolates relationship config with default include" do
     configs =
-      PostView.relationships()
-      |> Enum.map(&Serializer.extrapolate_relationship_config/1)
+      Enum.map(PostView.relationships(), &Serializer.extrapolate_relationship_config/1)
 
     assert configs == [
              {:author, :author, JSONAPI.SerializerTest.UserView, true},
@@ -835,8 +828,7 @@ defmodule JSONAPI.SerializerTest do
 
   test "extrapolates relationship config with rewritten name" do
     configs =
-      CommentaryView.relationships()
-      |> Enum.map(&Serializer.extrapolate_relationship_config/1)
+      Enum.map(CommentaryView.relationships(), &Serializer.extrapolate_relationship_config/1)
 
     assert configs == [
              {:commenter, :user1, JSONAPI.SerializerTest.UserView, true},

@@ -2,22 +2,23 @@ defmodule JSONAPI.DeserializerTest do
   use ExUnit.Case
   use Plug.Test
 
+  @ct JSONAPI.mime_type()
+
   defmodule ExamplePlug do
     use Plug.Builder
-    plug Plug.Parsers, parsers: [:json], json_decoder: Jason
-    plug JSONAPI.Deserializer
-    plug :return
+    plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
+    plug(JSONAPI.Deserializer)
+    plug(:return)
 
     def return(conn, _opts) do
       send_resp(conn, 200, "success")
     end
   end
 
-  @ct JSONAPI.mime_type()
-
   test "Ignores bodyless requests" do
     conn =
-      Plug.Test.conn("GET", "/")
+      "GET"
+      |> Plug.Test.conn("/")
       |> put_req_header("content-type", @ct)
       |> put_req_header("accept", @ct)
 
@@ -29,7 +30,8 @@ defmodule JSONAPI.DeserializerTest do
     req_body = Jason.encode!(%{"some-nonsense" => "yup"})
 
     conn =
-      Plug.Test.conn("POST", "/", req_body)
+      "POST"
+      |> Plug.Test.conn("/", req_body)
       |> put_req_header("content-type", @ct)
       |> put_req_header("accept", @ct)
 
@@ -47,7 +49,8 @@ defmodule JSONAPI.DeserializerTest do
       })
 
     conn =
-      Plug.Test.conn("POST", "/", req_body)
+      "POST"
+      |> Plug.Test.conn("/", req_body)
       |> put_req_header("content-type", @ct)
       |> put_req_header("accept", @ct)
 
@@ -85,7 +88,8 @@ defmodule JSONAPI.DeserializerTest do
       })
 
     conn =
-      Plug.Test.conn("POST", "/", req_body)
+      "POST"
+      |> Plug.Test.conn("/", req_body)
       |> put_req_header("content-type", @ct)
       |> put_req_header("accept", @ct)
 
@@ -101,11 +105,11 @@ defmodule JSONAPI.DeserializerTest do
   describe "underscore" do
     defmodule ExampleUnderscorePlug do
       use Plug.Builder
-      plug Plug.Parsers, parsers: [:json], json_decoder: Jason
-      plug JSONAPI.Deserializer
-      plug JSONAPI.UnderscoreParameters
+      plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
+      plug(JSONAPI.Deserializer)
+      plug(JSONAPI.UnderscoreParameters)
 
-      plug :return
+      plug(:return)
 
       def return(conn, _opts) do
         send_resp(conn, 200, "success")
@@ -135,7 +139,8 @@ defmodule JSONAPI.DeserializerTest do
         })
 
       conn =
-        Plug.Test.conn("POST", "/", req_body)
+        "POST"
+        |> Plug.Test.conn("/", req_body)
         |> put_req_header("content-type", @ct)
         |> put_req_header("accept", @ct)
 
@@ -159,10 +164,10 @@ defmodule JSONAPI.DeserializerTest do
 
     defmodule ExampleCamelCasePlug do
       use Plug.Builder
-      plug Plug.Parsers, parsers: [:json], json_decoder: Jason
-      plug JSONAPI.Deserializer
+      plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
+      plug(JSONAPI.Deserializer)
 
-      plug :return
+      plug(:return)
 
       def return(conn, _opts) do
         send_resp(conn, 200, "success")
@@ -192,7 +197,8 @@ defmodule JSONAPI.DeserializerTest do
         })
 
       conn =
-        Plug.Test.conn("POST", "/", req_body)
+        "POST"
+        |> Plug.Test.conn("/", req_body)
         |> put_req_header("content-type", @ct)
         |> put_req_header("accept", @ct)
 

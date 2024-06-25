@@ -80,8 +80,8 @@ defmodule JSONAPI.Utils.DataToParams do
 
   defp update_list_relationship(existing, id) do
     case existing do
-      val when is_list(val) -> {val, val ++ [id]}
-      val when is_binary(val) -> {val, [val] ++ [id]}
+      val when is_list(val) -> {val, Enum.reverse([id | val])}
+      val when is_binary(val) -> {val, [val, id]}
       _ -> {nil, id}
     end
   end
