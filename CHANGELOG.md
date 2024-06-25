@@ -3,6 +3,20 @@
 ## NEXT
 ...
 
+## [1.8.0](https://github.com/beam-community/jsonapi/compare/1.7.1...v1.8.0) (2024-06-25)
+
+
+### Features
+
+* Link Objects and Additional Controller Actions ([#264](https://github.com/beam-community/jsonapi/issues/264)) ([def58a9](https://github.com/beam-community/jsonapi/commit/def58a9bb6c10c8e72a7f3e7b86ad04748331204))
+* Setup common config ([#322](https://github.com/beam-community/jsonapi/issues/322)) ([702b248](https://github.com/beam-community/jsonapi/commit/702b2488cb4b683ae9b405c33979500536e0ef2a))
+
+
+### Bug Fixes
+
+* Add release please manifest ([3d3ca63](https://github.com/beam-community/jsonapi/commit/3d3ca634b212b394209c498f063999a22549c950))
+* Fix failing credo check ([e025dc2](https://github.com/beam-community/jsonapi/commit/e025dc2dc5213a6d17cc1d005824f13f60938fe4))
+
 ## 1.7.1 (2024-02-23)
 * Fix bug where underscore/dasherize misses single characters by @protestContest in https://github.com/beam-community/jsonapi/pull/316
 * Transform relationship keys with shallow field transformation options (#314) by @protestContest in https://github.com/beam-community/jsonapi/pull/315
