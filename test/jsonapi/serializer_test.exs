@@ -277,6 +277,26 @@ defmodule JSONAPI.SerializerTest do
     assert Enum.count(encoded[:included]) == 4
   end
 
+  test "serialize keeps the order of a list" do
+    data1 = %{id: 1}
+    data2 = %{id: 2}
+    data3 = %{id: 3}
+
+    data_list = [data1, data2, data3]
+
+    conn = Plug.Conn.fetch_query_params(%Plug.Conn{})
+
+    encoded = Serializer.serialize(PostView, data_list, conn)
+
+    assert %{
+             data: [
+               %{id: "1"},
+               %{id: "2"},
+               %{id: "3"}
+             ]
+           } = encoded
+  end
+
   test "serialize handles an empty relationship" do
     data = %{
       id: 1,
