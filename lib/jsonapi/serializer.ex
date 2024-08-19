@@ -48,10 +48,13 @@ defmodule JSONAPI.Serializer do
   def encode_data(_view, nil, _conn, _query_includes, _options), do: {[], nil}
 
   def encode_data(view, data, conn, query_includes, options) when is_list(data) do
-    Enum.map_reduce(data, [], fn d, acc ->
-      {to_include, encoded_data} = encode_data(view, d, conn, query_includes, options)
-      {to_include, Enum.reverse([encoded_data | acc])}
-    end)
+    {to_include, encoded_data} =
+      Enum.map_reduce(data, [], fn d, acc ->
+        {to_include, encoded_data} = encode_data(view, d, conn, query_includes, options)
+        {to_include, [encoded_data | acc]}
+      end)
+
+    {to_include, Enum.reverse(encoded_data)}
   end
 
   def encode_data(view, data, conn, query_includes, options) do
@@ -115,9 +118,10 @@ defmodule JSONAPI.Serializer do
           query_includes
           # credo:disable-for-next-line
           |> Enum.reduce([], fn
-            {^relationship_name, value}, acc -> Enum.reverse([value | acc])
+            {^relationship_name, value}, acc -> [value | acc]
             _, acc -> acc
           end)
+          |> Enum.reverse()
           |> List.flatten()
         else
           []
@@ -126,7 +130,8 @@ defmodule JSONAPI.Serializer do
       {rel_included, encoded_rel} =
         encode_data(rel_view, rel_data, conn, rel_query_includes, options)
 
-      {Enum.reverse([encoded_rel | rel_included]), acc}
+      # credo:disable-for-next-line
+      {rel_included ++ [encoded_rel], acc}
     else
       {nil, acc}
     end
