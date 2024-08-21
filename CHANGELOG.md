@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.8.1](https://github.com/beam-community/jsonapi/compare/1.8.0...v1.8.1)
+
+### Bug Fixes
+
+* Fix incorrect ordering of serialized lists ([#333](https://github.com/beam-community/jsonapi/pull/333))
+
+
 ## [1.8.0](https://github.com/beam-community/jsonapi/compare/1.7.1...v1.8.0) (2024-06-25)
 
 
