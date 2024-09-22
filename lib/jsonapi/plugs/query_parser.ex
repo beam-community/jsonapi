@@ -276,8 +276,8 @@ defmodule JSONAPI.QueryParser do
 
   @spec get_valid_fields_for_type(Config.t(), String.t()) :: list(atom())
   def get_valid_fields_for_type(%Config{view: view}, type) do
-    if type == view.type do
-      view.fields
+    if type == view.type() do
+      view.fields()
     else
       get_view_for_type(view, type).fields
     end
@@ -296,7 +296,7 @@ defmodule JSONAPI.QueryParser do
   @spec field_valid_for_relationship?({atom(), module()}, String.t()) :: boolean()
   defp field_valid_for_relationship?({key, view}, expected_type) do
     cond do
-      view.type == expected_type ->
+      view.type() == expected_type ->
         true
 
       Atom.to_string(key) == expected_type ->
