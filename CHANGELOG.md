@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.8.2](https://github.com/beam-community/jsonapi/compare/v1.8.1...v1.8.2) (2024-09-22)
+
+
+### Bug Fixes
+
+* Compiler warnings for zero-arity funtion calls ([#335](https://github.com/beam-community/jsonapi/issues/335)) ([49ed6ab](https://github.com/beam-community/jsonapi/commit/49ed6ab453cdd7af44f608615daf147da876841a))
+
 ## [1.8.1](https://github.com/beam-community/jsonapi/compare/1.8.0...v1.8.1)
 
 ### Bug Fixes
