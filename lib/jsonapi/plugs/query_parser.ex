@@ -279,7 +279,7 @@ defmodule JSONAPI.QueryParser do
     if type == view.type() do
       view.fields()
     else
-      get_view_for_type(view, type).fields
+      get_view_for_type(view, type).fields()
     end
   end
 
