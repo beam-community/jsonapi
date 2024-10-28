@@ -109,6 +109,12 @@ defmodule JSONAPI.Utils.String do
       iex> camelize("alreadyCamelized")
       "alreadyCamelized"
 
+      iex> camelize("alreadyCamelized-id")
+      "alreadyCamelizedId"
+
+      iex> camelize("alreadyCamelized_id")
+      "alreadyCamelizedId"
+
   """
   @spec camelize(atom) :: String.t()
   def camelize(value) when is_atom(value) do
@@ -121,28 +127,25 @@ defmodule JSONAPI.Utils.String do
   def camelize(value) when value == "", do: value
 
   def camelize(value) when is_binary(value) do
-    with words <-
-           Regex.split(
-             ~r{(?<=[a-zA-Z0-9])[-_](?=[a-zA-Z0-9])},
-             to_string(value),
-             trim: true
-           ) do
-      case words do
-        # If there is only one word, leave it as-is
-        [word] ->
-          word
+    case Regex.split(
+           ~r{(?<=[a-zA-Z0-9])[-_](?=[a-zA-Z0-9])},
+           to_string(value),
+           trim: true
+         ) do
+      # If there is only one word, leave it as-is
+      [word] ->
+        word
 
-        # If there are multiple words, perform the camelizing
-        [h | t] ->
-          Enum.join([String.downcase(h) | camelize_list(t)])
-      end
+      # If there are multiple words, perform the camelizing
+      [h | t] ->
+        Enum.join([h | camelize_list(t)])
     end
   end
 
   defp camelize_list([]), do: []
 
   defp camelize_list([h | t]) do
-    [String.capitalize(h)] ++ camelize_list(t)
+    [String.capitalize(h) | camelize_list(t)]
   end
 
   @doc """
