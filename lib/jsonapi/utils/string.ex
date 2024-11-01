@@ -115,6 +115,9 @@ defmodule JSONAPI.Utils.String do
       iex> camelize("alreadyCamelized_id")
       "alreadyCamelizedId"
 
+      iex> camelize("PascalLambda_id")
+      "pascalLambdaId"
+
   """
   @spec camelize(atom) :: String.t()
   def camelize(value) when is_atom(value) do
@@ -138,7 +141,9 @@ defmodule JSONAPI.Utils.String do
 
       # If there are multiple words, perform the camelizing
       [h | t] ->
-        Enum.join([h | camelize_list(t)])
+        {first_character, rest_word} = String.split_at(h, 1)
+        first_word = String.downcase(first_character) <> rest_word
+        Enum.join([first_word | camelize_list(t)])
     end
   end
 
