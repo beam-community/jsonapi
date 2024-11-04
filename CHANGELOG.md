@@ -3,6 +3,14 @@
 ## NEXT
 ...
 
+## [1.8.3](https://github.com/beam-community/jsonapi/compare/v1.8.2...v1.8.3) (2024-11-04)
+
+
+### Bug Fixes
+
+* camelize when prefix is camelized already ([ae78a7d](https://github.com/beam-community/jsonapi/commit/ae78a7de4dd1960437d23b2c3177bd1cf721df4e))
+* Compiler warning for zero-arity fields function call ([b071131](https://github.com/beam-community/jsonapi/commit/b0711319d4473beab58b5bb68dac87f7b5f9daeb))
+
 ## [1.8.2](https://github.com/beam-community/jsonapi/compare/v1.8.1...v1.8.2) (2024-09-22)
 
 
