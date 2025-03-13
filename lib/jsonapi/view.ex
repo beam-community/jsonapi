@@ -140,10 +140,12 @@ defmodule JSONAPI.View do
   @type options :: keyword()
   @type resource_id :: String.t()
   @type resource_type :: String.t()
+  @type polymorphic_resource :: boolean()
 
   @callback attributes(data(), Conn.t() | nil) :: map()
   @callback id(data()) :: resource_id() | nil
   @callback fields() :: [field()]
+  @callback polymorphic_fields(data()) :: [field()]
   @callback get_field(field(), data(), Conn.t()) :: any()
   @callback hidden(data()) :: [field()]
   @callback links(data(), Conn.t()) :: links()
@@ -156,6 +158,7 @@ defmodule JSONAPI.View do
               {atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}
             ]
   @callback type() :: resource_type()
+  @callback polymorphic_type(data()) :: resource_type()
   @callback url_for(data(), Conn.t() | nil) :: String.t()
   @callback url_for_pagination(data(), Conn.t(), Paginator.params()) :: String.t()
   @callback url_for_rel(term(), String.t(), Conn.t() | nil) :: String.t()
@@ -167,7 +170,8 @@ defmodule JSONAPI.View do
     {type, opts} = Keyword.pop(opts, :type)
     {namespace, opts} = Keyword.pop(opts, :namespace)
     {path, opts} = Keyword.pop(opts, :path)
-    {paginator, _opts} = Keyword.pop(opts, :paginator)
+    {paginator, opts} = Keyword.pop(opts, :paginator)
+    {polymorphic_resource, _opts} = Keyword.pop(opts, :polymorphic_resource, false)
 
     quote do
       alias JSONAPI.{Serializer, View}
@@ -178,6 +182,7 @@ defmodule JSONAPI.View do
       @namespace unquote(namespace)
       @path unquote(path)
       @paginator unquote(paginator)
+      @polymorphic_resource unquote(polymorphic_resource)
 
       @impl View
       def id(nil), do: nil
@@ -205,8 +210,21 @@ defmodule JSONAPI.View do
         end)
       end
 
-      @impl View
-      def fields, do: raise("Need to implement fields/0")
+      cond do
+        !@polymorphic_resource ->
+          @impl View
+          def fields, do: raise("Need to implement fields/0")
+
+          @impl View
+          def polymorphic_fields(_data), do: nil
+
+        @polymorphic_resource ->
+          @impl View
+          def fields, do: nil
+
+          @impl View
+          def polymorphic_fields(_data), do: raise("Need to implement polymorphic_fields/1")
+      end
 
       @impl View
       def hidden(_data), do: []
@@ -241,11 +259,27 @@ defmodule JSONAPI.View do
       @impl View
       def relationships, do: []
 
-      @impl View
-      if @resource_type do
-        def type, do: @resource_type
-      else
-        def type, do: raise("Need to implement type/0")
+      cond do
+        @resource_type ->
+          @impl View
+          def type, do: @resource_type
+
+          @impl View
+          def polymorphic_type(_data), do: nil
+
+        !@polymorphic_resource ->
+          @impl View
+          def type, do: raise("Need to implement type/0")
+
+          @impl View
+          def polymorphic_type(_data), do: nil
+
+        @polymorphic_resource ->
+          @impl View
+          def type, do: nil
+
+          @impl View
+          def polymorphic_type(_data), do: raise("Need to implement polymorphic_type/1")
       end
 
       @impl View
@@ -263,6 +297,22 @@ defmodule JSONAPI.View do
       @impl View
       def visible_fields(data, conn),
         do: View.visible_fields(__MODULE__, data, conn)
+
+      def resource_fields(data) do
+        if @polymorphic_resource do
+          polymorphic_fields(data)
+        else
+          fields()
+        end
+      end
+
+      def resource_type(data) do
+        if @polymorphic_resource do
+          polymorphic_type(data)
+        else
+          type()
+        end
+      end
 
       defoverridable View
 
@@ -336,11 +386,11 @@ defmodule JSONAPI.View do
 
   @spec url_for(t(), term(), Conn.t() | nil) :: String.t()
   def url_for(view, data, nil = _conn) when is_nil(data) or is_list(data),
-    do: URI.to_string(%URI{path: Enum.join([view.namespace(), path_for(view)], "/")})
+    do: URI.to_string(%URI{path: Enum.join([view.namespace(), path_for(view, data)], "/")})
 
   def url_for(view, data, nil = _conn) do
     URI.to_string(%URI{
-      path: Enum.join([view.namespace(), path_for(view), view.id(data)], "/")
+      path: Enum.join([view.namespace(), path_for(view, data), view.id(data)], "/")
     })
   end
 
@@ -349,7 +399,7 @@ defmodule JSONAPI.View do
       scheme: scheme(conn),
       host: host(conn),
       port: port(conn),
-      path: Enum.join([view.namespace(), path_for(view)], "/")
+      path: Enum.join([view.namespace(), path_for(view, data)], "/")
     })
   end
 
@@ -358,7 +408,7 @@ defmodule JSONAPI.View do
       scheme: scheme(conn),
       host: host(conn),
       port: port(conn),
-      path: Enum.join([view.namespace(), path_for(view), view.id(data)], "/")
+      path: Enum.join([view.namespace(), path_for(view, data), view.id(data)], "/")
     })
   end
 
@@ -392,8 +442,8 @@ defmodule JSONAPI.View do
   def visible_fields(view, data, conn) do
     all_fields =
       view
-      |> requested_fields_for_type(conn)
-      |> net_fields_for_type(view.fields())
+      |> requested_fields_for_type(data, conn)
+      |> net_fields_for_type(view.resource_fields(data))
 
     hidden_fields = view.hidden(data)
 
@@ -420,11 +470,11 @@ defmodule JSONAPI.View do
     |> URI.to_string()
   end
 
-  defp requested_fields_for_type(view, %Conn{assigns: %{jsonapi_query: %{fields: fields}}}) do
-    fields[view.type()]
+  defp requested_fields_for_type(view, data, %Conn{assigns: %{jsonapi_query: %{fields: fields}}}) do
+    fields[view.resource_type(data)]
   end
 
-  defp requested_fields_for_type(_view, _conn), do: nil
+  defp requested_fields_for_type(_view, _data, _conn), do: nil
 
   defp host(%Conn{host: host}),
     do: Application.get_env(:jsonapi, :host, host)
@@ -438,5 +488,5 @@ defmodule JSONAPI.View do
   defp scheme(%Conn{scheme: scheme}),
     do: Application.get_env(:jsonapi, :scheme, to_string(scheme))
 
-  defp path_for(view), do: view.path() || view.type()
+  defp path_for(view, data), do: view.path() || view.resource_type(data)
 end
