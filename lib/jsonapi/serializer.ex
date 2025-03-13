@@ -62,7 +62,7 @@ defmodule JSONAPI.Serializer do
 
     encoded_data = %{
       id: view.id(data),
-      type: view.type(),
+      type: view.resource_type(data),
       attributes: transform_fields(view.attributes(data, conn)),
       relationships: %{}
     }
@@ -255,7 +255,7 @@ defmodule JSONAPI.Serializer do
 
   def encode_rel_data(view, data) do
     %{
-      type: view.type(),
+      type: view.resource_type(data),
       id: view.id(data)
     }
   end

@@ -13,7 +13,8 @@ defmodule JSONAPI.SerializerTest do
     def relationships do
       [
         author: {JSONAPI.SerializerTest.UserView, :include},
-        best_comments: {JSONAPI.SerializerTest.CommentView, :include}
+        best_comments: {JSONAPI.SerializerTest.CommentView, :include},
+        polymorphics: {JSONAPI.SerializerTest.PolymorphicView, :include}
       ]
     end
   end
@@ -183,6 +184,38 @@ defmodule JSONAPI.SerializerTest do
     end
   end
 
+  defmodule PolymorphicDataOne do
+    defstruct [:id, :some_field]
+  end
+
+  defmodule PolymorphicDataTwo do
+    defstruct [:id, :some_other_field]
+  end
+
+  defmodule PolymorphicView do
+    use JSONAPI.View, polymorphic_resource: true
+
+    def polymorphic_type(data) do
+      case data do
+        %PolymorphicDataOne{} ->
+          "polymorphic_data_one"
+
+        %PolymorphicDataTwo{} ->
+          "polymorphic_data_one"
+      end
+    end
+
+    def polymorphic_fields(data) do
+      case data do
+        %PolymorphicDataOne{} ->
+          [:some_field]
+
+        %PolymorphicDataTwo{} ->
+          [:some_other_field]
+      end
+    end
+  end
+
   setup do
     Application.put_env(:jsonapi, :field_transformation, :underscore)
 
@@ -219,6 +252,10 @@ defmodule JSONAPI.SerializerTest do
       best_comments: [
         %{id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
         %{id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
+      ],
+      polymorphic: [
+        %PolymorphicDataOne{id: 1, some_field: "foo"},
+        %PolymorphicDataTwo{id: 2, some_other_field: "foo"}
       ]
     }
 
@@ -842,7 +879,8 @@ defmodule JSONAPI.SerializerTest do
 
     assert configs == [
              {:author, :author, JSONAPI.SerializerTest.UserView, true},
-             {:best_comments, :best_comments, JSONAPI.SerializerTest.CommentView, true}
+             {:best_comments, :best_comments, JSONAPI.SerializerTest.CommentView, true},
+             {:polymorphics, :polymorphics, JSONAPI.SerializerTest.PolymorphicView, true}
            ]
   end
 
