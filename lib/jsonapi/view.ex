@@ -157,6 +157,9 @@ defmodule JSONAPI.View do
   @callback relationships() :: [
               {atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}
             ]
+  @callback polymorphic_relationships(data()) :: [
+              {atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}
+            ]
   @callback type() :: resource_type()
   @callback polymorphic_type(data()) :: resource_type()
   @callback url_for(data(), Conn.t() | nil) :: String.t()
@@ -259,6 +262,9 @@ defmodule JSONAPI.View do
       @impl View
       def relationships, do: []
 
+      @impl View
+      def polymorphic_relationships(_data), do: []
+
       cond do
         @resource_type ->
           @impl View
@@ -311,6 +317,14 @@ defmodule JSONAPI.View do
           polymorphic_type(data)
         else
           type()
+        end
+      end
+
+      def resource_relationships(data) do
+        if @polymorphic_resource do
+          polymorphic_relationships(data)
+        else
+          relationships()
         end
       end
 
