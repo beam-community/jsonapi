@@ -140,7 +140,6 @@ defmodule JSONAPI.View do
   @type options :: keyword()
   @type resource_id :: String.t()
   @type resource_type :: String.t()
-  @type polymorphic_resource :: boolean()
 
   @callback attributes(data(), Conn.t() | nil) :: map()
   @callback id(data()) :: resource_id() | nil
@@ -174,7 +173,7 @@ defmodule JSONAPI.View do
     {namespace, opts} = Keyword.pop(opts, :namespace)
     {path, opts} = Keyword.pop(opts, :path)
     {paginator, opts} = Keyword.pop(opts, :paginator)
-    {polymorphic_resource, _opts} = Keyword.pop(opts, :polymorphic_resource, false)
+    {polymorphic_resource?, _opts} = Keyword.pop(opts, :polymorphic_resource?, false)
 
     quote do
       alias JSONAPI.{Serializer, View}
@@ -185,7 +184,7 @@ defmodule JSONAPI.View do
       @namespace unquote(namespace)
       @path unquote(path)
       @paginator unquote(paginator)
-      @polymorphic_resource unquote(polymorphic_resource)
+      @polymorphic_resource? unquote(polymorphic_resource?)
 
       @impl View
       def id(nil), do: nil
@@ -214,14 +213,14 @@ defmodule JSONAPI.View do
       end
 
       cond do
-        !@polymorphic_resource ->
+        !@polymorphic_resource? ->
           @impl View
           def fields, do: raise("Need to implement fields/0")
 
           @impl View
           def polymorphic_fields(_data), do: nil
 
-        @polymorphic_resource ->
+        @polymorphic_resource? ->
           @impl View
           def fields, do: nil
 
@@ -273,14 +272,14 @@ defmodule JSONAPI.View do
           @impl View
           def polymorphic_type(_data), do: nil
 
-        !@polymorphic_resource ->
+        !@polymorphic_resource? ->
           @impl View
           def type, do: raise("Need to implement type/0")
 
           @impl View
           def polymorphic_type(_data), do: nil
 
-        @polymorphic_resource ->
+        @polymorphic_resource? ->
           @impl View
           def type, do: nil
 
@@ -305,7 +304,7 @@ defmodule JSONAPI.View do
         do: View.visible_fields(__MODULE__, data, conn)
 
       def resource_fields(data) do
-        if @polymorphic_resource do
+        if @polymorphic_resource? do
           polymorphic_fields(data)
         else
           fields()
@@ -313,7 +312,7 @@ defmodule JSONAPI.View do
       end
 
       def resource_type(data) do
-        if @polymorphic_resource do
+        if @polymorphic_resource? do
           polymorphic_type(data)
         else
           type()
@@ -321,7 +320,7 @@ defmodule JSONAPI.View do
       end
 
       def resource_relationships(data) do
-        if @polymorphic_resource do
+        if @polymorphic_resource? do
           polymorphic_relationships(data)
         else
           relationships()
