@@ -140,7 +140,7 @@ defmodule JSONAPI.View do
   @type options :: keyword()
   @type resource_id :: String.t()
   @type resource_type :: String.t()
-  @type resource_relationship :: [{atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}]
+  @type resource_relationships :: [{atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}]
   @type resource_fields :: [field()]
 
   @callback attributes(data(), Conn.t() | nil) :: map()
@@ -156,9 +156,9 @@ defmodule JSONAPI.View do
   @callback pagination_links(data(), Conn.t(), Paginator.page(), Paginator.options()) ::
               Paginator.links()
   @callback path() :: String.t() | nil
-  @callback relationships() :: resource_relationship()
-  @callback polymorphic_relationships(data()) :: resource_relationship()
-  @callback resource_relationship(data()) :: resource_relationship()
+  @callback relationships() :: resource_relationships()
+  @callback polymorphic_relationships(data()) :: resource_relationships()
+  @callback resource_relationships(data()) :: resource_relationships()
   @callback type() :: resource_type() | nil
   @callback polymorphic_type(data()) :: resource_type() | nil
   @callback resource_type(data()) :: resource_type()
