@@ -64,7 +64,7 @@ defmodule JSONAPI.ViewTest do
   end
 
   defmodule PolymorphicView do
-    use JSONAPI.View, polymorphic_resource: true
+    use JSONAPI.View, polymorphic_resource?: true
 
     def polymorphic_type(data) do
       case data do

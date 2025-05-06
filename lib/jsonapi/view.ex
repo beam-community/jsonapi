@@ -140,11 +140,13 @@ defmodule JSONAPI.View do
   @type options :: keyword()
   @type resource_id :: String.t()
   @type resource_type :: String.t()
+  @type resource_relationship :: [{atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}]
+  @type resource_fields :: [field()]
 
   @callback attributes(data(), Conn.t() | nil) :: map()
   @callback id(data()) :: resource_id() | nil
-  @callback fields() :: [field()]
-  @callback polymorphic_fields(data()) :: [field()]
+  @callback fields() :: resource_fields()
+  @callback polymorphic_fields(data()) :: resource_fields()
   @callback get_field(field(), data(), Conn.t()) :: any()
   @callback hidden(data()) :: [field()]
   @callback links(data(), Conn.t()) :: links()
@@ -153,14 +155,10 @@ defmodule JSONAPI.View do
   @callback pagination_links(data(), Conn.t(), Paginator.page(), Paginator.options()) ::
               Paginator.links()
   @callback path() :: String.t() | nil
-  @callback relationships() :: [
-              {atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}
-            ]
-  @callback polymorphic_relationships(data()) :: [
-              {atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}
-            ]
-  @callback type() :: resource_type()
-  @callback polymorphic_type(data()) :: resource_type()
+  @callback relationships() :: resource_relationship()
+  @callback polymorphic_relationships(data()) :: resource_relationship()
+  @callback type() :: resource_type() | nil
+  @callback polymorphic_type(data()) :: resource_type() | nil
   @callback url_for(data(), Conn.t() | nil) :: String.t()
   @callback url_for_pagination(data(), Conn.t(), Paginator.params()) :: String.t()
   @callback url_for_rel(term(), String.t(), Conn.t() | nil) :: String.t()
@@ -218,11 +216,11 @@ defmodule JSONAPI.View do
           def fields, do: raise("Need to implement fields/0")
 
           @impl View
-          def polymorphic_fields(_data), do: nil
+          def polymorphic_fields(_data), do: []
 
         @polymorphic_resource? ->
           @impl View
-          def fields, do: nil
+          def fields, do: []
 
           @impl View
           def polymorphic_fields(_data), do: raise("Need to implement polymorphic_fields/1")
