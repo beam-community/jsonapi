@@ -147,6 +147,7 @@ defmodule JSONAPI.View do
   @callback id(data()) :: resource_id() | nil
   @callback fields() :: resource_fields()
   @callback polymorphic_fields(data()) :: resource_fields()
+  @callback resource_fields(data()) :: resource_fields()
   @callback get_field(field(), data(), Conn.t()) :: any()
   @callback hidden(data()) :: [field()]
   @callback links(data(), Conn.t()) :: links()
@@ -157,8 +158,10 @@ defmodule JSONAPI.View do
   @callback path() :: String.t() | nil
   @callback relationships() :: resource_relationship()
   @callback polymorphic_relationships(data()) :: resource_relationship()
+  @callback resource_relationship(data()) :: resource_relationship()
   @callback type() :: resource_type() | nil
   @callback polymorphic_type(data()) :: resource_type() | nil
+  @callback resource_type(data()) :: resource_type()
   @callback url_for(data(), Conn.t() | nil) :: String.t()
   @callback url_for_pagination(data(), Conn.t(), Paginator.params()) :: String.t()
   @callback url_for_rel(term(), String.t(), Conn.t() | nil) :: String.t()
@@ -301,6 +304,7 @@ defmodule JSONAPI.View do
       def visible_fields(data, conn),
         do: View.visible_fields(__MODULE__, data, conn)
 
+      @impl View
       def resource_fields(data) do
         if @polymorphic_resource? do
           polymorphic_fields(data)
@@ -309,6 +313,7 @@ defmodule JSONAPI.View do
         end
       end
 
+      @impl View
       def resource_type(data) do
         if @polymorphic_resource? do
           polymorphic_type(data)
@@ -317,6 +322,7 @@ defmodule JSONAPI.View do
         end
       end
 
+      @impl View
       def resource_relationships(data) do
         if @polymorphic_resource? do
           polymorphic_relationships(data)
