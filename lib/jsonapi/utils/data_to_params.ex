@@ -94,8 +94,8 @@ defmodule JSONAPI.Utils.DataToParams do
 
   defp process_included(%{"included" => included} = incoming) do
     included
-    |> Enum.reduce(incoming, fn %{"data" => %{"type" => type}} = params, acc ->
-      flattened = process(params)
+    |> Enum.reduce(incoming, fn %{"type" => type} = params, acc ->
+      flattened = process(%{"data" => params})
 
       case Map.has_key?(acc, type) do
         false -> Map.put(acc, type, [flattened])
