@@ -106,13 +106,11 @@ defmodule JSONAPI.DataToParamsTest do
       },
       "included" => [
         %{
-          "data" => %{
-            "attributes" => %{
-              "name" => "Tara"
-            },
-            "id" => "234",
-            "type" => "friend"
-          }
+          "attributes" => %{
+            "name" => "Tara"
+          },
+          "id" => "234",
+          "type" => "friend"
         }
       ]
     }
@@ -144,42 +142,36 @@ defmodule JSONAPI.DataToParamsTest do
       },
       "included" => [
         %{
-          "data" => %{
-            "id" => "234",
-            "type" => "friend",
-            "attributes" => %{
-              "name" => "Tara"
-            },
-            "relationships" => %{
-              "baz" => %{
-                "data" => %{
-                  "id" => "2",
-                  "type" => "baz"
-                }
-              },
-              "boo" => %{
-                "data" => nil
+          "id" => "234",
+          "type" => "friend",
+          "attributes" => %{
+            "name" => "Tara"
+          },
+          "relationships" => %{
+            "baz" => %{
+              "data" => %{
+                "id" => "2",
+                "type" => "baz"
               }
+            },
+            "boo" => %{
+              "data" => nil
             }
           }
         },
         %{
-          "data" => %{
-            "attributes" => %{
-              "name" => "Wild Bill"
-            },
-            "id" => "0012",
-            "type" => "friend"
-          }
+          "attributes" => %{
+            "name" => "Wild Bill"
+          },
+          "id" => "0012",
+          "type" => "friend"
         },
         %{
-          "data" => %{
-            "attributes" => %{
-              "title" => "Sr"
-            },
-            "id" => "456",
-            "type" => "organization"
-          }
+          "attributes" => %{
+            "title" => "Sr"
+          },
+          "id" => "456",
+          "type" => "organization"
         }
       ]
     }
