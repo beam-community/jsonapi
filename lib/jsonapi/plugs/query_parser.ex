@@ -119,12 +119,15 @@ defmodule JSONAPI.QueryParser do
     opts_filter = Keyword.get(opts, :filter, [])
 
     Enum.reduce(filter, config, fn {key, val}, acc ->
-      check_filter_validity!(opts_filter, key, config)
-      %{acc | filter: Keyword.put(acc.filter, String.to_existing_atom(key), val)}
+      check_filter_allowed!(opts_filter, key, config)
+
+      keys = key |> String.split(".") |> Enum.map(&String.to_existing_atom/1)
+      filter = deep_merge(acc.filter, put_as_tree([], keys, val))
+      %{acc | filter: filter}
     end)
   end
 
-  defp check_filter_validity!(filters, key, config) do
+  defp check_filter_allowed!(filters, key, config) do
     unless key in filters do
       raise InvalidQuery, resource: config.view.type(), param: key, param_type: :filter
     end
@@ -215,7 +218,9 @@ defmodule JSONAPI.QueryParser do
   end
 
   defp include_reducer(config, valid_includes, inc, acc) do
-    check_include_validity!(inc, config)
+    # if an explicit list of allowed includes was specified, check this include
+    # against it:
+    check_include_allowed!(inc, config)
 
     if inc =~ ~r/\w+\.\w+/ do
       acc ++ handle_nested_include(inc, valid_includes, config)
@@ -236,25 +241,25 @@ defmodule JSONAPI.QueryParser do
     end
   end
 
-  defp check_include_validity!(key, %Config{opts: opts, view: view}) do
+  defp check_include_allowed!(key, %Config{opts: opts, view: view}) do
     if opts do
-      check_include_validity!(key, Keyword.get(opts, :include), view)
+      check_include_allowed!(key, Keyword.get(opts, :include), view)
     end
   end
 
-  defp check_include_validity!(key, allowed_includes, view) when is_list(allowed_includes) do
+  defp check_include_allowed!(key, allowed_includes, view) when is_list(allowed_includes) do
     unless key in allowed_includes do
       raise_invalid_include_query(key, view.type())
     end
   end
 
-  defp check_include_validity!(_key, nil, _view) do
+  defp check_include_allowed!(_key, nil, _view) do
     # all includes are allowed if none are specified in input config
   end
 
   @spec handle_nested_include(key :: String.t(), valid_include :: list(), config :: Config.t()) ::
           list() | no_return()
-  def handle_nested_include(key, valid_include, config) do
+  def handle_nested_include(key, valid_includes, config) do
     keys =
       try do
         key
@@ -267,7 +272,7 @@ defmodule JSONAPI.QueryParser do
     last = List.last(keys)
     path = Enum.slice(keys, 0, Enum.count(keys) - 1)
 
-    if member_of_tree?(keys, valid_include) do
+    if member_of_tree?(keys, valid_includes) do
       put_as_tree([], path, last)
     else
       raise_invalid_include_query(key, config.view.type())
