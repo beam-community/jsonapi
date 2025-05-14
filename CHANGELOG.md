@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.8.4](https://github.com/beam-community/jsonapi/compare/v1.8.3...v1.8.4)
+
+
+### Bug Fixes
+
+* fix: bug with DataToParams include processing expecting more 'data' keys than the spec calls for [#363](https://github.com/beam-community/jsonapi/pull/363)
+
 ## [1.8.3](https://github.com/beam-community/jsonapi/compare/v1.8.2...v1.8.3) (2024-11-04)
 
 
