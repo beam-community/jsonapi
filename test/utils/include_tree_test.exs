@@ -13,4 +13,11 @@ defmodule JSONAPI.IncludeTreeTest do
     # the other direction
     assert [hi: "there", other: "thing"] = deep_merge([hi: [hello: "there"]], other: "thing", hi: "there")
   end
+
+  test "deep_merge/2 handles string/string conflict by choosing second value" do
+    # one direction
+    assert [hi: "there"] = deep_merge([hi: "hello"], hi: "there")
+    # the other direction
+    assert [hi: "hello"] = deep_merge([hi: "there"], hi: "hello")
+  end
 end
