@@ -3,6 +3,7 @@ defmodule JSONAPI.Utils.IncludeTree do
   Internal utility for building trees of resource relationships
   """
 
+  @spec deep_merge(Keyword.t(), Keyword.t()) :: Keyword.t()
   def deep_merge(acc, []), do: acc
 
   def deep_merge(acc, [{key, val} | tail]) do
@@ -11,8 +12,8 @@ defmodule JSONAPI.Utils.IncludeTree do
       key,
       val,
       fn
-        [_first | _rest] = old_val -> deep_merge(old_val, val)
-        old_val -> Keyword.put([], old_val, val)
+        [_first | _rest] = old_val when is_list(val) -> deep_merge(old_val, val)
+        _ -> val
       end
     )
     |> deep_merge(tail)
