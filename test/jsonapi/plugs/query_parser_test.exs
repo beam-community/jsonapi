@@ -76,6 +76,12 @@ defmodule JSONAPI.QueryParserTest do
     assert filter[:author][:username] == "jason"
   end
 
+  test "parse_filter/2 handles nested filters two deep" do
+    config = struct(Config, opts: [filter: ~w(author.top_posts.text)], view: MyView)
+    filter = parse_filter(config, %{"author.top_posts.text" => "some post"}).filter
+    assert filter[:author][:top_posts][:text] == "some post"
+  end
+
   test "parse_filter/2 handles nested filters with overlap" do
     config = struct(Config, opts: [filter: ~w(author.username author.id)], view: MyView)
     filter = parse_filter(config, %{"author.username" => "jason", "author.id" => "123"}).filter
@@ -97,6 +103,7 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_include(config, "author").include == [:author]
     assert parse_include(config, "comments,author").include == [:comments, :author]
     assert parse_include(config, "comments.user").include == [comments: :user]
+    assert parse_include(config, "comments.user.top_posts").include == [comments: [user: :top_posts]]
     assert parse_include(config, "best_friends").include == [:best_friends]
     assert parse_include(config, "author.top-posts").include == [author: :top_posts]
     assert parse_include(config, "").include == []
@@ -106,6 +113,12 @@ defmodule JSONAPI.QueryParserTest do
     config = struct(Config, view: MyView, opts: [include: ~w(comments.user)])
 
     assert parse_include(config, "comments.user").include == [comments: :user]
+  end
+
+  test "parse_include/2 succeds given valid twice-nested include specified in allowed list" do
+    config = struct(Config, view: MyView, opts: [include: ~w(comments.user.top_posts)])
+
+    assert parse_include(config, "comments.user.top_posts").include == [comments: [user: :top_posts]]
   end
 
   test "parse_include/2 errors with invalid includes" do
