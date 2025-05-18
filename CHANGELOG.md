@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.9.0](https://github.com/beam-community/jsonapi/compare/v1.8.4...v1.9.0) (2025-05-18)
+
+
+### Features
+
+* support nested filtering in the query parser ([#366](https://github.com/beam-community/jsonapi/issues/366)) ([63d297c](https://github.com/beam-community/jsonapi/commit/63d297c068bdbe1ef7984e2713bf0fbb71395b9e))
+
 ## [1.8.4](https://github.com/beam-community/jsonapi/compare/v1.8.3...v1.8.4)
 
 

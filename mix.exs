@@ -4,7 +4,7 @@ defmodule JSONAPI.Mixfile do
   def project do
     [
       app: :jsonapi,
-      version: "1.8.4",
+      version: "1.9.0",
       package: package(),
       compilers: compilers(Mix.env()),
       description: description(),
