@@ -3,6 +3,22 @@ defmodule JSONAPI.Utils.IncludeTree do
   Internal utility for building trees of resource relationships
   """
 
+  @spec deep_merge(Keyword.t(), Keyword.t()) :: Keyword.t()
+  def deep_merge(acc, []), do: acc
+
+  def deep_merge(acc, [{key, val} | tail]) do
+    acc
+    |> Keyword.update(
+      key,
+      val,
+      fn
+        [_first | _rest] = old_val when is_list(val) -> deep_merge(old_val, val)
+        _ -> val
+      end
+    )
+    |> deep_merge(tail)
+  end
+
   @spec put_as_tree(term(), term(), term()) :: term()
   def put_as_tree(acc, items, val) do
     [head | tail] = Enum.reverse(items)
