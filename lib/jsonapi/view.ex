@@ -114,6 +114,82 @@ defmodule JSONAPI.View do
   and then use the `[user: {UserView, :include}]` syntax in your `includes` function. This tells
   the serializer to *always* include if its loaded.
 
+  ## Polymorphic Resources
+
+  Polymorphic resources allow you to serialize different types of data with the same view module.
+  This is useful when you have a collection of resources that share some common attributes but
+  have different types, fields, or relationships based on the specific data being serialized.
+
+  To enable polymorphic resources, set `polymorphic_resource?: true` when using the JSONAPI.View:
+
+      defmodule MediaView do
+        use JSONAPI.View, polymorphic_resource?: true
+
+        def polymorphic_type(%{type: "image"}), do: "image"
+        def polymorphic_type(%{type: "video"}), do: "video"
+        def polymorphic_type(%{type: "audio"}), do: "audio"
+
+        def polymorphic_fields(%{type: "image"}), do: [:id, :url, :width, :height, :alt_text]
+        def polymorphic_fields(%{type: "video"}), do: [:id, :url, :duration, :thumbnail]
+        def polymorphic_fields(%{type: "audio"}), do: [:id, :url, :duration, :bitrate]
+
+        def polymorphic_relationships(%{type: "image"}), do: [album: AlbumView]
+        def polymorphic_relationships(%{type: "video"}), do: [playlist: PlaylistView, author: UserView]
+        def polymorphic_relationships(%{type: "audio"}), do: [album: AlbumView, artist: ArtistView]
+      end
+
+  ### Required Callbacks for Polymorphic Resources
+
+  When using polymorphic resources, you must implement these callbacks instead of their non-polymorphic counterparts:
+
+  - `polymorphic_type/1` - Returns the JSONAPI type string based on the data
+  - `polymorphic_fields/1` - Returns the list of fields to serialize based on the data
+
+  ### Optional Callbacks for Polymorphic Resources
+
+  - `polymorphic_relationships/1` - Returns relationships specific to the data type (defaults to empty list)
+
+  ### Example Usage
+
+  With the above `MediaView`, you can serialize different media types:
+
+      # Image data
+      image = %{id: 1, type: "image", url: "/image.jpg", width: 800, height: 600, alt_text: "A photo"}
+      MediaView.show(image, conn)
+      # => %{data: %{id: "1", type: "image", attributes: %{url: "/image.jpg", width: 800, height: 600, alt_text: "A photo"}}}
+
+      # Video data
+      video = %{id: 2, type: "video", url: "/video.mp4", duration: 120, thumbnail: "/thumb.jpg"}
+      MediaView.show(video, conn)
+      # => %{data: %{id: "2", type: "video", attributes: %{url: "/video.mp4", duration: 120, thumbnail: "/thumb.jpg"}}}
+
+  ### Custom Field Functions
+
+  You can still define custom field functions that work across all polymorphic types:
+
+      defmodule MediaView do
+        use JSONAPI.View, polymorphic_resource?: true
+
+        def file_size(data, _conn) do
+          # Custom logic to calculate file size
+          calculate_file_size(data.url)
+        end
+
+        def polymorphic_fields(%{type: "image"}), do: [:id, :url, :file_size, :width, :height]
+        def polymorphic_fields(%{type: "video"}), do: [:id, :url, :file_size, :duration]
+        # ... other polymorphic implementations
+      end
+
+  ### Notes
+
+  - When `polymorphic_resource?: true` is set, the regular `type/0`, `fields/0`, and `relationships/0`
+    functions are not used and will return default values (nil or empty list)
+  - The polymorphic callbacks receive the actual data as their first argument, allowing you to
+    determine the appropriate type, fields, and relationships dynamically
+  - All other view functionality (links, meta, hidden fields, etc.) works the same way
+  - **Important**: Polymorphic resources currently do not work for deserializing data from POST
+    requests yet. They are only supported for serialization (rendering responses)
+
   ## Options
     * `:host` (binary) - Allows the `host` to be overridden for generated URLs. Defaults to `host` of the supplied `conn`.
 
