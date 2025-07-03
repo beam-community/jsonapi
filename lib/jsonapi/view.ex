@@ -145,7 +145,7 @@ defmodule JSONAPI.View do
   @callback id(data()) :: resource_id() | nil
   @callback fields() :: [field()]
   @callback get_field(field(), data(), Conn.t()) :: any()
-  @callback hidden(data()) :: [field()]
+  @callback hidden(data(), Conn.t()) :: [field()]
   @callback links(data(), Conn.t()) :: links()
   @callback meta(data(), Conn.t()) :: meta() | nil
   @callback namespace() :: String.t()
@@ -209,7 +209,7 @@ defmodule JSONAPI.View do
       def fields, do: raise("Need to implement fields/0")
 
       @impl View
-      def hidden(_data), do: []
+      def hidden(_data, _conn), do: []
 
       @impl View
       def links(_data, _conn), do: %{}
@@ -395,7 +395,7 @@ defmodule JSONAPI.View do
       |> requested_fields_for_type(conn)
       |> net_fields_for_type(view.fields())
 
-    hidden_fields = view.hidden(data)
+    hidden_fields = view.hidden(data, conn)
 
     all_fields -- hidden_fields
   end
