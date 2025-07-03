@@ -8,11 +8,11 @@ defmodule JSONAPI.ViewTest do
       [:title, :body]
     end
 
-    def hidden(%{title: "Hidden body"}) do
+    def hidden(%{title: "Hidden body"}, _) do
       [:body]
     end
 
-    def hidden(_), do: []
+    def hidden(_, _), do: []
   end
 
   defmodule CommentView do
@@ -34,7 +34,7 @@ defmodule JSONAPI.ViewTest do
       "#{user.first_name} #{user.last_name}"
     end
 
-    def hidden(_data) do
+    def hidden(_data, _conn) do
       [:password]
     end
   end
