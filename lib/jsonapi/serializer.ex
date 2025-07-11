@@ -58,11 +58,11 @@ defmodule JSONAPI.Serializer do
   end
 
   def encode_data(view, data, conn, query_includes, options) do
-    valid_includes = get_includes(view, query_includes)
+    valid_includes = get_includes(view, query_includes, data)
 
     encoded_data = %{
       id: view.id(data),
-      type: view.type(),
+      type: view.resource_type(data),
       attributes: transform_fields(view.attributes(data, conn)),
       relationships: %{}
     }
@@ -80,7 +80,8 @@ defmodule JSONAPI.Serializer do
 
   @spec encode_relationships(Conn.t(), document(), tuple(), list()) :: tuple()
   def encode_relationships(conn, doc, {view, data, _, _} = view_info, options) do
-    view.relationships()
+    data
+    |> view.resource_relationships()
     |> Enum.filter(&assoc_loaded?(Map.get(data, get_data_key(&1))))
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2, options))
   end
@@ -255,7 +256,7 @@ defmodule JSONAPI.Serializer do
 
   def encode_rel_data(view, data) do
     %{
-      type: view.type(),
+      type: view.resource_type(data),
       id: view.id(data)
     }
   end
@@ -273,13 +274,13 @@ defmodule JSONAPI.Serializer do
   defp assoc_loaded?(%{__struct__: Ecto.Association.NotLoaded}), do: false
   defp assoc_loaded?(_association), do: true
 
-  defp get_includes(view, query_includes) do
-    includes = get_default_includes(view) ++ get_query_includes(view, query_includes)
+  defp get_includes(view, query_includes, data) do
+    includes = get_default_includes(view, data) ++ get_query_includes(view, query_includes, data)
     Enum.uniq(includes)
   end
 
-  defp get_default_includes(view) do
-    rels = view.relationships()
+  defp get_default_includes(view, data) do
+    rels = view.resource_relationships(data)
 
     Enum.filter(rels, &include_rel_by_default/1)
   end
@@ -290,8 +291,8 @@ defmodule JSONAPI.Serializer do
     include_by_default
   end
 
-  defp get_query_includes(view, query_includes) do
-    rels = view.relationships()
+  defp get_query_includes(view, query_includes, data) do
+    rels = view.resource_relationships(data)
 
     query_includes
     |> Enum.map(fn
