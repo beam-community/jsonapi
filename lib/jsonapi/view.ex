@@ -114,6 +114,82 @@ defmodule JSONAPI.View do
   and then use the `[user: {UserView, :include}]` syntax in your `includes` function. This tells
   the serializer to *always* include if its loaded.
 
+  ## Polymorphic Resources
+
+  Polymorphic resources allow you to serialize different types of data with the same view module.
+  This is useful when you have a collection of resources that share some common attributes but
+  have different types, fields, or relationships based on the specific data being serialized.
+
+  To enable polymorphic resources, set `polymorphic_resource?: true` when using the JSONAPI.View:
+
+      defmodule MediaView do
+        use JSONAPI.View, polymorphic_resource?: true
+
+        def polymorphic_type(%{type: "image"}), do: "image"
+        def polymorphic_type(%{type: "video"}), do: "video"
+        def polymorphic_type(%{type: "audio"}), do: "audio"
+
+        def polymorphic_fields(%{type: "image"}), do: [:id, :url, :width, :height, :alt_text]
+        def polymorphic_fields(%{type: "video"}), do: [:id, :url, :duration, :thumbnail]
+        def polymorphic_fields(%{type: "audio"}), do: [:id, :url, :duration, :bitrate]
+
+        def polymorphic_relationships(%{type: "image"}), do: [album: AlbumView]
+        def polymorphic_relationships(%{type: "video"}), do: [playlist: PlaylistView, author: UserView]
+        def polymorphic_relationships(%{type: "audio"}), do: [album: AlbumView, artist: ArtistView]
+      end
+
+  ### Required Callbacks for Polymorphic Resources
+
+  When using polymorphic resources, you must implement these callbacks instead of their non-polymorphic counterparts:
+
+  - `polymorphic_type/1` - Returns the JSONAPI type string based on the data
+  - `polymorphic_fields/1` - Returns the list of fields to serialize based on the data
+
+  ### Optional Callbacks for Polymorphic Resources
+
+  - `polymorphic_relationships/1` - Returns relationships specific to the data type (defaults to empty list)
+
+  ### Example Usage
+
+  With the above `MediaView`, you can serialize different media types:
+
+      # Image data
+      image = %{id: 1, type: "image", url: "/image.jpg", width: 800, height: 600, alt_text: "A photo"}
+      MediaView.show(image, conn)
+      # => %{data: %{id: "1", type: "image", attributes: %{url: "/image.jpg", width: 800, height: 600, alt_text: "A photo"}}}
+
+      # Video data
+      video = %{id: 2, type: "video", url: "/video.mp4", duration: 120, thumbnail: "/thumb.jpg"}
+      MediaView.show(video, conn)
+      # => %{data: %{id: "2", type: "video", attributes: %{url: "/video.mp4", duration: 120, thumbnail: "/thumb.jpg"}}}
+
+  ### Custom Field Functions
+
+  You can still define custom field functions that work across all polymorphic types:
+
+      defmodule MediaView do
+        use JSONAPI.View, polymorphic_resource?: true
+
+        def file_size(data, _conn) do
+          # Custom logic to calculate file size
+          calculate_file_size(data.url)
+        end
+
+        def polymorphic_fields(%{type: "image"}), do: [:id, :url, :file_size, :width, :height]
+        def polymorphic_fields(%{type: "video"}), do: [:id, :url, :file_size, :duration]
+        # ... other polymorphic implementations
+      end
+
+  ### Notes
+
+  - When `polymorphic_resource?: true` is set, the regular `type/0`, `fields/0`, and `relationships/0`
+    functions are not used and will return default values (nil or empty list)
+  - The polymorphic callbacks receive the actual data as their first argument, allowing you to
+    determine the appropriate type, fields, and relationships dynamically
+  - All other view functionality (links, meta, hidden fields, etc.) works the same way
+  - **Important**: Polymorphic resources currently do not work for deserializing data from POST
+    requests yet. They are only supported for serialization (rendering responses)
+
   ## Options
     * `:host` (binary) - Allows the `host` to be overridden for generated URLs. Defaults to `host` of the supplied `conn`.
 
@@ -140,10 +216,13 @@ defmodule JSONAPI.View do
   @type options :: keyword()
   @type resource_id :: String.t()
   @type resource_type :: String.t()
+  @type resource_relationships :: [{atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}]
+  @type resource_fields :: [field()]
 
   @callback attributes(data(), Conn.t() | nil) :: map()
   @callback id(data()) :: resource_id() | nil
-  @callback fields() :: [field()]
+  @callback fields() :: resource_fields()
+  @callback polymorphic_fields(data()) :: resource_fields()
   @callback get_field(field(), data(), Conn.t()) :: any()
   @callback hidden(data()) :: [field()]
   @callback links(data(), Conn.t()) :: links()
@@ -152,10 +231,10 @@ defmodule JSONAPI.View do
   @callback pagination_links(data(), Conn.t(), Paginator.page(), Paginator.options()) ::
               Paginator.links()
   @callback path() :: String.t() | nil
-  @callback relationships() :: [
-              {atom(), t() | {t(), :include} | {atom(), t()} | {atom(), t(), :include}}
-            ]
-  @callback type() :: resource_type()
+  @callback relationships() :: resource_relationships()
+  @callback polymorphic_relationships(data()) :: resource_relationships()
+  @callback type() :: resource_type() | nil
+  @callback polymorphic_type(data()) :: resource_type() | nil
   @callback url_for(data(), Conn.t() | nil) :: String.t()
   @callback url_for_pagination(data(), Conn.t(), Paginator.params()) :: String.t()
   @callback url_for_rel(term(), String.t(), Conn.t() | nil) :: String.t()
@@ -167,7 +246,8 @@ defmodule JSONAPI.View do
     {type, opts} = Keyword.pop(opts, :type)
     {namespace, opts} = Keyword.pop(opts, :namespace)
     {path, opts} = Keyword.pop(opts, :path)
-    {paginator, _opts} = Keyword.pop(opts, :paginator)
+    {paginator, opts} = Keyword.pop(opts, :paginator)
+    {polymorphic_resource?, _opts} = Keyword.pop(opts, :polymorphic_resource?, false)
 
     quote do
       alias JSONAPI.{Serializer, View}
@@ -178,6 +258,7 @@ defmodule JSONAPI.View do
       @namespace unquote(namespace)
       @path unquote(path)
       @paginator unquote(paginator)
+      @polymorphic_resource? unquote(polymorphic_resource?)
 
       @impl View
       def id(nil), do: nil
@@ -205,8 +286,21 @@ defmodule JSONAPI.View do
         end)
       end
 
-      @impl View
-      def fields, do: raise("Need to implement fields/0")
+      cond do
+        !@polymorphic_resource? ->
+          @impl View
+          def fields, do: raise("Need to implement fields/0")
+
+          @impl View
+          def polymorphic_fields(_data), do: []
+
+        @polymorphic_resource? ->
+          @impl View
+          def fields, do: []
+
+          @impl View
+          def polymorphic_fields(_data), do: raise("Need to implement polymorphic_fields/1")
+      end
 
       @impl View
       def hidden(_data), do: []
@@ -242,10 +336,29 @@ defmodule JSONAPI.View do
       def relationships, do: []
 
       @impl View
-      if @resource_type do
-        def type, do: @resource_type
-      else
-        def type, do: raise("Need to implement type/0")
+      def polymorphic_relationships(_data), do: []
+
+      cond do
+        @resource_type ->
+          @impl View
+          def type, do: @resource_type
+
+          @impl View
+          def polymorphic_type(_data), do: nil
+
+        !@polymorphic_resource? ->
+          @impl View
+          def type, do: raise("Need to implement type/0")
+
+          @impl View
+          def polymorphic_type(_data), do: nil
+
+        @polymorphic_resource? ->
+          @impl View
+          def type, do: nil
+
+          @impl View
+          def polymorphic_type(_data), do: raise("Need to implement polymorphic_type/1")
       end
 
       @impl View
@@ -263,6 +376,30 @@ defmodule JSONAPI.View do
       @impl View
       def visible_fields(data, conn),
         do: View.visible_fields(__MODULE__, data, conn)
+
+      def resource_fields(data) do
+        if @polymorphic_resource? do
+          polymorphic_fields(data)
+        else
+          fields()
+        end
+      end
+
+      def resource_type(data) do
+        if @polymorphic_resource? do
+          polymorphic_type(data)
+        else
+          type()
+        end
+      end
+
+      def resource_relationships(data) do
+        if @polymorphic_resource? do
+          polymorphic_relationships(data)
+        else
+          relationships()
+        end
+      end
 
       defoverridable View
 
@@ -336,11 +473,11 @@ defmodule JSONAPI.View do
 
   @spec url_for(t(), term(), Conn.t() | nil) :: String.t()
   def url_for(view, data, nil = _conn) when is_nil(data) or is_list(data),
-    do: URI.to_string(%URI{path: Enum.join([view.namespace(), path_for(view)], "/")})
+    do: URI.to_string(%URI{path: Enum.join([view.namespace(), path_for(view, data)], "/")})
 
   def url_for(view, data, nil = _conn) do
     URI.to_string(%URI{
-      path: Enum.join([view.namespace(), path_for(view), view.id(data)], "/")
+      path: Enum.join([view.namespace(), path_for(view, data), view.id(data)], "/")
     })
   end
 
@@ -349,7 +486,7 @@ defmodule JSONAPI.View do
       scheme: scheme(conn),
       host: host(conn),
       port: port(conn),
-      path: Enum.join([view.namespace(), path_for(view)], "/")
+      path: Enum.join([view.namespace(), path_for(view, data)], "/")
     })
   end
 
@@ -358,7 +495,7 @@ defmodule JSONAPI.View do
       scheme: scheme(conn),
       host: host(conn),
       port: port(conn),
-      path: Enum.join([view.namespace(), path_for(view), view.id(data)], "/")
+      path: Enum.join([view.namespace(), path_for(view, data), view.id(data)], "/")
     })
   end
 
@@ -392,8 +529,8 @@ defmodule JSONAPI.View do
   def visible_fields(view, data, conn) do
     all_fields =
       view
-      |> requested_fields_for_type(conn)
-      |> net_fields_for_type(view.fields())
+      |> requested_fields_for_type(data, conn)
+      |> net_fields_for_type(view.resource_fields(data))
 
     hidden_fields = view.hidden(data)
 
@@ -420,11 +557,11 @@ defmodule JSONAPI.View do
     |> URI.to_string()
   end
 
-  defp requested_fields_for_type(view, %Conn{assigns: %{jsonapi_query: %{fields: fields}}}) do
-    fields[view.type()]
+  defp requested_fields_for_type(view, data, %Conn{assigns: %{jsonapi_query: %{fields: fields}}}) do
+    fields[view.resource_type(data)]
   end
 
-  defp requested_fields_for_type(_view, _conn), do: nil
+  defp requested_fields_for_type(_view, _data, _conn), do: nil
 
   defp host(%Conn{host: host}),
     do: Application.get_env(:jsonapi, :host, host)
@@ -438,5 +575,5 @@ defmodule JSONAPI.View do
   defp scheme(%Conn{scheme: scheme}),
     do: Application.get_env(:jsonapi, :scheme, to_string(scheme))
 
-  defp path_for(view), do: view.path() || view.type()
+  defp path_for(view, data), do: view.path() || view.resource_type(data)
 end
