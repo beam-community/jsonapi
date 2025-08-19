@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.10.0](https://github.com/beam-community/jsonapi/compare/v1.9.0...v1.10.0) (2025-08-19)
+
+
+### Features
+
+* add polymorphic resource support ([#359](https://github.com/beam-community/jsonapi/issues/359)) ([0ea2996](https://github.com/beam-community/jsonapi/commit/0ea2996a5317d9db84e9fac65e9ce7431f726ba4))
+
 ## [1.9.0](https://github.com/beam-community/jsonapi/compare/v1.8.4...v1.9.0) (2025-05-18)
 
 
