@@ -55,6 +55,38 @@ defmodule JSONAPI.ViewTest do
     def get_field(field, _data, _conn), do: "#{field}!"
   end
 
+  defmodule PolymorphicDataOne do
+    defstruct [:some_field]
+  end
+
+  defmodule PolymorphicDataTwo do
+    defstruct [:some_other_field]
+  end
+
+  defmodule PolymorphicView do
+    use JSONAPI.View, polymorphic_resource?: true
+
+    def polymorphic_type(data) do
+      case data do
+        %PolymorphicDataOne{} ->
+          "polymorphic_data_one"
+
+        %PolymorphicDataTwo{} ->
+          "polymorphic_data_one"
+      end
+    end
+
+    def polymorphic_fields(data) do
+      case data do
+        %PolymorphicDataOne{} ->
+          [:some_field]
+
+        %PolymorphicDataTwo{} ->
+          [:some_other_field]
+      end
+    end
+  end
+
   setup do
     Application.put_env(:jsonapi, :field_transformation, :underscore)
     Application.put_env(:jsonapi, :namespace, "/other-api")
@@ -69,6 +101,20 @@ defmodule JSONAPI.ViewTest do
 
   test "type/0 when specified via using macro" do
     assert PostView.type() == "posts"
+  end
+
+  describe "resource_type/1" do
+    test "equals result of type/0 if resource is not polymorphic" do
+      assert PostView.type() == PostView.resource_type(%{})
+    end
+
+    test "equals result of polymorphic_type/1 if resource is polymorphic" do
+      assert PolymorphicView.polymorphic_type(%PolymorphicDataOne{}) ==
+               PolymorphicView.resource_type(%PolymorphicDataOne{})
+
+      assert PolymorphicView.polymorphic_type(%PolymorphicDataTwo{}) ==
+               PolymorphicView.resource_type(%PolymorphicDataTwo{})
+    end
   end
 
   describe "namespace/0" do
@@ -313,5 +359,14 @@ defmodule JSONAPI.ViewTest do
              static_field: "static_field!",
              static_fun: "static_fun/2"
            } == DynamicView.attributes(data, conn)
+  end
+
+  test "attributes/2 can return polymorphic fields" do
+    data = %PolymorphicDataTwo{some_other_field: "foo"}
+    conn = %Plug.Conn{assigns: %{jsonapi_query: %JSONAPI.Config{}}}
+
+    assert %{
+             some_other_field: "foo"
+           } == PolymorphicView.attributes(data, conn)
   end
 end
