@@ -248,6 +248,7 @@ defmodule JSONAPI.View do
     {path, opts} = Keyword.pop(opts, :path)
     {paginator, opts} = Keyword.pop(opts, :paginator)
     {polymorphic_resource?, _opts} = Keyword.pop(opts, :polymorphic_resource?, false)
+    {skip_missing_keys, _opts} = Keyword.pop(opts, :skip_missing_keys, false)
 
     quote do
       alias JSONAPI.{Serializer, View}
@@ -259,6 +260,7 @@ defmodule JSONAPI.View do
       @path unquote(path)
       @paginator unquote(paginator)
       @polymorphic_resource? unquote(polymorphic_resource?)
+      @skip_missing_keys unquote(skip_missing_keys)
 
       @impl View
       def id(nil), do: nil
@@ -278,11 +280,21 @@ defmodule JSONAPI.View do
               function_exported?(__MODULE__, :get_field, 3) ->
                 apply(__MODULE__, :get_field, [field, data, conn])
 
+              Map.has_key?(data, field) ->
+                Map.get(data, field)
+
+              @skip_missing_keys ->
+                :skip
+
               true ->
                 Map.get(data, field)
             end
 
-          Map.put(intermediate_map, field, value)
+          if value == :skip do
+            intermediate_map
+          else
+            Map.put(intermediate_map, field, value)
+          end
         end)
       end
 

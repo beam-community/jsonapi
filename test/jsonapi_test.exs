@@ -11,9 +11,9 @@ defmodule JSONAPITest do
   }
 
   defmodule PostView do
-    use JSONAPI.View
+    use JSONAPI.View, skip_missing_keys: true
 
-    def fields, do: [:text, :body, :excerpt, :first_character]
+    def fields, do: [:text, :body, :excerpt, :first_character, :maybe_missing_key]
     def type, do: "mytype"
 
     def relationships do
@@ -154,6 +154,40 @@ defmodule JSONAPITest do
     assert Map.get(author, "id") == "2"
 
     assert Map.has_key?(json, "links")
+  end
+
+  test "does not include keys that are missing in data" do
+    conn =
+      :get
+      |> conn("/posts")
+      |> Plug.Conn.assign(:data, [@default_data])
+      |> Plug.Conn.assign(:meta, %{total_pages: 1})
+      |> Plug.Conn.fetch_query_params()
+      |> MyPostPlug.call([])
+
+    json = Jason.decode!(conn.resp_body)
+
+    data_list = Map.get(json, "data")
+    [data | _] = data_list
+    refute Map.has_key?(data["attributes"], "maybe_missing_key")
+  end
+
+  test "does include 'maybe_missing_key' if not configured" do
+    data = Map.put(@default_data, :maybe_missing_key, "foo")
+
+    conn =
+      :get
+      |> conn("/posts")
+      |> Plug.Conn.assign(:data, [data])
+      |> Plug.Conn.assign(:meta, %{total_pages: 1})
+      |> Plug.Conn.fetch_query_params()
+      |> MyPostPlug.call([])
+
+    json = Jason.decode!(conn.resp_body)
+
+    data_list = Map.get(json, "data")
+    [data | _] = data_list
+    assert Map.has_key?(data["attributes"], "maybe_missing_key")
   end
 
   test "handles includes properly" do
