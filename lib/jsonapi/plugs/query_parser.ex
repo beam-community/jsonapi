@@ -80,8 +80,8 @@ defmodule JSONAPI.QueryParser do
   import JSONAPI.Utils.IncludeTree
   import JSONAPI.Utils.String, only: [underscore: 1]
 
-  alias JSONAPI.Exceptions.InvalidQuery
   alias JSONAPI.{Config, Deprecation}
+  alias JSONAPI.Exceptions.InvalidQuery
   alias Plug.Conn
 
   @impl Plug
