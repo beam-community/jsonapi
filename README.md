@@ -1,6 +1,6 @@
 # JSONAPI Elixir
 
-[![Build](https://github.com/beam-community/jsonapi/actions/workflows/ci.yml/badge.svg)](https://github.com/beam-community/jsonapi/actions/workflows/ci.yml)
+[![Continuous Integration](https://github.com/beam-community/jsonapi/actions/workflows/ci.yaml/badge.svg)](https://github.com/beam-community/jsonapi/actions/workflows/ci.yaml)
 [![Hex.pm version](https://img.shields.io/hexpm/v/jsonapi.svg)](https://hex.pm/packages/jsonapi)
 [![Hex.pm downloads](https://img.shields.io/hexpm/dt/jsonapi.svg)](https://hex.pm/packages/jsonapi)
 [![Hex.pm weekly downloads](https://img.shields.io/hexpm/dw/jsonapi.svg)](https://hex.pm/packages/jsonapi)
@@ -42,7 +42,7 @@ Add the following line to your `mix.deps` file with the desired version to insta
 ```elixir
 defp deps do [
   ...
-  {:jsonapi, "~> x.x.x"}
+  {:jsonapi, "~> 1.10.0"}
   ...
 ]
 ```
