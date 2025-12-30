@@ -3,6 +3,21 @@
 ## NEXT
 ...
 
+## [1.9.0](https://github.com/beam-community/jsonapi/compare/v1.8.1...v1.9.0) (2025-12-30)
+
+
+### Features
+
+* Add polymorphic resource support ([#359](https://github.com/beam-community/jsonapi/issues/359)) ([0ea2996](https://github.com/beam-community/jsonapi/commit/0ea2996a5317d9db84e9fac65e9ce7431f726ba4))
+* Support nested filtering in the query parser ([#366](https://github.com/beam-community/jsonapi/issues/366)) ([63d297c](https://github.com/beam-community/jsonapi/commit/63d297c068bdbe1ef7984e2713bf0fbb71395b9e))
+
+
+### Bug Fixes
+
+* Camelize when prefix is camelized already ([ae78a7d](https://github.com/beam-community/jsonapi/commit/ae78a7de4dd1960437d23b2c3177bd1cf721df4e))
+* Compiler warning for zero-arity fields function call ([b071131](https://github.com/beam-community/jsonapi/commit/b0711319d4473beab58b5bb68dac87f7b5f9daeb))
+* Compiler warnings for zero-arity funtion calls ([#335](https://github.com/beam-community/jsonapi/issues/335)) ([49ed6ab](https://github.com/beam-community/jsonapi/commit/49ed6ab453cdd7af44f608615daf147da876841a))
+
 ## [1.10.0](https://github.com/beam-community/jsonapi/compare/v1.9.0...v1.10.0) (2025-08-19)
 
 
