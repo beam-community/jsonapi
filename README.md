@@ -199,6 +199,7 @@ config :jsonapi,
   namespace: "/api",
   field_transformation: :underscore,
   remove_links: false,
+  serialize_nil_relationships: false,
   json_library: Jason,
   paginator: nil
 ```
@@ -219,6 +220,10 @@ config :jsonapi,
   `:camelize_shallow` or `:dasherize_shallow`.
 - **remove_links**. `links` data can optionally be removed from the payload via
   setting the configuration above to `true`. Defaults to `false`.
+- **serialize_nil_relationships**. By default, relationships on a resource that
+  are `nil` will be omitted during serialization. Setting this to `true` will
+  serialize these relationships, provided they are loaded on the resource.
+  Defaults to `false`.
 - **json_library**. Defaults to [Jason](https://hex.pm/packages/jason).
 - **paginator**. Module implementing pagination links generation. Defaults to `nil`.
 
