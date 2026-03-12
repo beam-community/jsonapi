@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.11.0](https://github.com/beam-community/jsonapi/compare/v1.10.0...v1.11.0) (2026-03-12)
+
+
+### Features
+
+* Make the serialization of nil relationships configurable ([#403](https://github.com/beam-community/jsonapi/issues/403)) ([c9042fa](https://github.com/beam-community/jsonapi/commit/c9042fa997ecd0b2783a00da831527d62b24fab1))
+
 ## [1.10.0](https://github.com/beam-community/jsonapi/compare/v1.9.0...v1.10.0) (2025-08-19)
 
 
