@@ -202,6 +202,9 @@ defmodule JSONAPI.SerializerTest do
 
         %PolymorphicDataTwo{} ->
           "polymorphic_data_one"
+
+        nil ->
+          nil
       end
     end
 
@@ -221,6 +224,7 @@ defmodule JSONAPI.SerializerTest do
 
     on_exit(fn ->
       Application.delete_env(:jsonapi, :field_transformation)
+      Application.delete_env(:jsonapi, :serialize_nil_relationships)
     end)
 
     {:ok, []}
@@ -360,7 +364,7 @@ defmodule JSONAPI.SerializerTest do
     assert Enum.count(encoded[:included]) == 1
   end
 
-  test "serialize handles a nil relationship" do
+  test "serialize excludes a nil relationship by default" do
     data = %{
       id: 1,
       text: "Hello",
@@ -380,7 +384,92 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
+    refute Map.has_key?(encoded_data[:relationships], :best_comments)
     assert map_size(encoded_data[:relationships]) == 1
+
+    assert Enum.count(encoded[:included]) == 1
+  end
+
+  test "serialize excludes unloaded ecto association by default" do
+    data = %{
+      id: 1,
+      text: "Hello",
+      body: "Hello world",
+      author: %{id: 2, username: "jason"},
+      best_comments: %{__struct__: Ecto.Association.NotLoaded}
+    }
+
+    encoded = Serializer.serialize(PostView, data, nil)
+
+    encoded_data = encoded[:data]
+    assert encoded_data[:id] == PostView.id(data)
+    assert encoded_data[:type] == PostView.type()
+
+    attributes = encoded_data[:attributes]
+    assert attributes[:text] == data[:text]
+    assert attributes[:body] == data[:body]
+
+    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
+    refute Map.has_key?(encoded_data[:relationships], :best_comments)
+    assert map_size(encoded_data[:relationships]) == 1
+
+    assert Enum.count(encoded[:included]) == 1
+  end
+
+  test "serialize includes nil relationships when configured" do
+    Application.put_env(:jsonapi, :serialize_nil_relationships, true)
+
+    data = %{
+      id: 1,
+      text: "Hello",
+      body: "Hello world",
+      author: %{id: 2, username: "jason"},
+      best_comments: nil
+    }
+
+    encoded = Serializer.serialize(PostView, data, nil)
+
+    encoded_data = encoded[:data]
+    assert encoded_data[:id] == PostView.id(data)
+    assert encoded_data[:type] == PostView.type()
+
+    attributes = encoded_data[:attributes]
+    assert attributes[:text] == data[:text]
+    assert attributes[:body] == data[:body]
+
+    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
+    assert map_size(encoded_data[:relationships]) == 3
+    assert encoded_data[:relationships][:best_comments][:data] == nil
+    assert encoded_data[:relationships][:polymorphics][:data] == nil
+
+    assert Enum.count(encoded[:included]) == 1
+  end
+
+  test "serialize excludes unloaded ecto association when serialize nil relationships configured" do
+    Application.put_env(:jsonapi, :serialize_nil_relationships, true)
+
+    data = %{
+      id: 1,
+      text: "Hello",
+      body: "Hello world",
+      author: %{id: 2, username: "jason"},
+      best_comments: %{__struct__: Ecto.Association.NotLoaded}
+    }
+
+    encoded = Serializer.serialize(PostView, data, nil)
+
+    encoded_data = encoded[:data]
+    assert encoded_data[:id] == PostView.id(data)
+    assert encoded_data[:type] == PostView.type()
+
+    attributes = encoded_data[:attributes]
+    assert attributes[:text] == data[:text]
+    assert attributes[:body] == data[:body]
+
+    assert encoded_data[:links][:self] == PostView.url_for(data, nil)
+    assert map_size(encoded_data[:relationships]) == 2
+    assert Map.has_key?(encoded_data[:relationships], :polymorphics)
+    refute Map.has_key?(encoded_data[:relationships], :best_comments)
 
     assert Enum.count(encoded[:included]) == 1
   end

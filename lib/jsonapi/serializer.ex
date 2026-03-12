@@ -270,7 +270,7 @@ defmodule JSONAPI.Serializer do
     |> Enum.uniq()
   end
 
-  defp assoc_loaded?(nil), do: false
+  defp assoc_loaded?(nil), do: serialize_nil_relationships?()
   defp assoc_loaded?(%{__struct__: Ecto.Association.NotLoaded}), do: false
   defp assoc_loaded?(_association), do: true
 
@@ -303,6 +303,9 @@ defmodule JSONAPI.Serializer do
   end
 
   defp remove_links?, do: Application.get_env(:jsonapi, :remove_links, false)
+
+  @spec serialize_nil_relationships? :: boolean()
+  defp serialize_nil_relationships?, do: Application.get_env(:jsonapi, :serialize_nil_relationships, false)
 
   defp transform_fields(fields) do
     case Utils.String.field_transformation() do
