@@ -330,7 +330,11 @@ defmodule JSONAPI.Serializer do
     |> List.flatten()
   end
 
-  defp add_auto_links?, do: Application.get_env(:jsonapi, :add_auto_links, true)
+  defp add_auto_links? do
+    remove_links? = Application.get_env(:jsonapi, :remove_links, false)
+
+    Application.get_env(:jsonapi, :add_auto_links, !remove_links?)
+  end
 
   @spec serialize_nil_relationships? :: boolean()
   defp serialize_nil_relationships?, do: Application.get_env(:jsonapi, :serialize_nil_relationships, false)
