@@ -198,8 +198,9 @@ config :jsonapi,
   scheme: "https",
   namespace: "/api",
   field_transformation: :underscore,
-  remove_links: false,
   serialize_nil_relationships: false,
+  remove_links: false,
+  add_auto_links: false,
   json_library: Jason,
   paginator: nil
 ```
@@ -218,12 +219,20 @@ config :jsonapi,
   `:dasherize`. If your API uses underscores (e.g. `"favorite_color": "red"`)
   set to `:underscore`. To transform only the top-level field keys,  use
   `:camelize_shallow` or `:dasherize_shallow`.
-- **remove_links**. `links` data can optionally be removed from the payload via
-  setting the configuration above to `true`. Defaults to `false`.
 - **serialize_nil_relationships**. By default, relationships on a resource that
   are `nil` will be omitted during serialization. Setting this to `true` will
   serialize these relationships, provided they are loaded on the resource.
   Defaults to `false`.
+- **remove_links**. `links` data can optionally be removed from the payload via
+  setting the configuration above to `true`. Defaults to `false`. This setting
+  removes all links, not just auto-added links.
+- **add_auto_links**. `links` data can optionally be auto-added by
+  setting the configuration above to `true`. Defaults to `true`. This setting is
+  overruled by `remove_links` for backwards compatibility -- setting both to
+  `true` results in adding links and then removing them. Only setting
+  `add_auto_links` to `true` (and leaving `remove_links` `false` as is its
+  default) will serialize your explicitly created links but not add any
+  automatically generated links on top.
 - **json_library**. Defaults to [Jason](https://hex.pm/packages/jason).
 - **paginator**. Module implementing pagination links generation. Defaults to `nil`.
 
