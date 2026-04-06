@@ -81,7 +81,7 @@ defmodule JSONAPI.Serializer do
   @spec encode_relationships(Conn.t(), document(), tuple(), list()) :: tuple()
   def encode_relationships(conn, doc, {view, data, _, _} = view_info, options) do
     data
-    |> view.resource_relationships()
+    |> view.visible_relationships(conn)
     |> Enum.filter(&assoc_loaded?(Map.get(data, get_data_key(&1))))
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2, options))
   end
@@ -314,7 +314,7 @@ defmodule JSONAPI.Serializer do
   end
 
   defp get_default_includes(view, data) do
-    rels = view.resource_relationships(data)
+    rels = view.visible_relationships(data, nil)
 
     Enum.filter(rels, &include_rel_by_default/1)
   end
@@ -326,7 +326,7 @@ defmodule JSONAPI.Serializer do
   end
 
   defp get_query_includes(view, query_includes, data) do
-    rels = view.resource_relationships(data)
+    rels = view.visible_relationships(data, nil)
 
     query_includes
     |> Enum.map(fn

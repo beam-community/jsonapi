@@ -13,6 +13,10 @@ defmodule JSONAPI.ViewTest do
     end
 
     def hidden(_), do: []
+
+    def relationships do
+      [{:comments, JSONAPI.ViewTest.CommentView}]
+    end
   end
 
   defmodule CommentView do
@@ -41,6 +45,8 @@ defmodule JSONAPI.ViewTest do
 
   defmodule CarView do
     use JSONAPI.View, type: "cars", namespace: ""
+
+    def fields, do: []
   end
 
   defmodule DynamicView do
@@ -368,5 +374,21 @@ defmodule JSONAPI.ViewTest do
     assert %{
              some_other_field: "foo"
            } == PolymorphicView.attributes(data, conn)
+  end
+
+  test "visible_relationships/2 returns all relationship fields by default" do
+    data = %{comments: [%{body: "hello"}]}
+    config = %JSONAPI.Config{}
+    conn = %Plug.Conn{assigns: %{jsonapi_query: config}}
+
+    assert [{:comments, CommentView}] = PostView.visible_relationships(data, conn)
+  end
+
+  test "visible_relationships/2 can omit relationships based on requested fields" do
+    data = %{body: "Chunky", title: "Bacon", comments: [%{body: "hello"}]}
+    config = %JSONAPI.Config{fields: %{PostView.type() => [:body]}}
+    conn = %Plug.Conn{assigns: %{jsonapi_query: config}}
+
+    assert [] = PostView.visible_relationships(data, conn)
   end
 end

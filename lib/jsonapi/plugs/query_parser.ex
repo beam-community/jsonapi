@@ -282,9 +282,9 @@ defmodule JSONAPI.QueryParser do
   @spec get_valid_fields_for_type(Config.t(), String.t()) :: list(atom())
   def get_valid_fields_for_type(%Config{view: view}, type) do
     if type == view.type() do
-      view.fields()
+      view.valid_attrs_and_rels()
     else
-      get_view_for_type(view, type).fields()
+      get_view_for_type(view, type).valid_attrs_and_rels()
     end
   end
 
