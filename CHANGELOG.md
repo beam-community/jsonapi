@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.12.0](https://github.com/beam-community/jsonapi/compare/v1.11.0...v1.12.0) (2026-04-08)
+
+
+### Features
+
+* Make auto-links optional without removing other links ([#407](https://github.com/beam-community/jsonapi/issues/407)) ([a1bcd21](https://github.com/beam-community/jsonapi/commit/a1bcd21d536b2d85ca1e20407f14bbcfaacc8e47))
+
 ## [1.11.0](https://github.com/beam-community/jsonapi/compare/v1.10.0...v1.11.0) (2026-03-12)
 
 
