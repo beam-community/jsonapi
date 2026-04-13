@@ -47,6 +47,11 @@ defmodule JSONAPI.View do
   2-arity function inside the view that takes `data` and `conn` as arguments and has
   the same name as the field it will be producing. Refer to our `fullname/2` example below.
 
+  For historical reasons, the `View` module's "fields" are actually exclusively
+  attributes. That is, although JSON:API defines fields to be both attributes
+  and relationships, you should read the `View` module's macros as `field` ->
+  `attribute` and `relationship` -> `relationship`.
+
       defmodule UserView do
         use JSONAPI.View
 
@@ -233,6 +238,7 @@ defmodule JSONAPI.View do
   @callback path() :: String.t() | nil
   @callback relationships() :: resource_relationships()
   @callback polymorphic_relationships(data()) :: resource_relationships()
+  @callback visible_relationships(data(), Conn.t() | nil) :: resource_relationships()
   @callback type() :: resource_type() | nil
   @callback polymorphic_type(data()) :: resource_type() | nil
   @callback url_for(data(), Conn.t() | nil) :: String.t()
@@ -377,6 +383,10 @@ defmodule JSONAPI.View do
       def visible_fields(data, conn),
         do: View.visible_fields(__MODULE__, data, conn)
 
+      @impl View
+      def visible_relationships(data, conn),
+        do: View.visible_relationships(__MODULE__, data, conn)
+
       def resource_fields(data) do
         if @polymorphic_resource? do
           polymorphic_fields(data)
@@ -398,6 +408,24 @@ defmodule JSONAPI.View do
           polymorphic_relationships(data)
         else
           relationships()
+        end
+      end
+
+      @doc """
+      Get valid attribute and relationship names (collectively known in
+      JSON:API as "fields", but the name "fields" is taken and left intact for
+      backwards compatibility).
+
+      This function can be used before knowing the data being serialized and as
+      a consequence it cannot perform polymorphic logic; this is the only way
+      to operate from the QueryParser Plug.
+      """
+      @spec valid_attrs_and_rels() :: [atom()]
+      def valid_attrs_and_rels do
+        if @polymorphic_resource? do
+          []
+        else
+          fields() ++ Enum.map(relationships(), fn {name, _} -> name end)
         end
       end
 
@@ -535,6 +563,22 @@ defmodule JSONAPI.View do
     hidden_fields = view.hidden(data)
 
     all_fields -- hidden_fields
+  end
+
+  @spec visible_relationships(t(), data(), Conn.t() | nil) :: resource_relationships()
+  def visible_relationships(view, data, conn) do
+    view
+    |> requested_fields_for_type(data, conn)
+    |> net_relationships_for_type(view.resource_relationships(data))
+  end
+
+  defp net_relationships_for_type(requested_fields, relationships) when requested_fields in [nil, %{}],
+    do: relationships
+
+  defp net_relationships_for_type(requested_fields, relationships) do
+    Enum.filter(relationships, fn {name, _} ->
+      Enum.any?(requested_fields, &Kernel.==(&1, name))
+    end)
   end
 
   defp net_fields_for_type(requested_fields, fields) when requested_fields in [nil, %{}],

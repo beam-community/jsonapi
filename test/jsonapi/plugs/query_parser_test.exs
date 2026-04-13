@@ -1,8 +1,8 @@
 defmodule JSONAPI.QueryParserTest do
   use ExUnit.Case
-  use Plug.Test
 
   import JSONAPI.QueryParser
+  import Plug.{Conn, Test}
 
   alias JSONAPI.Config
   alias JSONAPI.Exceptions.InvalidQuery
@@ -153,7 +153,7 @@ defmodule JSONAPI.QueryParserTest do
     assert parse_include(config, "author,comments.user").include == [:author, {:comments, :user}]
   end
 
-  test "parse_fields/2 turns a fields map into a map of validated fields" do
+  test "parse_fields/2 turns a fields map containing an attribute into a map of validated fields" do
     config = struct(Config, view: MyView)
     assert parse_fields(config, %{"mytype" => "id,text"}).fields == %{"mytype" => [:id, :text]}
   end
@@ -161,6 +161,11 @@ defmodule JSONAPI.QueryParserTest do
   test "parse_fields/2 turns an empty fields map into an empty list" do
     config = struct(Config, view: MyView)
     assert parse_fields(config, %{"mytype" => ""}).fields == %{"mytype" => []}
+  end
+
+  test "parse_fields/2 accepts relationship fields" do
+    config = struct(Config, view: MyView)
+    assert parse_fields(config, %{"mytype" => "id,author"}).fields == %{"mytype" => [:id, :author]}
   end
 
   test "parse_fields/2 raises on invalid parsing" do
