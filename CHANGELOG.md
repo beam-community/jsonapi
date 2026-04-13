@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.13.0](https://github.com/beam-community/jsonapi/compare/v1.12.0...v1.13.0) (2026-04-13)
+
+
+### Features
+
+* Add sparse fieldset support for relationships ([#416](https://github.com/beam-community/jsonapi/issues/416)) ([bce55a2](https://github.com/beam-community/jsonapi/commit/bce55a271e8b9a9992ed62708cb18c0625427907))
+
 ## [1.12.0](https://github.com/beam-community/jsonapi/compare/v1.11.0...v1.12.0) (2026-04-08)
 
 
