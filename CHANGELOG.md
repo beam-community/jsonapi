@@ -8,7 +8,8 @@
 
 ### Features
 
-* Add sparse fieldset support for relationships ([#416](https://github.com/beam-community/jsonapi/issues/416)) ([bce55a2](https://github.com/beam-community/jsonapi/commit/bce55a271e8b9a9992ed62708cb18c0625427907))
+* Add sparse fieldset support for relationships ([#408](https://github.com/beam-community/jsonapi/issues/408)) ([#410](https://github.com/beam-community/jsonapi/pull/410))
+
 
 ## [1.12.0](https://github.com/beam-community/jsonapi/compare/v1.11.0...v1.12.0) (2026-04-08)
 
