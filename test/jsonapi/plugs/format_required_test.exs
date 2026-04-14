@@ -1,6 +1,7 @@
 defmodule JSONAPI.FormatRequiredTest do
   use ExUnit.Case
-  use Plug.Test
+
+  import Plug.Test
 
   alias JSONAPI.FormatRequired
 

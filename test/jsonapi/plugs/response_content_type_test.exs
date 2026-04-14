@@ -1,6 +1,7 @@
 defmodule JSONAPI.ResponseContentTypeTest do
   use ExUnit.Case
-  use Plug.Test
+
+  import Plug.{Conn, Test}
 
   alias JSONAPI.ResponseContentType
 

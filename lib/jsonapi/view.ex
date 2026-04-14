@@ -387,28 +387,22 @@ defmodule JSONAPI.View do
       def visible_relationships(data, conn),
         do: View.visible_relationships(__MODULE__, data, conn)
 
-      def resource_fields(data) do
-        if @polymorphic_resource? do
-          polymorphic_fields(data)
-        else
-          fields()
-        end
+      if @polymorphic_resource? do
+        def resource_fields(data), do: polymorphic_fields(data)
+      else
+        def resource_fields(_data), do: fields()
       end
 
-      def resource_type(data) do
-        if @polymorphic_resource? do
-          polymorphic_type(data)
-        else
-          type()
-        end
+      if @polymorphic_resource? do
+        def resource_type(data), do: polymorphic_type(data)
+      else
+        def resource_type(_data), do: type()
       end
 
-      def resource_relationships(data) do
-        if @polymorphic_resource? do
-          polymorphic_relationships(data)
-        else
-          relationships()
-        end
+      if @polymorphic_resource? do
+        def resource_relationships(data), do: polymorphic_relationships(data)
+      else
+        def resource_relationships(_data), do: relationships()
       end
 
       @doc """
@@ -421,12 +415,10 @@ defmodule JSONAPI.View do
       to operate from the QueryParser Plug.
       """
       @spec valid_attrs_and_rels() :: [atom()]
-      def valid_attrs_and_rels do
-        if @polymorphic_resource? do
-          []
-        else
-          fields() ++ Enum.map(relationships(), fn {name, _} -> name end)
-        end
+      if @polymorphic_resource? do
+        def valid_attrs_and_rels, do: []
+      else
+        def valid_attrs_and_rels, do: fields() ++ Enum.map(relationships(), fn {name, _} -> name end)
       end
 
       defoverridable View

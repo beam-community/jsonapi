@@ -1,6 +1,7 @@
 defmodule JSONAPI.DeserializerTest do
   use ExUnit.Case
-  use Plug.Test
+
+  import Plug.Conn
 
   @ct JSONAPI.mime_type()
 
