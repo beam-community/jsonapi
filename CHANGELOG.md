@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.13.1](https://github.com/beam-community/jsonapi/compare/v1.13.0...v1.13.1) (2026-04-14)
+
+
+### Bug Fixes
+
+* Dialyzer and deprecation warnings ([#418](https://github.com/beam-community/jsonapi/issues/418)) ([d092bbc](https://github.com/beam-community/jsonapi/commit/d092bbc17a93ce9cb172dc50c164d5ddf2c00dfe))
+
 ## [1.13.0](https://github.com/beam-community/jsonapi/compare/v1.12.0...v1.13.0) (2026-04-13)
 
 
