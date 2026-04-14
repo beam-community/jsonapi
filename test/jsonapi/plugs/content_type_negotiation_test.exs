@@ -1,8 +1,8 @@
 defmodule JSONAPI.ContentTypeNegotiationTest do
   use ExUnit.Case
-  use Plug.Test
 
   import JSONAPI, only: [mime_type: 0]
+  import Plug.Test
 
   alias JSONAPI.ContentTypeNegotiation
 

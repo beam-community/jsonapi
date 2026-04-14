@@ -1,6 +1,7 @@
 defmodule JSONAPITest do
   use ExUnit.Case
-  use Plug.Test
+
+  import Plug.Test
 
   @default_data %{
     id: 1,
