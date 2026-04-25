@@ -618,6 +618,65 @@ defmodule JSONAPI.SerializerTest do
     assert Enum.count(encoded.included) == 4
   end
 
+  test "serialize uses a custom include post-processing function if provided" do
+    data = %{
+      id: 1,
+      username: "jim",
+      first_name: "Jimmy",
+      last_name: "Beam",
+      company: %{id: 2, name: "acme", industry: %{id: 4, name: "stuff"}}
+    }
+
+    conn =
+      Plug.Conn.fetch_query_params(%Plug.Conn{
+        assigns: %{
+          jsonapi_query: %Config{
+            include: [company: :industry],
+            includes_post_processor: fn included, requested ->
+              assert requested == [company: :industry]
+              Enum.filter(included, fn i -> i[:id] != "2" end)
+            end
+          }
+        }
+      })
+
+    encoded = Serializer.serialize(UserView, data, conn)
+
+    assert Enum.count(encoded.included) == 1
+  end
+
+  test "serialize deduplicates includes by default" do
+    data = [
+      %{
+        id: 1,
+        username: "jim",
+        first_name: "Jimmy",
+        last_name: "Beam",
+        company: %{id: 2, name: "acme", industry: %{id: 4, name: "stuff"}}
+      },
+      %{
+        id: 2,
+        username: "jim",
+        first_name: "Jimmy",
+        last_name: "Beam",
+        company: %{id: 3, name: "globex", industry: %{id: 4, name: "stuff"}}
+      }
+    ]
+
+    conn =
+      Plug.Conn.fetch_query_params(%Plug.Conn{
+        assigns: %{
+          jsonapi_query: %Config{
+            include: [company: :industry]
+          }
+        }
+      })
+
+    encoded = Serializer.serialize(UserView, data, conn)
+
+    assert Enum.count(encoded.included) == 3
+  end
+
   test "includes from the query when not included by default" do
     data = %{
       id: 1,
