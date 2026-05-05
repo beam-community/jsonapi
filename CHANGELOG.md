@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.14.0](https://github.com/beam-community/jsonapi/compare/v1.13.1...v1.14.0) (2026-05-05)
+
+
+### Features
+
+* Support custom includes post-processing functions ([#424](https://github.com/beam-community/jsonapi/issues/424)) ([aa4eb82](https://github.com/beam-community/jsonapi/commit/aa4eb820d6c2b1faa66ee92779fa583a0508a36d))
+
 ## [1.13.1](https://github.com/beam-community/jsonapi/compare/v1.13.0...v1.13.1) (2026-04-14)
 
 
