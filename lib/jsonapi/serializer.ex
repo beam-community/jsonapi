@@ -19,20 +19,30 @@ defmodule JSONAPI.Serializer do
   @spec serialize(View.t(), View.data(), Conn.t() | nil, View.meta() | nil, View.options()) ::
           document()
   def serialize(view, data, conn \\ nil, meta \\ nil, options \\ []) do
-    {query_includes, query_page} =
+    {query_includes, query_page, includes_post_processor} =
       case conn do
-        %Conn{assigns: %{jsonapi_query: %Config{include: include, page: page}}} ->
-          {include, page}
+        %Conn{
+          assigns: %{
+            jsonapi_query: %Config{include: include, page: page, includes_post_processor: includes_post_processor}
+          }
+        } ->
+          {include, page, includes_post_processor}
 
         _ ->
-          {[], nil}
+          {[], nil, nil}
       end
 
     {to_include, encoded_data} = encode_data(view, data, conn, query_includes, options)
 
+    post_process_includes =
+      case includes_post_processor do
+        nil -> &Enum.uniq/1
+        process -> &process.(&1, query_includes)
+      end
+
     encoded_data = %{
       data: encoded_data,
-      included: flatten_included(to_include)
+      included: flatten_included(to_include, post_process_includes)
     }
 
     encoded_data =
@@ -296,12 +306,12 @@ defmodule JSONAPI.Serializer do
   end
 
   # Flatten and unique all the included objects
-  @spec flatten_included(keyword()) :: keyword()
-  def flatten_included(included) do
+  @spec flatten_included(keyword(), (keyword() -> keyword())) :: keyword()
+  def flatten_included(included, post_process) do
     included
     |> List.flatten()
     |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
+    |> post_process.()
   end
 
   defp assoc_loaded?(nil), do: serialize_nil_relationships?()
