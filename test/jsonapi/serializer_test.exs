@@ -278,6 +278,7 @@ defmodule JSONAPI.SerializerTest do
         %{id: 5, text: "greatest comment ever", user: %{id: 4, username: "jack"}},
         %{id: 6, text: "not so great", user: %{id: 2, username: "jason"}}
       ],
+      # This intentionally singular despite the defined relationship name is plural?
       polymorphic: [
         %PolymorphicDataOne{id: 1, some_field: "foo"},
         %PolymorphicDataTwo{id: 2, some_other_field: "foo"}
@@ -299,7 +300,7 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    assert map_size(encoded_data[:relationships]) == 2
+    assert map_size(encoded_data[:relationships]) == 3
 
     assert Enum.count(encoded[:included]) == 4
   end
@@ -359,7 +360,7 @@ defmodule JSONAPI.SerializerTest do
       assert attributes[:body] == data[:body]
 
       assert enc[:links][:self] == PostView.url_for(data, conn)
-      assert map_size(enc[:relationships]) == 2
+      assert map_size(enc[:relationships]) == 3
     end)
 
     assert Enum.count(encoded[:included]) == 4
@@ -405,8 +406,10 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    assert map_size(encoded_data[:relationships]) == 2
+    assert map_size(encoded_data[:relationships]) == 3
     assert encoded_data[:relationships][:best_comments][:data] == []
+    assert %{self: _} = encoded_data[:relationships][:polymorphics][:links]
+    refute Map.has_key?(encoded_data[:relationships][:polymorphics], :data)
 
     assert Enum.count(encoded[:included]) == 1
   end
@@ -431,8 +434,8 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    refute Map.has_key?(encoded_data[:relationships], :best_comments)
-    assert map_size(encoded_data[:relationships]) == 1
+    assert map_size(encoded_data[:relationships]) == 3
+    refute Map.has_key?(encoded_data[:relationships][:best_comments], :data)
 
     assert Enum.count(encoded[:included]) == 1
   end
@@ -457,8 +460,8 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    refute Map.has_key?(encoded_data[:relationships], :best_comments)
-    assert map_size(encoded_data[:relationships]) == 1
+    assert map_size(encoded_data[:relationships]) == 3
+    refute Map.has_key?(encoded_data[:relationships][:best_comments], :data)
 
     assert Enum.count(encoded[:included]) == 1
   end
@@ -514,9 +517,9 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    assert map_size(encoded_data[:relationships]) == 2
-    assert Map.has_key?(encoded_data[:relationships], :polymorphics)
-    refute Map.has_key?(encoded_data[:relationships], :best_comments)
+    assert map_size(encoded_data[:relationships]) == 3
+    assert Map.has_key?(encoded_data[:relationships][:polymorphics], :data)
+    refute Map.has_key?(encoded_data[:relationships][:best_comments], :data)
 
     assert Enum.count(encoded[:included]) == 1
   end

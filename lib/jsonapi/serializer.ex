@@ -92,11 +92,8 @@ defmodule JSONAPI.Serializer do
   def encode_relationships(conn, doc, {view, data, _, _} = view_info, options) do
     data
     |> view.visible_relationships(conn)
-    |> Enum.filter(&assoc_loaded?(Map.get(data, get_data_key(&1))))
     |> Enum.map_reduce(doc, &build_relationships(conn, view_info, &1, &2, options))
   end
-
-  defp get_data_key(rel_config), do: elem(extrapolate_relationship_config(rel_config), 1)
 
   @spec build_relationships(Conn.t(), tuple(), term(), term(), module(), tuple(), list()) ::
           tuple()
@@ -216,11 +213,14 @@ defmodule JSONAPI.Serializer do
 
   @spec encode_relation(tuple()) :: map()
   def encode_relation({rel_view, rel_data, _rel_url, _conn} = info) do
-    data = %{
-      data: encode_rel_data(rel_view, rel_data)
-    }
+    rel_object =
+      if assoc_loaded?(rel_data) do
+        %{data: encode_rel_data(rel_view, rel_data)}
+      else
+        %{}
+      end
 
-    merge_related_links(data, info, add_auto_links?())
+    merge_related_links(rel_object, info, add_auto_links?())
   end
 
   defp merge_links(doc, data, view, conn, _page, false, _options, is_root_of_doc) do
