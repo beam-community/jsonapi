@@ -155,12 +155,19 @@ defmodule JSONAPI.ViewTest do
       assert PostView.url_for([], %Plug.Conn{}) == "http://www.example.com/api/posts"
       assert PostView.url_for([], %Plug.Conn{port: 123}) == "http://www.example.com:123/api/posts"
       assert PostView.url_for(%{id: 1}, %Plug.Conn{}) == "http://www.example.com/api/posts/1"
+    end
 
+    test "url_for_rel/2" do
       assert PostView.url_for_rel([], "comments", %Plug.Conn{}) ==
                "http://www.example.com/api/posts/relationships/comments"
 
       assert PostView.url_for_rel(%{id: 1}, "comments", %Plug.Conn{}) ==
                "http://www.example.com/api/posts/1/relationships/comments"
+    end
+
+    test "url_for_related_resource/2" do
+      assert PostView.url_for_related_resource(%{id: 1}, "comments", %Plug.Conn{}) ==
+               "http://www.example.com/api/posts/1/comments"
     end
   end
 

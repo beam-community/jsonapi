@@ -530,12 +530,13 @@ defmodule JSONAPI.SerializerTest do
       best_comments: []
     }
 
-    encoded = Serializer.serialize(PostView, data, nil)
-
-    encoded_data = encoded[:data]
-
-    assert encoded_data[:relationships][:author][:links][:self] ==
-             "/mytype/1/relationships/author"
+    assert %{
+             data: %{
+               relationships: %{
+                 author: %{links: %{self: "/mytype/1/relationships/author", related: "/mytype/1/author"}}
+               }
+             }
+           } = Serializer.serialize(PostView, data, nil)
   end
 
   test "serialize handles a relationship self link on an index request" do
