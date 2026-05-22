@@ -182,6 +182,7 @@ defmodule JSONAPI.QueryParser do
       |> Enum.map(fn field ->
         valid_sort = Keyword.get(opts, :sort, [])
         [_, direction, field] = Regex.run(~r/(-?)(\S*)/, field)
+        field = underscore(field)
 
         unless field in valid_sort do
           raise InvalidQuery, resource: config.view.type(), param: field, param_type: :sort

@@ -49,11 +49,13 @@ defmodule JSONAPI.QueryParserTest do
   end
 
   test "parse_sort/2 turns sorts into valid ecto sorts" do
-    config = struct(Config, opts: [sort: ~w(name title)], view: MyView)
+    config = struct(Config, opts: [sort: ~w(name title updated_at)], view: MyView)
     assert parse_sort(config, "name,title").sort == [asc: :name, asc: :title]
     assert parse_sort(config, "name").sort == [asc: :name]
     assert parse_sort(config, "-name").sort == [desc: :name]
     assert parse_sort(config, "name,-title").sort == [asc: :name, desc: :title]
+    assert parse_sort(config, "updatedAt").sort == [asc: :updated_at]
+    assert parse_sort(config, "-updatedAt").sort == [desc: :updated_at]
   end
 
   test "parse_sort/2 raises on invalid sorts" do
