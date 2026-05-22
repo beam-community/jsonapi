@@ -80,7 +80,7 @@ defmodule JSONAPI.QueryParserTest do
 
   test "parse_filter/2 handles nested filters two deep" do
     config = struct(Config, opts: [filter: ~w(author.top_posts.text)], view: MyView)
-    filter = parse_filter(config, %{"author.top_posts.text" => "some post"}).filter
+    filter = parse_filter(config, %{"author.topPosts.text" => "some post"}).filter
     assert filter[:author][:top_posts][:text] == "some post"
   end
 

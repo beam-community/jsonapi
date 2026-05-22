@@ -119,6 +119,7 @@ defmodule JSONAPI.QueryParser do
     opts_filter = Keyword.get(opts, :filter, [])
 
     Enum.reduce(filter, config, fn {key, val}, acc ->
+      key = underscore(key)
       check_filter_allowed!(opts_filter, key, config)
 
       keys = key |> String.split(".") |> Enum.map(&String.to_existing_atom/1)
