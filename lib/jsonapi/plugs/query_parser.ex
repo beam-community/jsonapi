@@ -65,15 +65,6 @@ defmodule JSONAPI.QueryParser do
     * `:view` - The JSONAPI View which is the basis for this plug.
     * `:sort` - List of atoms which define which fields can be sorted on.
     * `:filter` - List of atoms which define which fields can be filtered on.
-
-  ## Dasherized Fields
-
-  Note that if your API is returning dasherized fields (e.g. `"dog-breed": "Corgi"`)
-  we recommend that you include the `JSONAPI.UnderscoreParameters` Plug in your
-  API's pipeline with the `replace_query_params` option set to `true`. This will
-  underscore fields for easier operations in your code.
-
-  For more details please see `JSONAPI.UnderscoreParameters`.
   """
   @behaviour Plug
 
@@ -119,6 +110,7 @@ defmodule JSONAPI.QueryParser do
     opts_filter = Keyword.get(opts, :filter, [])
 
     Enum.reduce(filter, config, fn {key, val}, acc ->
+      key = underscore(key)
       check_filter_allowed!(opts_filter, key, config)
 
       keys = key |> String.split(".") |> Enum.map(&String.to_existing_atom/1)
