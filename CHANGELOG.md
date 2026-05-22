@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.14.1](https://github.com/beam-community/jsonapi/compare/v1.14.0...v1.14.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* Fixes parsing of sort fields with underscores ([#431](https://github.com/beam-community/jsonapi/issues/431)) ([2f00275](https://github.com/beam-community/jsonapi/commit/2f00275d7faf4e4f66e6340f5935419a0ab81d75))
+
 ## [1.14.0](https://github.com/beam-community/jsonapi/compare/v1.13.1...v1.14.0) (2026-05-05)
 
 
