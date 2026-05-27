@@ -244,6 +244,7 @@ defmodule JSONAPI.View do
   @callback url_for(data(), Conn.t() | nil) :: String.t()
   @callback url_for_pagination(data(), Conn.t(), Paginator.params()) :: String.t()
   @callback url_for_rel(term(), String.t(), Conn.t() | nil) :: String.t()
+  @callback url_for_rr(term(), String.t(), Conn.t() | nil) :: String.t()
   @callback visible_fields(data(), Conn.t() | nil) :: list(atom)
 
   @optional_callbacks [get_field: 3]
@@ -378,6 +379,10 @@ defmodule JSONAPI.View do
       @impl View
       def url_for_rel(data, rel_type, conn),
         do: View.url_for_rel(__MODULE__, data, rel_type, conn)
+
+      @impl View
+      def url_for_rr(data, rel_type, conn),
+        do: View.url_for_rr(__MODULE__, data, rel_type, conn)
 
       @impl View
       def visible_fields(data, conn),
@@ -522,6 +527,11 @@ defmodule JSONAPI.View do
   @spec url_for_rel(t(), data(), resource_type(), Conn.t() | nil) :: String.t()
   def url_for_rel(view, data, rel_type, conn) do
     "#{url_for(view, data, conn)}/relationships/#{rel_type}"
+  end
+
+  @spec url_for_rr(t(), data(), String.t(), Conn.t() | nil) :: String.t()
+  def url_for_rr(view, data, relationship_key, conn) do
+    "#{url_for(view, data, conn)}/#{relationship_key}"
   end
 
   @spec url_for_rel(t(), data(), Conn.query_params(), Paginator.params()) :: String.t()
