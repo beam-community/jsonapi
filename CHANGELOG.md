@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.14.2](https://github.com/beam-community/jsonapi/compare/v1.14.1...v1.14.2) (2026-06-03)
+
+
+### Bug Fixes
+
+* Fixes parsing of filter keys with dashes/camelized with QueryParser ([fc66b90](https://github.com/beam-community/jsonapi/commit/fc66b90ccd3429330bc5aae7d2fde5eacb6e9314))
+
 ## [1.14.1](https://github.com/beam-community/jsonapi/compare/v1.14.0...v1.14.1) (2026-05-22)
 
 
