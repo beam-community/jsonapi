@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.14.3](https://github.com/beam-community/jsonapi/compare/v1.14.2...v1.14.3) (2026-06-20)
+
+
+### Bug Fixes
+
+* Fixes related resource links ([f9a637c](https://github.com/beam-community/jsonapi/commit/f9a637cf6fa0077e4a032a66f32273a991522a7c))
+
 ## [1.14.2](https://github.com/beam-community/jsonapi/compare/v1.14.1...v1.14.2) (2026-06-03)
 
 
