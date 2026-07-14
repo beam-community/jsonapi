@@ -3,6 +3,13 @@
 ## NEXT
 ...
 
+## [1.14.4](https://github.com/beam-community/jsonapi/compare/v1.14.3...v1.14.4) (2026-07-14)
+
+
+### Bug Fixes
+
+* Unblock common-config sync, pinned actions-sync release had no build output ([#451](https://github.com/beam-community/jsonapi/issues/451)) ([631db00](https://github.com/beam-community/jsonapi/commit/631db0048d944231f79701c566e74c17104bdb09))
+
 ## [1.14.3](https://github.com/beam-community/jsonapi/compare/v1.14.2...v1.14.3) (2026-06-20)
 
 
