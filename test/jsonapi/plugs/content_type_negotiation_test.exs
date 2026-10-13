@@ -36,6 +36,17 @@ defmodule JSONAPI.ContentTypeNegotiationTest do
     refute conn.halted
   end
 
+  test "passes request through if accept is */*" do
+    conn =
+      :post
+      |> conn("/example", "")
+      |> Plug.Conn.put_req_header("content-type", mime_type())
+      |> Plug.Conn.put_req_header("accept", "*/*")
+      |> ContentTypeNegotiation.call([])
+
+    refute conn.halted
+  end
+
   test "passes request through if only accept header" do
     conn =
       :post
