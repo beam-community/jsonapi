@@ -117,23 +117,36 @@ defmodule JSONAPI.ErrorView do
     )
   end
 
-  @spec missing_relationship_data_id_param_error_attrs(binary()) :: error_attrs()
-  def missing_relationship_data_id_param_error_attrs(relationship_name) do
+  @spec missing_relationship_data_id_param_error_attrs(binary(), non_neg_integer() | nil) ::
+          error_attrs()
+  def missing_relationship_data_id_param_error_attrs(relationship_name, index \\ nil) do
     build_error(
       "Missing id in relationship data parameter",
       400,
       @relationship_resource_linkage_message,
-      "/data/relationships/#{relationship_name}/data/id"
+      relationship_data_pointer(relationship_name, index) <> "/id"
     )
   end
 
-  @spec missing_relationship_data_type_param_error_attrs(binary()) :: error_attrs()
-  def missing_relationship_data_type_param_error_attrs(relationship_name) do
+  @spec missing_relationship_data_type_param_error_attrs(binary(), non_neg_integer() | nil) ::
+          error_attrs()
+  def missing_relationship_data_type_param_error_attrs(relationship_name, index \\ nil) do
     build_error(
       "Missing type in relationship data parameter",
       400,
       @relationship_resource_linkage_message,
-      "/data/relationships/#{relationship_name}/data/type"
+      relationship_data_pointer(relationship_name, index) <> "/type"
+    )
+  end
+
+  @spec invalid_relationship_linkage_error_attrs(binary(), non_neg_integer() | nil) ::
+          error_attrs()
+  def invalid_relationship_linkage_error_attrs(relationship_name, index \\ nil) do
+    build_error(
+      "Invalid resource linkage in relationship",
+      400,
+      @relationship_resource_linkage_message,
+      relationship_data_pointer(relationship_name, index)
     )
   end
 
@@ -183,6 +196,12 @@ defmodule JSONAPI.ErrorView do
   defp extract_error(error) do
     Map.take(error, [:detail, :id, :links, :meta, :source, :status, :title])
   end
+
+  defp relationship_data_pointer(relationship_name, nil),
+    do: "/data/relationships/#{relationship_name}/data"
+
+  defp relationship_data_pointer(relationship_name, index),
+    do: "/data/relationships/#{relationship_name}/data/#{index}"
 
   defp append_field(error, _field, nil), do: error
   defp append_field(error, :meta, value), do: Map.put(error, :meta, %{meta: value})

@@ -444,6 +444,113 @@ defmodule JSONAPI.FormatRequiredTest do
     refute conn.halted
   end
 
+  for {method, path, data} <- [
+        {:post, "/example", %{}},
+        {:patch, "/example/some-id", %{id: "some-id"}}
+      ],
+      linkage <- ["oops", 123, true, ""] do
+    test "halts and returns an error for a scalar resource linkage #{inspect(linkage)} on #{method |> to_string() |> String.upcase()}" do
+      conn =
+        unquote(method)
+        |> conn(
+          unquote(path),
+          Jason.encode!(%{
+            data:
+              Map.merge(unquote(Macro.escape(data)), %{
+                type: "example",
+                attributes: %{},
+                relationships: %{comment: %{data: unquote(linkage)}}
+              })
+          })
+        )
+        |> call_plug
+
+      assert conn.halted
+      assert 400 == conn.status
+
+      %{"errors" => [error]} = Jason.decode!(conn.resp_body)
+
+      assert %{
+               "source" => %{"pointer" => "/data/relationships/comment/data"},
+               "title" => "Invalid resource linkage in relationship"
+             } = error
+    end
+  end
+
+  test "halts and returns an error for a to-many resource linkage containing a non-object" do
+    conn =
+      :post
+      |> conn(
+        "/example",
+        Jason.encode!(%{
+          data: %{
+            type: "example",
+            attributes: %{},
+            relationships: %{reviews: %{data: [%{type: "review", id: "1"}, "oops"]}}
+          }
+        })
+      )
+      |> call_plug
+
+    assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => [error]} = Jason.decode!(conn.resp_body)
+
+    assert %{
+             "source" => %{"pointer" => "/data/relationships/reviews/data/1"},
+             "title" => "Invalid resource linkage in relationship"
+           } = error
+  end
+
+  test "halts and returns an error for a to-many resource linkage missing type and id members" do
+    conn =
+      :post
+      |> conn(
+        "/example",
+        Jason.encode!(%{
+          data: %{
+            type: "example",
+            attributes: %{},
+            relationships: %{reviews: %{data: [%{type: "review"}, %{id: "2"}]}}
+          }
+        })
+      )
+      |> call_plug
+
+    assert conn.halted
+    assert 400 == conn.status
+
+    %{"errors" => errors} = Jason.decode!(conn.resp_body)
+
+    error_pointers = Enum.map(errors, fn error -> get_in(error, ["source", "pointer"]) end)
+
+    assert Enum.sort(error_pointers) == [
+             "/data/relationships/reviews/data/0/id",
+             "/data/relationships/reviews/data/1/type"
+           ]
+  end
+
+  test "accepts a to-many resource linkage of resource identifier objects" do
+    conn =
+      :post
+      |> conn(
+        "/example",
+        Jason.encode!(%{
+          data: %{
+            type: "example",
+            attributes: %{},
+            relationships: %{
+              reviews: %{data: [%{type: "review", id: "1"}, %{type: "review", id: "2"}]}
+            }
+          }
+        })
+      )
+      |> call_plug
+
+    refute conn.halted
+  end
+
   test "passes request through" do
     conn =
       :post
