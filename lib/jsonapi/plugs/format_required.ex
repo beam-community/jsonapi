@@ -31,28 +31,22 @@ defmodule JSONAPI.FormatRequired do
       when method in ~w[POST PATCH] and is_map(relationships) do
     errors =
       Enum.reduce(relationships, [], fn
-        {_relationship_name, %{"data" => %{"type" => _type, "id" => _}}}, acc ->
+        # Resource linkage per https://jsonapi.org/format/#document-resource-object-linkage
+        # - null for empty to-one relationships.
+        {_relationship_name, %{"data" => nil}}, acc ->
           acc
 
-        {relationship_name, %{"data" => %{"type" => _type}}}, acc ->
-          error = missing_relationship_data_id_param_error_attrs(relationship_name)
-          [error | acc]
+        # - an array of resource identifier objects for to-many relationships, possibly empty.
+        {relationship_name, %{"data" => linkages}}, acc when is_list(linkages) ->
+          linkages
+          |> Enum.with_index()
+          |> Enum.reduce(acc, fn {linkage, index}, inner_acc ->
+            resource_identifier_errors(linkage, relationship_name, index) ++ inner_acc
+          end)
 
-        {relationship_name, %{"data" => %{"id" => _type}}}, acc ->
-          error = missing_relationship_data_type_param_error_attrs(relationship_name)
-          [error | acc]
-
-        {relationship_name, %{"data" => %{}}}, acc ->
-          id_error = missing_relationship_data_id_param_error_attrs(relationship_name)
-          type_error = missing_relationship_data_type_param_error_attrs(relationship_name)
-          [id_error | [type_error | acc]]
-
-        {_relationship_name, %{"data" => _}}, acc ->
-          # Allow things other than resource identifier objects per https://jsonapi.org/format/#document-resource-object-linkage
-          # - null for empty to-one relationships.
-          # - an empty array ([]) for empty to-many relationships.
-          # - an array of resource identifier objects for non-empty to-many relationships.
-          acc
+        # - a single resource identifier object for non-empty to-one relationships.
+        {relationship_name, %{"data" => linkage}}, acc ->
+          resource_identifier_errors(linkage, relationship_name, nil) ++ acc
 
         {relationship_name, _}, acc ->
           error = missing_relationship_data_param_error_attrs(relationship_name)
@@ -94,4 +88,22 @@ defmodule JSONAPI.FormatRequired do
     do: send_error(conn, missing_data_attributes_param())
 
   def call(conn, _), do: send_error(conn, missing_data_param())
+
+  defp resource_identifier_errors(%{"type" => _, "id" => _}, _relationship_name, _index), do: []
+
+  defp resource_identifier_errors(%{"type" => _}, relationship_name, index),
+    do: [missing_relationship_data_id_param_error_attrs(relationship_name, index)]
+
+  defp resource_identifier_errors(%{"id" => _}, relationship_name, index),
+    do: [missing_relationship_data_type_param_error_attrs(relationship_name, index)]
+
+  defp resource_identifier_errors(%{}, relationship_name, index) do
+    [
+      missing_relationship_data_id_param_error_attrs(relationship_name, index),
+      missing_relationship_data_type_param_error_attrs(relationship_name, index)
+    ]
+  end
+
+  defp resource_identifier_errors(_linkage, relationship_name, index),
+    do: [invalid_relationship_linkage_error_attrs(relationship_name, index)]
 end
