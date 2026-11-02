@@ -3,6 +3,14 @@
 ## NEXT
 ...
 
+## [1.14.4](https://github.com/beam-community/jsonapi/compare/v1.14.3...v1.14.4) (2026-11-02)
+
+
+### Bug Fixes
+
+* Return 400 for invalid relationship resource linkage ([e81767a](https://github.com/beam-community/jsonapi/commit/e81767acf4e042a7adc1ba159b76f38b289da48d)), closes [#473](https://github.com/beam-community/jsonapi/issues/473)
+* Unblock common-config sync, pinned actions-sync release had no build output ([#451](https://github.com/beam-community/jsonapi/issues/451)) ([631db00](https://github.com/beam-community/jsonapi/commit/631db0048d944231f79701c566e74c17104bdb09))
+
 ## [1.14.3](https://github.com/beam-community/jsonapi/compare/v1.14.2...v1.14.3) (2026-06-20)
 
 
