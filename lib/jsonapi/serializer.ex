@@ -2,8 +2,6 @@ defmodule JSONAPI.Serializer do
   @moduledoc """
   Serialize a map of data into a properly formatted JSON API response object
   """
-  require Logger
-
   alias JSONAPI.{Config, Utils, View}
   alias Plug.Conn
 
