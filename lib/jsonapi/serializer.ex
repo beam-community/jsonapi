@@ -222,13 +222,16 @@ defmodule JSONAPI.Serializer do
     merge_related_links(data, info, add_auto_links?())
   end
 
-  defp merge_links(doc, data, view, conn, _page, false, _options, is_root_of_doc) do
-    merge_view_links(doc, data, view, conn, is_root_of_doc)
+  defp merge_links(doc, data, view, conn, page, false, options, is_root_of_doc) do
+    doc
+    |> merge_pagination_links(data, view, conn, page, options)
+    |> merge_view_links(data, view, conn, is_root_of_doc)
   end
 
   defp merge_links(doc, data, view, conn, page, true, options, is_root_of_doc) do
     doc
     |> merge_auto_links(data, view, conn, page, options)
+    |> merge_pagination_links(data, view, conn, page, options)
     |> merge_view_links(data, view, conn, is_root_of_doc)
   end
 
@@ -262,22 +265,18 @@ defmodule JSONAPI.Serializer do
 
   defp merge_view_links(doc, _data, _view, _conn, true), do: doc
 
-  defp merge_auto_links(doc, data, view, conn, page, options)
-       when is_list(data) do
-    auto_links =
-      data
-      |> view.pagination_links(conn, page, options)
-      |> Map.merge(%{
-        self: view.url_for_pagination(data, conn, page)
-      })
+  defp merge_pagination_links(doc, data, view, conn, page, options) when is_list(data) do
+    merge_links_map(doc, view.pagination_links(data, conn, page, options))
+  end
 
-    Map.merge(doc, %{links: auto_links})
+  defp merge_pagination_links(doc, _data, _view, _conn, _page, _options), do: doc
+
+  defp merge_auto_links(doc, data, view, conn, page, _options) when is_list(data) do
+    merge_links_map(doc, %{self: view.url_for_pagination(data, conn, page)})
   end
 
   defp merge_auto_links(doc, data, view, conn, _page, _options) do
-    auto_links = %{self: view.url_for(data, conn)}
-
-    Map.merge(doc, %{links: auto_links})
+    merge_links_map(doc, %{self: view.url_for(data, conn)})
   end
 
   defp merge_related_links(
@@ -364,5 +363,9 @@ defmodule JSONAPI.Serializer do
       :dasherize_shallow -> Utils.String.expand_root_keys(fields, &Utils.String.dasherize/1)
       _ -> fields
     end
+  end
+
+  defp merge_links_map(doc, links) do
+    Map.update(doc, :links, links, &Map.merge(&1, links))
   end
 end
