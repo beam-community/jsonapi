@@ -534,7 +534,7 @@ defmodule JSONAPI.View do
     "#{url_for(view, data, conn)}/#{relationship_key}"
   end
 
-  @spec url_for_rel(t(), data(), Conn.query_params(), Paginator.params()) :: String.t()
+  @spec url_for_pagination(t(), data(), Conn.t(), Paginator.params() | nil) :: String.t()
   def url_for_pagination(
         view,
         data,
@@ -546,7 +546,12 @@ defmodule JSONAPI.View do
       |> Utils.List.to_list_of_query_string_components()
       |> URI.encode_query()
 
-    prepare_url(view, query, data, conn)
+    view
+    |> url_for(data, conn)
+    |> URI.parse()
+    |> maybe_put_request_path(conn)
+    |> maybe_put_query(query)
+    |> URI.to_string()
   end
 
   def url_for_pagination(view, data, %{query_params: query_params} = conn, pagination_params) do
@@ -593,15 +598,17 @@ defmodule JSONAPI.View do
     |> MapSet.to_list()
   end
 
-  defp prepare_url(view, "", data, conn), do: url_for(view, data, conn)
-
-  defp prepare_url(view, query, data, conn) do
-    view
-    |> url_for(data, conn)
-    |> URI.parse()
-    |> struct(query: query)
-    |> URI.to_string()
+  defp maybe_put_request_path(%URI{} = uri, %{request_path: path}) when is_binary(path) and path != "" do
+    %{uri | path: path}
   end
+
+  defp maybe_put_request_path(%URI{} = uri, _conn), do: uri
+
+  defp maybe_put_query(%URI{} = uri, query) when is_binary(query) and query != "" do
+    %{uri | query: query}
+  end
+
+  defp maybe_put_query(%URI{} = uri, _query), do: uri
 
   defp requested_fields_for_type(view, data, %Conn{assigns: %{jsonapi_query: %{fields: fields}}}) do
     fields[view.resource_type(data)]
