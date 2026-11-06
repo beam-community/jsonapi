@@ -38,10 +38,18 @@ defmodule JSONAPI.Serializer do
         process -> &process.(&1, query_includes)
       end
 
-    encoded_data = %{
-      data: encoded_data,
-      included: flatten_included(to_include, post_process_includes)
-    }
+    encoded_data = %{data: encoded_data}
+    included = flatten_included(to_include, post_process_includes)
+
+    # Serialize `included` member when:
+    # - There are included resources (either as result from client request or view default include)
+    # - No included resources, but client explicitly requested with include query param
+    encoded_data =
+      if included != [] or query_includes != [] do
+        Map.put(encoded_data, :included, included)
+      else
+        encoded_data
+      end
 
     encoded_data =
       if is_map(meta) do

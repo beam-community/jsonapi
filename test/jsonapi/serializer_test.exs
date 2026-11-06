@@ -940,9 +940,7 @@ defmodule JSONAPI.SerializerTest do
 
     encoded = Serializer.serialize(NotIncludedView, data, nil)
 
-    included = encoded[:included]
-
-    assert included == []
+    refute Map.has_key?(encoded, :included)
   end
 
   test "serialize does not include links if remove_links is configured" do
